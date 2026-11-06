@@ -20,7 +20,6 @@ class ClockView:
 class WeekdayRenderer:
     NAMES = ("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
     RENDER_WIDTH = 4096
-    MAX_ROWS = 20
 
     def __init__(self):
         self._key = None
@@ -42,7 +41,7 @@ class WeekdayRenderer:
                 lines = ()
             while lines and not lines[-1].strip():
                 lines = lines[:-1]
-            if lines and len(lines) <= self.MAX_ROWS and max(map(width, lines)) <= available:
+            if lines and max(map(width, lines)) <= available:
                 break
         else:
             lines = (fit(candidates[-1], available),)

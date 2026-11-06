@@ -51,7 +51,6 @@ class ElementTests(unittest.TestCase):
             for data in (
                 {'enabled': 'false'},
                 {'spacing': {'after_rows': -1}},
-                {'spacing': {'after_rows': 21}},
                 {'spacing': {'after_rows': True}},
                 {'spacing': {'basic_after_rows': 0.5}}
             ):

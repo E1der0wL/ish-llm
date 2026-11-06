@@ -27,7 +27,10 @@ class MediaInput:
         return playback
 
     def supports(self, action):
-        return self._enabled() and not self._runtime.busy and self._runtime.state.supports(action)
+        return self._enabled() and self.available(action)
+
+    def available(self, action):
+        return not self.dragging and not self._runtime.busy and self._runtime.state.supports(action)
 
     @property
     def can_seek(self):

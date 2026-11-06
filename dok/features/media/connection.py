@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-from ...core.records import Boolean, Nullable, Number, Record, Text, setting
+from ...core.records import Boolean, Nullable, POSITIVE_SECONDS, Record, Text, setting
 from .models import PlaybackAction, PlaybackSnapshot, PlaybackStatus
 
 
@@ -14,10 +14,10 @@ class MediaConfig(Record):
         description="Connect to MPRIS players on the Linux session bus while the dock is visible.")
     player: str | None = setting(Nullable(Text(nonblank=True, single_line=True)), default=None,
         description="Exact MPRIS bus name, or null to select a playing player and retain it until it exits.")
-    refresh_seconds: float = setting(Number(minimum=0.5, maximum=60), default=1.0,
-        description="Seconds between player state queries while visible. No polling while hidden.")
-    timeout_seconds: float = setting(Number(minimum=0.1, maximum=30), default=2.0,
-        description="Maximum seconds for each D-Bus request. Failed commands are never retried.")
+    refresh_seconds: float = setting(POSITIVE_SECONDS, default=1.0,
+        description="Positive finite seconds between player state queries while visible. No polling while hidden.")
+    timeout_seconds: float = setting(POSITIVE_SECONDS, default=2.0,
+        description="Positive finite timeout in seconds for each D-Bus request. Failed commands are never retried.")
 
 
 @dataclass(frozen=True, slots=True)

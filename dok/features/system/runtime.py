@@ -1,5 +1,6 @@
 """One bounded sampler whose blocking read finishes before replacement."""
 import asyncio
+import sys
 from collections import deque
 from collections.abc import Callable
 import time
@@ -18,7 +19,7 @@ class SystemRuntime:
         self._config = SystemConfig()
         self._active = False
         self._snapshot = SystemSnapshot()
-        self._history = deque(maxlen=self._config.history_samples)
+        self._history = deque()
 
     async def _read(self, config: SystemConfig) -> SystemReading:
         job = asyncio.create_task(asyncio.to_thread(self._backend.read, config.interfaces))
@@ -65,7 +66,7 @@ class SystemRuntime:
         active = active and config.enabled and not self._task.closed
         if active != self._active or config != self._config:
             self._snapshot = SystemSnapshot()
-            self._history = deque(maxlen=config.history_samples)
+            self._history = deque(maxlen=min(config.history_samples, sys.maxsize))
         self._active, self._config = active, config
         self._task.sync(active=active, key=config, run=lambda: self._run(config), start=start_task)
 

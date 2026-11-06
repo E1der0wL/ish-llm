@@ -15,7 +15,8 @@ class DockGeometry:
 
     @classmethod
     def height(cls, mode, extra_rows=0, config=None):
-        return len(cls.body_rows(mode, config)) + extra_rows
+        config = config if config is not None else DockConfig()
+        return sum(widget.view.element.row_count(1, mode) for widget in body_widgets(config)) + extra_rows
 
     @classmethod
     def fits(cls, available_height, body_width, mode=DockMode.BASIC, extra_rows=0, config=None):

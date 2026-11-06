@@ -3,16 +3,33 @@
 dok는 기존 `prompt.bottom_toolbar`에 한 줄 상태 표시 함수를 등록한다. ish의 toolbar 위치를 사용하며 Float 높이·프롬프트·키 바인딩을 변경하지 않는다. `toolbar.enabled` 기본값은 `true`다. 기존 개인 파일에 새 항목이 없으면 Owner 기본값을 사용하고 파일 자체는 다시 쓰지 않는다.
 
 ```text
-2026-11-06(금)  Len:108  Lines:3  Ln:2  Col:21  Pos:48  Σ 600(200)       CPU 9% ⣀⣠⣀⣀  MEM …  NET ↓1.4 MiB/s ↑82 KiB/s
+2026-11-06(Fri)    Len:108    Lines:3            Ln:2      Col:21     Pos:48           Σ 600(200)                9% ⣀⣀⣀⣠⣤⣤⣠⣀⣀⣀⣠⣀    25% ━━━─────────  NET    ↓1.4M ↑82K/s
 ```
 
 CPU/MEM은 기본 설정에서 Nerd Font 아이콘이다. 배경은 터미널 기본색이며 테두리는 없다. 터미널 투명도는 터미널 설정을 따른다. CPU는 Braille 점 그래프, 메모리는 얇은 용량 막대이며 네트워크 그래프는 선택적으로 켠다. 픽셀 그래픽은 아니다.
 
 ## 배치와 날짜
 
-날짜 → 입력 정보 → 합계·평균은 왼쪽에, 시스템 정보는 터미널 오른쪽 끝에 정렬한다. 날짜·입력 길이가 바뀌어도 오른쪽 정렬은 유지된다. 창이 좁아지면 그래프부터 줄이고, 그래프 없이도 부족하면 날짜와 뒤쪽 입력 항목을 생략한다. 합계·평균은 가능한 한 유지한다. 오른쪽 수치 자체가 너비를 넘으면 `toolbar.system.order`의 뒤쪽 항목부터 생략한다. 마지막 항목도 들어가지 않으면 문자 경계를 지키며 줄인다. 줄 추가나 좌우 겹침은 없다.
+오른쪽의 CPU·MEM·NET은 기본적으로 각각 **19칸**이다. `toolbar.regions.<항목>.width_columns`에는 라벨·수치·그래프가 모두 들어간다. 내부 수치 너비는 `toolbar.system.<항목>.value_width_columns`로 지정하며 실제로 남은 칸까지 사용한다. 기본 너비에서 긴 NET 속도는 `↓1.4M ↑82K/s`처럼 줄인다. K·M·G는 KiB·MiB·GiB이고 끝의 `/s`는 수신·송신 양쪽에 적용된다.
 
-날짜는 기본 `%Y-%m-%d(%a)`다. `%a`, `%A`는 월요일부터 일요일까지 `weekdays` 문구를 사용한다. `clock.timezone`을 공유하며 `null`은 시스템 시간대다. 기본 펼침·최대화 dock이 **실제로 그려지면** 날짜만 숨기고 공백은 없앤다. dock 숨김·공간 부족이면 다시 표시한다. 실제 Float 표시는 그리기 완료 후 확인하고 변경 시 한 번 추가 갱신한다.
+날짜·입력 정보·합계는 왼쪽, 시스템 정보는 오른쪽 끝에 정렬한다. 고정 너비 영역은 그 안에 그래프를 맞춘다. 오른쪽 기본 배치는 구분 공백을 포함해 61칸을 사용한다. 터미널이 이보다 좁으면 `toolbar.system.order`의 뒤쪽 항목부터 생략한다. 왼쪽 공간이 부족하면 날짜와 뒤쪽 입력 항목을 생략하고 합계·평균을 우선 표시한다.
+
+날짜는 기본 `%Y-%m-%d(%a)`이며 `Mon`부터 `Sun`까지 영문 약어를 사용한다. `%a`, `%A`의 요일 문구는 `weekdays`에서 바꿀 수 있다. `clock.timezone`을 공유하며 `null`은 시스템 시간대다. dock이 그려지면 날짜와 해당 여백이 함께 숨겨진다.
+
+`toolbar.regions`에서 각 영역을 설정한다. 왼쪽은 `date` → `size`(Len·Lines) → `cursor`(Ln·Col·Pos 및 선택한 편집 정보) → `numbers`(Σ) 순서다. 새 설정 파일에는 `group_gap_columns: 8`과 `regions.date.padding_after_columns: 4`가 들어간다. 날짜 뒤는 4칸, 나머지 세 그룹 사이는 8칸이다. 기존 설정에서 그룹 간격을 생략하면 일반 기본값인 4칸을 사용한다.
+
+| 영역 설정 | 의미 |
+| --- | --- |
+| `width_columns` | 라벨·값·내부 간격·그래프를 포함한 내용 너비. 1칸 이상, `null`은 자동. 고정 너비의 남는 칸은 영역 배경으로 채운다. |
+| `padding_before_columns`, `padding_after_columns` | 내용 바깥의 앞뒤 여백. 0칸 이상. 뒤 여백 `null`은 다음 영역이 있을 때 왼쪽은 그룹 간격, 오른쪽은 `toolbar.separator`를 사용한다. 직접 설정하면 마지막 영역에도 적용한다. |
+| `item_gap_columns` | 영역 내부 요소 사이 공백. 0칸 이상. 길이·위치 영역에서는 필드 사이, Σ에서는 라벨과 결과 사이, 시스템 영역에서는 아이콘·수치·그래프 사이에 적용한다. NET의 수신·송신 사이에도 적용한다. 날짜 문자열 내부 간격은 `date.format`으로 지정한다. |
+| `style.color`, `style.background` | `#RRGGBB` 색상. 영역의 앞뒤 여백과 내용 전체에 적용한다. `null`이면 개별 요소 전경색과 `toolbar.background`를 사용한다. toolbar 배경의 기본값 `null`은 터미널 기본 배경이다. |
+
+길이(`regions.size`), 커서(`regions.cursor`), 합계·평균(`regions.numbers`)에는 각각 숫자의 `alignment`와 `max_digits`가 있다. 런타임과 새 파일의 기본값은 `"left"`, `null`이다. `"right"`로 바꾸면 남는 칸이 숫자 앞에 온다. Σ는 합계와 괄호 안 평균을 묶어서 정렬한다.
+
+`max_digits`에 양의 정수를 지정하면 각 숫자에 따로 적용한다. 부호·쉼표·소수점·단위는 자릿수에서 제외한다. 예를 들어 3자리에서 12345는 `12.3K`이며, 2자리에서 123456은 K 단위로 줄여도 정수부가 세 자리여서 `12...`가 된다. 음수의 부호를 보존한다. 합계와 평균은 원래 수로 먼저 계산한다.
+
+기본 `value_width_columns: null`에서는 입력 값이 5칸, Σ 값이 15칸부터 필요한 만큼 늘어난다. 숫자를 명시하면 해당 값의 너비를 고정한다. 고정한 너비나 터미널 공간이 부족할 때도 단위 축약을 우선하며, 점 세 개와 숫자가 함께 들어가기 어려운 칸에서는 한 칸짜리 `…`를 쓴다.
 
 ## 입력 정보와 숫자 계산
 
@@ -23,11 +40,11 @@ CPU/MEM은 기본 설정에서 Nerd Font 아이콘이다. 배경은 터미널 �
 - 줄·열·전체 위치는 1부터 시작한다. 입력 끝 위치는 길이 + 1이다.
 - 편집 모드는 Emacs 또는 Vi의 실제 입력·일반·교체 상태다. 인코딩은 파일 속성이 아닌 ish 셸 입출력 인코딩이다.
 
-숫자 표시는 기본 `Σ 합계(평균)`이다. `numbers.scope: "selection"`은 prompt-toolkit의 프롬프트 선택 범위를 사용한다. 블록 선택은 행마다 따로 해석해 숫자를 이어 붙이지 않는다. **Windows Terminal의 Shift+드래그 같은 터미널 자체 선택은 dok에 전달되지 않는다.** 기존 셸 선택 키를 사용하거나 `scope: "input"`으로 전체 입력을 계산한다. 새 편집 키나 마우스 선택 기능은 추가하지 않는다.
+숫자 계산의 기본 범위는 `input`이다. 프롬프트에 `10 20`을 입력하면 드래그 없이 `Σ 30(15)`를 표시한다. `selection`으로 바꾸면 prompt-toolkit의 선택 범위만 계산하며, 블록 선택은 행마다 따로 해석한다. 터미널 자체의 Shift+드래그 선택은 셸 선택 범위와 독립적이다.
 
 ASCII 숫자, 부호, 소수, 천 단위 쉼표를 지원한다. `사과100`, `-20.5`, `1,200.50`, `.5`를 숫자로 읽으며 끝의 쉼표·마침표는 문장 부호로 처리한다. `12,34`, 여러 소수점, 지수 표기는 통째로 제외한다. 날짜·버전·코드의 의미를 판별하거나 수식을 실행하지 않는다. 평균은 인식한 숫자의 개수로 나눈다.
 
-Decimal로 합산하고 표시 시 half-up으로 반올림한다. 기본 최대 2자리이며 뒤쪽 0은 제거한다. 선택/숫자가 없으면 `Σ —`다. 계산 Owner 한도는 100,000자, 10,000개 숫자, 숫자당 256자리다. 초과하면 부분 합계 대신 `Σ …`를 표시한다. 마지막 계산 한 건만 캐시한다.
+Decimal로 합산하며 `numbers.decimal_places`의 기본값 `null`은 계산된 소수 자릿수를 사용한다. 순환소수는 계산 정밀도와 화면 너비 안에서 표시한다. 0 이상의 정수를 지정하면 표시할 때 해당 소수 자릿수로 반올림한다(half-up). 뒤쪽 소수 0은 제거한다. 계산 범위에 숫자가 없으면 `Σ —`다. 계산 한도는 100,000자, 10,000개 숫자, 숫자당 256자리다. 초과하면 `Σ …`를 표시한다. 마지막 계산 한 건만 캐시한다.
 
 ## 측정의 의미와 수명
 
@@ -36,7 +53,7 @@ Decimal로 합산하고 표시 시 half-up으로 반올림한다. 기본 최대 
 | 값 | 의미 |
 | --- | --- |
 | CPU | 전체 시간 대비 busy 시간 증가량, 0–100%. Linux guest 중복 합산과 idle/iowait 제외 |
-| 메모리 | `total - available`, 전체 용량, 사용률. 단순 free 메모리 기준이 아님 |
+| 메모리 | `(total - available) / total × 100`으로 계산한 사용률을 정수 퍼센트로 표시 |
 | 네트워크 | 인터페이스 송수신 byte 증가량 / 실제 monotonic 경과 초. B/s·KiB/s·MiB/s 등 이진 단위 |
 
 첫 CPU·네트워크 측정은 기준만 저장하고 `—`로 표시한다. 카운터 감소·인터페이스 변경 때도 새 기준을 잡는다. 메모리는 첫 측정부터 표시한다. 네트워크 그래프는 수신+송신 합계이며 보관된 구간의 최대값에 맞춘 상대 크기다. CPU 그래프는 항상 0–100%다.
@@ -62,9 +79,20 @@ WSL에서는 Linux에서 보이는 자원을 측정한다. Windows 전체 사용
   "toolbar": {
     "enabled": true,
     "separator": "  ",
+    "group_gap_columns": 8,
+    "background": null,
+    "regions": {
+      "date": {"padding_after_columns": 4},
+      "size": {"alignment": "left", "max_digits": null},
+      "cursor": {"alignment": "left", "max_digits": null},
+      "numbers": {"alignment": "left", "max_digits": null},
+      "cpu": {"width_columns": 19},
+      "memory": {"width_columns": 19},
+      "network": {"width_columns": 19}
+    },
     "date": {
       "format": "%Y-%m-%d(%a)",
-      "weekdays": ["월", "화", "수", "목", "금", "토", "일"],
+      "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       "hide_when_dock_visible": true,
       "style": {"color": "#d1d5db"}
     },
@@ -77,12 +105,12 @@ WSL에서는 Linux에서 보이는 자원을 측정한다. Windows 전체 사용
         {"field": "position", "label": "Pos:"}
       ]
     },
-    "numbers": {"scope": "selection", "decimal_places": 2, "label": "Σ "},
+    "numbers": {"scope": "input", "decimal_places": null, "label": "Σ ", "value_width_columns": null},
     "system": {
       "order": ["cpu", "memory", "network"],
-      "cpu": {"label": "", "graph": {"columns": 12}},
-      "memory": {"label": "", "graph": {"columns": 12}},
-      "network": {"label": "NET", "graph": {"enabled": false}},
+      "cpu": {"label": "", "value_width_columns": 4, "graph": {"columns": 12}},
+      "memory": {"label": "", "value_width_columns": 4, "graph": {"columns": 12}},
+      "network": {"label": "NET", "value_width_columns": 27, "graph": {"enabled": false}},
       "download_label": "↓",
       "upload_label": "↑"
     }

@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 
 from ...rendering.text import fit, width
-from .config import Metric, ToolbarConfig
+from ...rendering.presentation import TextRow, TextSpan
+from .config import Metric, RegionLayout, ToolbarConfig
 from .editor import NumberCalculator
 
 
@@ -12,12 +13,14 @@ class MetricFormat:
     DOTS = ((0x40, 0x04, 0x02, 0x01), (0x80, 0x20, 0x10, 0x08))
 
     @classmethod
-    def bytes(cls, value, *, rate=False):
+    def bytes(cls, value, *, rate=False, compact=False, places=1):
         if value is None:
             return "—"
         for unit in cls.UNITS:
             if value < 1024 or unit == cls.UNITS[-1]:
-                text = f"{value:.1f}".rstrip("0").rstrip(".")
+                text = f"{value:.{places}f}".removesuffix(".0")
+                if compact:
+                    return text + unit[0] + ("/s" if rate else "")
                 return text + " " + unit + ("/s" if rate else "")
             value /= 1024
 
@@ -47,12 +50,17 @@ class MetricFormat:
         return "━" * filled + "─" * (columns - filled)
 
     @classmethod
-    def label(cls, kind, snapshot, config):
+    def label(cls, kind, snapshot, config, separator=" "):
         if kind == Metric.CPU:
             return cls.percent(snapshot.cpu_percent)
         if kind == Metric.MEMORY:
-            return f"{cls.bytes(snapshot.memory_used)}/{cls.bytes(snapshot.memory_total)} {cls.percent(snapshot.memory_percent)}"
-        return f"{config.download_label}{cls.bytes(snapshot.received_per_second, rate=True)} {config.upload_label}{cls.bytes(snapshot.sent_per_second, rate=True)}"
+            return cls.percent(snapshot.memory_percent)
+        def rates(*, compact=False, places=1):
+            received = cls.bytes(snapshot.received_per_second, rate=not compact, compact=compact, places=places)
+            sent = cls.bytes(snapshot.sent_per_second, rate=True, compact=compact, places=places)
+            return f"{config.download_label}{received}{separator}{config.upload_label}{sent}"
+
+        return rates(), rates(compact=True), rates(compact=True, places=0)
 
     @classmethod
     def graph(cls, kind, snapshot, history, columns):
@@ -71,80 +79,135 @@ class Segment:
     color: str
 
 
-class ToolbarView:
-    BASE_STYLE = "noreverse bg:default"
+@dataclass(slots=True)
+class Region:
+    layout: RegionLayout
+    parts: list[Segment]
+    separator: str
 
+    def text_width(self) -> int:
+        return sum(width(part.text) for part in self.parts) + max(0, len(self.parts) - 1) * width(self.separator)
+
+    def size(self, following: str) -> int:
+        content = self.layout.width_columns or self.text_width()
+        return self.layout.padding_before_columns + content + self.layout.after_width(following)
+
+    def paint(self, available: int, following: str, background: str | None):
+        layout = self.layout
+        after = layout.after(following, available)
+        cells = min(layout.content_room(available, after), layout.width_columns or self.text_width())
+        spans = []
+        neutral = layout.style.paint(None, background)
+        for index, part in enumerate(self.parts):
+            if index and self.separator:
+                spans.append(TextSpan(self.separator, ""))
+            spans.append(TextSpan(part.text, part.color))
+        row = TextRow(tuple(spans)).fitted(cells)
+        before = " " * min(layout.padding_before_columns, available)
+        fragments = [(neutral, before)] + [(layout.style.paint(span.color or None, background), span.text) for span in row.spans]
+        fragments.append((neutral, " " * (cells - row.cells)))
+        fragments.append((neutral, fit(after, available - len(before) - cells, marker="")))
+        return fragments
+
+
+class ToolbarView:
     def __init__(self):
         self._numbers = NumberCalculator()
 
     @staticmethod
-    def _size(parts, separator):
-        return sum(width(part.text) for part in parts) + max(0, len(parts) - 1) * width(separator)
+    def _visible(regions, separator):
+        active = [region for region in regions if region.parts]
+        return [(region, separator if index + 1 < len(active) else "") for index, region in enumerate(active)]
 
     @classmethod
-    def _fragments(cls, parts, separator):
+    def _size(cls, regions, separator):
+        return sum(region.size(following) for region, following in cls._visible(regions, separator))
+
+    @classmethod
+    def _paint(cls, regions, separator, cells, background):
         fragments = []
-        for index, part in enumerate(parts):
-            if index:
-                fragments.append((cls.BASE_STYLE, separator))
-            fragments.append((f"{cls.BASE_STYLE} {part.color}", part.text))
-        return fragments
+        remaining = cells
+        for region, following in cls._visible(regions, separator):
+            fragments.extend(region.paint(remaining, following, background))
+            remaining = max(0, remaining - region.size(following))
+        return fragments, cells - remaining
+
+    def _left(self, config, editor, now, dock_visible, budget):
+        if budget <= 0:
+            return [], 0
+        layouts = config.regions
+        date = Region(layouts.date, [], "")
+        if config.date.visible(dock_visible):
+            text = config.date.render(now)
+            if text:
+                date.parts.append(Segment(text, config.date.style.color))
+        inputs = []
+        for layout, items in zip((layouts.size, layouts.cursor), config.input.groups()):
+            room = layout.content_room(budget, layout.after("", budget))
+            parts = [Segment(item.render(editor, room, layout), item.style.color) for item in items[:max(1, room)]]
+            inputs.append(Region(layout, parts, layout.between(config.separator, room)))
+        numbers = Region(layouts.numbers, [], "")
+        if config.numbers.enabled:
+            summary = self._numbers.calculate(editor, config.numbers.scope)
+            room = layouts.numbers.content_room(budget, layouts.numbers.after("", budget))
+            text = config.numbers.render(summary, room, layouts.numbers.item_gap_columns, layouts.numbers)
+            if text:
+                numbers.parts.append(Segment(text, config.numbers.style.color))
+        regions = [date, *inputs, numbers]
+        gap = " " * min(config.group_gap_columns, budget)
+        if self._size(regions, gap) > budget and any(region.parts for region in regions[1:]):
+            date.parts.clear()
+        count = sum(len(region.parts) for region in regions)
+        for region in reversed(inputs):
+            while region.parts and count > 1 and self._size(regions, gap) > budget:
+                region.parts.pop()
+                count -= 1
+        return self._paint(regions, gap, budget, config.background)
 
     def render(self, config: ToolbarConfig, editor, snapshot, history, now, dock_visible, columns):
         if columns <= 0:
             return []
-        separator = config.separator
-        left = []
-        date_text = config.date.render(now) if config.date.visible(dock_visible) else ""
-        date_visible = bool(date_text)
-        if date_visible:
-            left.append(Segment(date_text, config.date.style.color))
-        if config.input.enabled:
-            left.extend(Segment(item.label + editor.value(item.field), item.style.color)
-                        for item in config.input.items if item.enabled)
-        numbers_text = ""
-        if config.numbers.enabled:
-            summary = self._numbers.calculate(editor, config.numbers.scope)
-            numbers_text = config.numbers.render(summary)
-        has_numbers = bool(numbers_text)
-        if has_numbers:
-            left.append(Segment(numbers_text, config.numbers.style.color))
         entries = list(config.system.items())
-        right = [Segment((item.label + " " if item.label else "") + MetricFormat.label(kind, snapshot, config.system), item.style.color)
-                 for kind, item in entries]
-        # Protect right-side values before allocating any graph columns.
-        while len(right) > 1 and self._size(right, separator) > columns:
+        right = []
+        for kind, item in entries:
+            layout = config.regions.metric(kind)
+            room = layout.content_room(columns, layout.after("", columns))
+            gap = layout.between(" ", room)
+            value = MetricFormat.label(kind, snapshot, config.system, gap)
+            caption = item.caption(value, room, gap)
+            right.append(Region(layout, [Segment(caption, item.style.color)], gap))
+        while len(right) > 1 and self._size(right, config.separator) > columns:
             right.pop()
             entries.pop()
-        if right and self._size(right, separator) > columns:
-            right[0] = Segment(fit(right[0].text, columns), right[0].color)
-        budget = max(0, columns - self._size(right, separator) - (1 if right and left else 0))
-        # Date is optional. Later input fields go next; preserve the number
-        # summary as long as it fits. The final remaining field is clipped.
-        if date_visible and self._size(left, separator) > budget:
-            left.pop(0)
-        while len(left) > 1 and self._size(left, separator) > budget:
-            left.pop(-2 if has_numbers else -1)
-        if left and self._size(left, separator) > budget:
-            left[0] = Segment(fit(left[0].text, budget), left[0].color)
-        left = [part for part in left if part.text]
-        spare = max(0, columns - self._size(left, separator) - self._size(right, separator)
-                    - (1 if left and right else 0))
-        lengths = [0] * len(entries)
-        # Allocate graph cells evenly. A graph also needs its leading space.
-        while spare:
-            changed = False
-            for index, (_, item) in enumerate(entries):
-                cost = 2 if lengths[index] == 0 else 1
-                if item.graph.enabled and lengths[index] < item.graph.columns and spare >= cost:
-                    lengths[index] += 1
+        base = min(columns, self._size(right, config.separator))
+        left, left_width = self._left(config, editor, now, dock_visible, columns - base - bool(right))
+        spare = max(0, columns - base - left_width - bool(left and right))
+
+        # Fixed-width regions already own their graph space. Auto-sized graphs
+        # share spare cells after both the right values and left fields fit.
+        lengths = [0] * len(right)
+        automatic = []
+        for i, (region, following) in enumerate(self._visible(right, config.separator)):
+            graph = entries[i][1].graph
+            if graph.enabled:
+                if region.layout.width_columns is None:
+                    automatic.append(i)
+                else:
+                    room = region.layout.content_room(columns, region.layout.after(following, columns))
+                    lengths[i] = min(graph.columns, max(0, room - region.text_width() - width(region.separator)))
+        while automatic and spare:
+            pending = []
+            for i in automatic:
+                cost = 1 if lengths[i] else 1 + width(right[i].separator)
+                if cost <= spare:
+                    lengths[i] += 1
                     spare -= cost
-                    changed = True
-            if not changed:
-                break
-        for index, ((kind, _), count) in enumerate(zip(entries, lengths)):
-            if count:
-                right[index] = Segment(right[index].text + " " + MetricFormat.graph(kind, snapshot, history, count), right[index].color)
-        gap = max(0, columns - self._size(left, separator) - self._size(right, separator))
-        return (self._fragments(left, separator) + [(self.BASE_STYLE, " " * gap)]
-                + self._fragments(right, separator))
+                    if lengths[i] < entries[i][1].graph.columns:
+                        pending.append(i)
+            automatic = pending
+        for region, (kind, item), length in zip(right, entries, lengths):
+            if length:
+                region.parts.append(Segment(MetricFormat.graph(kind, snapshot, history, length), item.style.color))
+        fragments, right_width = self._paint(right, config.separator, columns, config.background)
+        middle = (f"noreverse bg:{config.background or 'default'}", " " * (columns - left_width - right_width))
+        return left + [middle] + fragments

@@ -70,8 +70,10 @@ class DockOverlay(Container):
     def _layout(self, height, width):
         owner = self._controller
         body_width = owner.config.dock.width.resolve(owner.pty_columns(), width)
-        extra = (self._dashboard.rows(owner.config, owner.weather, body_width)
+        extra = (self._dashboard.rows(owner.config, owner.weather, body_width, max_rows=height)
                  if owner.requested_mode == DockMode.MAXIMIZED else ())
+        if extra is None:
+            return DockGeometry.resolve(DockMode.BASIC, height, body_width, 0, owner.config), (), body_width
         mode = DockGeometry.resolve(owner.requested_mode, height, body_width, len(extra), owner.config)
         return mode, extra if mode == DockMode.MAXIMIZED else (), body_width
 

@@ -6,6 +6,7 @@ from dataclasses import MISSING, dataclass, field, fields
 from enum import StrEnum
 from typing import Any, Self
 import math
+import sys
 import unicodedata
 
 
@@ -82,6 +83,10 @@ class Number(Rule):
         if self.maximum is not None:
             result["maximum"] = self.maximum
         return result
+
+
+# asyncio deadlines use floating-point seconds.
+POSITIVE_SECONDS = Number(minimum=0, exclusive_minimum=True, maximum=sys.float_info.max)
 
 
 class Boolean(Rule):

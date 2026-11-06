@@ -19,6 +19,39 @@ from tests.dok.support import HostPrompt, Output, render, screen_lines, wait_run
 
 class RuntimeTests(unittest.IsolatedAsyncioTestCase):
 
+    async def test_music_keys_control_supported_player_without_mouse_and_release_host_when_hidden(self):
+        from tests.dok.features.test_media import Backend, player, until
+        from dok import PlaybackAction
+        backend = Backend((player(),))
+        self.dock._media._factory = lambda timeout: backend
+        host_calls = []
+        self.prompt.set_key("f6", handler=lambda event: host_calls.append("host"))
+        self.dock.configure(replace(DockConfig.initial(), audio={"enabled": False}))
+        await self.start("draft")
+        self.pipe.send_bytes(b"\x1b[17~")
+        await until(lambda: host_calls == ["host"])
+        self.dock.show()
+        await until(lambda: self.dock._media.state.connected)
+        self.assertFalse(self.prompt.app.mouse_support())
+        for i, (key, action) in enumerate(((b"\x1b[15~", PlaybackAction.PREVIOUS),
+                (b"\x1b[17~", PlaybackAction.PLAY_PAUSE), (b"\x1b[18~", PlaybackAction.NEXT)), 1):
+            self.pipe.send_bytes(key)
+            await until(lambda: len(backend.calls) == i and not self.dock._media.busy)
+            self.assertEqual(backend.calls[-1][1], action)
+        current = self.dock._media.state
+        backend.players[current.name] = replace(current, actions=frozenset())
+        await until(lambda: not self.dock._media.state.supports(PlaybackAction.PLAY_PAUSE))
+        processed = asyncio.Event()
+        self.prompt.app.key_processor.after_key_press += lambda sender: processed.set()
+        self.pipe.send_bytes(b"\x1b[17~")
+        await asyncio.wait_for(processed.wait(), timeout=3)
+        self.assertEqual(host_calls, ["host"])
+        self.assertEqual(len(backend.calls), 3)
+        self.dock.show(False)
+        self.pipe.send_bytes(b"\x1b[17~")
+        await until(lambda: len(host_calls) == 2)
+        self.assertEqual(self.prompt.default_buffer.text, "draft")
+
     async def test_hide_cancels_media_before_the_next_render(self):
         from tests.dok.features.test_media import Backend, player, until
         from dok import PlaybackAction

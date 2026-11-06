@@ -10,6 +10,7 @@ from ..features.audio.config import AudioConfig, VisualizerConfig, VisualizerSty
 from ..features.clock.config import ClockConfig
 from ..features.shortcuts.config import Shortcut, ShortcutsConfig
 from ..features.media.connection import MediaConfig
+from ..features.media.config import TransportConfig
 from ..features.system.config import SystemConfig
 from ..features.toolbar.config import ToolbarConfig
 from ..integrations.ish.mouse import MouseConfig
@@ -31,7 +32,7 @@ class Width(Record):
     value: int | float = setting(
         Number(),
         default=DEFAULT_CELLS,
-        description="Cell count for fixed, or a fraction greater than 0 and at most 1 for ratio. Clamped to the available width."
+        description=f"Fixed width needs at least {Shortcut.minimum_width()} cells to fit the shortcut slots. Ratio accepts a fraction greater than 0 and at most 1. Both fit the available width."
     )
 
     @classmethod
@@ -110,12 +111,14 @@ class DockConfig(Record):
         description="Left-aligned date and prompt status, with system metrics at the right edge.")
 
     def _check(self):
-        self.widgets.shortcuts.validate_keys((self.dock.keys.toggle,))
+        music = (button.key for button in self.widgets.media_controls.keyed_buttons())
+        self.widgets.shortcuts.validate_keys((self.dock.keys.toggle, *music))
 
     @classmethod
     def initial(cls) -> DockConfig:
         """Initial file examples, distinct from ordinary missing-field defaults."""
-        return cls(widgets=WidgetsConfig(
+        return cls(toolbar=ToolbarConfig.initial(), widgets=WidgetsConfig(
+            media_controls=TransportConfig.initial(),
             shortcuts=ShortcutsConfig.initial(),
             visualizer=VisualizerConfig(style=VisualizerStyle.initial()),
         ))

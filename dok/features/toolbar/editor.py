@@ -58,6 +58,7 @@ class NumberCalculator:
     MAX_NUMBERS = 10_000
     MAX_DIGITS = 256
     PRECISION = MAX_DIGITS * 2 + 16
+    UNITS = ("", "K", "M", "B", "T")
     CANDIDATE = re.compile(r"[+-]?(?:[0-9][0-9,.]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
     NUMBER = re.compile(r"[+-]?(?:(?:[0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)(?:\.[0-9]+)?|\.[0-9]+)")
 
@@ -93,11 +94,98 @@ class NumberCalculator:
             return NumberSummary(count, total, total / count if count else Decimal(0))
 
     @classmethod
-    def format(cls, value: Decimal, decimal_places: int) -> str:
+    def format(cls, value: Decimal, decimal_places: int | None) -> str:
         with localcontext() as context:
             context.prec = cls.PRECISION
-            rounded = value.quantize(Decimal(1).scaleb(-decimal_places), rounding=ROUND_HALF_UP)
-            if not rounded:
-                rounded = abs(rounded)
-            text = f"{rounded:,.{decimal_places}f}"
-            return text.rstrip("0").rstrip(".") if decimal_places else text
+            if decimal_places is not None and -value.as_tuple().exponent > decimal_places:
+                value = value.quantize(Decimal(1).scaleb(-decimal_places), rounding=ROUND_HALF_UP)
+            text = format(value if value else Decimal(0), ",f")
+            return text.rstrip("0").rstrip(".") if "." in text else text
+
+    @staticmethod
+    def _digits(text: str) -> int:
+        return sum(char.isdigit() for char in text)
+
+    @classmethod
+    def _forms(cls, value: Decimal, full: str, decimal_places: int | None, max_digits: int | None):
+        limited = max_digits is not None and cls._digits(full) > max_digits
+        if not limited:
+            yield full
+        with localcontext() as context:
+            context.prec = cls.PRECISION
+            exponent = value.adjusted()
+            if exponent < 3:
+                return
+            tier = min(exponent // 3, len(cls.UNITS) - 1)
+            power, suffix = 3 * tier, cls.UNITS[tier]
+            if max_digits is None and exponent >= 3 * len(cls.UNITS):
+                power, suffix = exponent, f"e{exponent}"
+            scaled = value.scaleb(-power)
+            places = max(0, max_digits - scaled.adjusted() - 1) if limited else 2
+            if decimal_places is not None:
+                places = min(places, decimal_places)
+            for precision in dict.fromkeys((places, min(2, places), min(1, places), 0)):
+                digits = cls.format(scaled, precision).replace(",", "")
+                unit = suffix
+                if digits.lstrip("-") == "1000" and tier + 1 < len(cls.UNITS):
+                    digits = "-1" if value < 0 else "1"
+                    unit = cls.UNITS[tier + 1]
+                if max_digits is None or cls._digits(digits) <= max_digits:
+                    yield digits + unit
+
+    @staticmethod
+    def _prefix(full: str, max_digits: int | None, cells: int | None) -> str:
+        # A one-cell ellipsis leaves room for a digit in very narrow fields.
+        if cells == 0:
+            return ""
+        marker = "..." if cells is None or cells >= 4 + full.startswith("-") else "…"
+        prefix = ""
+        digits = 0
+        for char in full.replace(",", ""):
+            if char.isdigit():
+                if max_digits is not None and digits >= max_digits:
+                    break
+                digits += 1
+            if cells is not None and len(prefix) + len(marker) >= cells:
+                break
+            prefix += char
+        return prefix.rstrip(".-") + marker
+
+    @classmethod
+    def compact(cls, value: Decimal, full: str, cells: int | None, *, max_digits: int | None = None,
+                decimal_places: int | None = None) -> str:
+        for form in cls._forms(value, full, decimal_places, max_digits):
+            if cells is None or len(form) <= cells:
+                return form
+        return cls._prefix(full, max_digits, cells)
+
+    @classmethod
+    def format_pair(cls, summary: NumberSummary, decimal_places: int | None, cells: int | None,
+                    *, max_digits: int | None = None) -> str:
+        total = cls.format(summary.total, decimal_places)
+        mean = cls.format(summary.average, decimal_places)
+        room = None if cells is None else cells - 2
+        if room is not None and room < 2:
+            return "…"
+        if max_digits is None and (room is None or len(total) + len(mean) <= room):
+            return f"{total}({mean})"
+
+        def forms(value, full):
+            options = tuple(dict.fromkeys(cls._forms(value, full, decimal_places, max_digits)))
+            return options or (cls._prefix(full, max_digits, None),)
+
+        totals = forms(summary.total, total)
+        means = forms(summary.average, mean)
+        if room is None:
+            return f"{totals[0]}({means[0]})"
+        choices = ((max(i, j), i + j, f"{t}({m})")
+                   for i, t in enumerate(totals) for j, m in enumerate(means) if len(t) + len(m) <= room)
+        best = min(choices, default=None)
+        if best is not None:
+            return best[-1]
+
+        # Preserve a short operand and share the remaining cells when both are long.
+        total_room = min(len(totals[0]), max((room + 1) // 2, room - len(means[0])))
+        t = cls.compact(summary.total, total, total_room, max_digits=max_digits, decimal_places=decimal_places)
+        m = cls.compact(summary.average, mean, room - len(t), max_digits=max_digits, decimal_places=decimal_places)
+        return f"{t}({m})"

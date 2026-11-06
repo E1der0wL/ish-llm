@@ -48,6 +48,14 @@ class KeySequence:
         length = min(len(self.keys), len(other))
         return self.keys[:length] == tuple(other[:length])
 
+    @staticmethod
+    def validate_unique(sequences) -> None:
+        seen = []
+        for sequence in sequences:
+            if any(sequence.overlaps(previous.keys) for previous in seen):
+                raise SettingsError(f"Overlapping dok keys: {sequence.to_list()}")
+            seen.append(sequence)
+
     def to_list(self):
         return [key.value if isinstance(key, Keys) else key for key in self.keys]
 

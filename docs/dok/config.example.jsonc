@@ -13,7 +13,7 @@
     "width": {
       // Width mode: fixed uses terminal cells; ratio uses a fraction of the ish PTY width.
       "mode": "fixed",
-      // Cell count for fixed, or a fraction greater than 0 and at most 1 for ratio. Clamped to the available width.
+      // Fixed width needs at least 39 cells to fit the shortcut slots. Ratio accepts a fraction greater than 0 and at most 1. Both fit the available width.
       "value": 80
     },
     // Mouse reporting and dock-only action routing.
@@ -42,7 +42,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 1,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": null
@@ -52,9 +52,9 @@
       "location": null,
       // Temperature unit: celsius or fahrenheit.
       "temperature_unit": "celsius",
-      // Number of forecast days to display. Fewer days are shown when space is limited.
+      // Forecast days to display, from 1 to the Open-Meteo maximum of 16. Fewer days are shown when space is limited.
       "days": 7,
-      // Weather refresh interval in minutes. Reopening the dock reuses a valid cache until this interval expires.
+      // Positive whole minutes between weather requests. Reopening the dock reuses the forecast until it expires.
       "refresh_minutes": 30,
       // Weather foreground and low-temperature colors.
       "style": {
@@ -100,7 +100,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 1,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": null
@@ -121,7 +121,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 0,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": null
@@ -142,7 +142,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 2,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": null
@@ -161,7 +161,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 0,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": null
@@ -180,7 +180,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 0,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": null
@@ -199,7 +199,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 1,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": 0
@@ -223,7 +223,7 @@
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 2,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": 1
@@ -237,9 +237,11 @@
           "text": "󰒮",
           // Foreground appearance.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#6b7280"
-          }
+            // Button foreground in #RRGGBB. An empty string, null or an omitted color uses the terminal's default text color.
+            "color": ""
+          },
+          // Key sequence for this action while the dock is visible and the player supports it. For example ["f6"]. Use null to disable the key.
+          "key": ["f5"]
         },
         {
           // Button action: previous, play_pause, next, play, pause, or stop. Duplicate actions are not allowed.
@@ -248,9 +250,11 @@
           "text": "󰐎",
           // Foreground appearance.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#6b7280"
-          }
+            // Button foreground in #RRGGBB. An empty string, null or an omitted color uses the terminal's default text color.
+            "color": ""
+          },
+          // Key sequence for this action while the dock is visible and the player supports it. For example ["f6"]. Use null to disable the key.
+          "key": ["f6"]
         },
         {
           // Button action: previous, play_pause, next, play, pause, or stop. Duplicate actions are not allowed.
@@ -259,9 +263,11 @@
           "text": "󰒭",
           // Foreground appearance.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#6b7280"
-          }
+            // Button foreground in #RRGGBB. An empty string, null or an omitted color uses the terminal's default text color.
+            "color": ""
+          },
+          // Key sequence for this action while the dock is visible and the player supports it. For example ["f6"]. Use null to disable the key.
+          "key": ["f7"]
         }
       ]
     },
@@ -271,7 +277,7 @@
       "enabled": true,
       // Vertical rows and horizontal cells between shortcut entries.
       "spacing": {
-        // Blank rows after this widget, including bottom spacing for the last widget.
+        // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
         "after_rows": 1,
         // Basic-mode trailing rows. null uses after_rows.
         "basic_after_rows": null,
@@ -491,18 +497,18 @@
     "enabled": true,
     // Exact MPRIS bus name, or null to select a playing player and retain it until it exits.
     "player": null,
-    // Seconds between player state queries while visible. No polling while hidden.
+    // Positive finite seconds between player state queries while visible. No polling while hidden.
     "refresh_seconds": 1.0,
-    // Maximum seconds for each D-Bus request. Failed commands are never retried.
+    // Positive finite timeout in seconds for each D-Bus request. Failed commands are never retried.
     "timeout_seconds": 2.0
   },
   // Linux CPU, memory and network sampling. WSL metrics do not represent the entire Windows host.
   "system": {
     // Collect Linux system metrics while a system toolbar is visible.
     "enabled": true,
-    // Seconds between samples. Sampling runs outside the UI thread.
+    // Positive finite seconds between samples. Sampling runs outside the UI thread.
     "refresh_seconds": 1.0,
-    // Maximum recent samples retained in memory for graphs. No history files are written.
+    // Recent samples to keep in memory for graphs. Zero keeps only the current reading.
     "history_samples": 120,
     // Network interfaces to sum, for example ["eth0"]. null selects active non-loopback interfaces; bridges/VPNs may count traffic twice.
     "interfaces": null
@@ -522,7 +528,7 @@
       // Date format using the shared clock timezone. %a and %A use the weekday labels below.
       "format": "%Y-%m-%d(%a)",
       // Seven weekday labels, Monday through Sunday.
-      "weekdays": ["월", "화", "수", "목", "금", "토", "일"],
+      "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       // Date foreground color.
       "style": {
         // Foreground color in #RRGGBB format.
@@ -533,7 +539,7 @@
     "input": {
       // Show status of the shell prompt buffer, excluding prompt decoration and suggestions.
       "enabled": true,
-      // Input status items in display order. On narrow terminals, later items are omitted first.
+      // Input status items in order within each group. Length and lines form the first group. Cursor and editor fields form the next.
       "items": [
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
@@ -546,7 +552,9 @@
           "style": {
             // Foreground color in #RRGGBB format.
             "color": "#d1d5db"
-          }
+          },
+          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          "value_width_columns": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
@@ -559,7 +567,9 @@
           "style": {
             // Foreground color in #RRGGBB format.
             "color": "#d1d5db"
-          }
+          },
+          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          "value_width_columns": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
@@ -572,7 +582,9 @@
           "style": {
             // Foreground color in #RRGGBB format.
             "color": "#d1d5db"
-          }
+          },
+          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          "value_width_columns": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
@@ -585,7 +597,9 @@
           "style": {
             // Foreground color in #RRGGBB format.
             "color": "#d1d5db"
-          }
+          },
+          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          "value_width_columns": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
@@ -598,7 +612,9 @@
           "style": {
             // Foreground color in #RRGGBB format.
             "color": "#d1d5db"
-          }
+          },
+          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          "value_width_columns": null
         }
       ]
     },
@@ -607,20 +623,22 @@
       // Show the sum and mean of extracted numbers; never executes expressions.
       "enabled": true,
       // selection uses the prompt's selected ranges; input uses the entire prompt buffer. Terminal-native mouse selection is not visible to dok.
-      "scope": "selection",
+      "scope": "input",
       // Text before sum(mean).
       "label": "Σ ",
-      // Maximum decimal places, rounded half up; trailing zeros are removed.
-      "decimal_places": 2,
+      // Optional fractional-place limit before display, rounded half up. null uses the calculated precision.
+      "decimal_places": null,
       // Shown when no numbers are selected/found.
       "empty_text": "—",
-      // Shown instead of partial results when calculation limits are exceeded.
+      // Shown if a calculation exceeds 100,000 input characters, 10,000 numbers or 256 digits per number.
       "limit_text": "…",
       // Sum and mean foreground color.
       "style": {
         // Foreground color in #RRGGBB format.
         "color": "#d1d5db"
-      }
+      },
+      // Fixed width for sum(mean), or null to reserve fifteen cells and grow for longer results.
+      "value_width_columns": null
     },
     // Right-aligned CPU, memory and network display.
     "system": {
@@ -645,9 +663,11 @@
           "enabled": true,
           // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
           "columns": 12
-        }
+        },
+        // Fixed terminal cells for the right-aligned value, excluding the metric label and graph. Longer values are clipped with an ellipsis.
+        "value_width_columns": 4
       },
-      // Used/total memory, percentage and capacity bar.
+      // Memory utilization percentage and optional capacity bar.
       "memory": {
         // Show this metric in the right-hand group.
         "enabled": true,
@@ -664,7 +684,9 @@
           "enabled": true,
           // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
           "columns": 12
-        }
+        },
+        // Fixed terminal cells for the right-aligned value, excluding the metric label and graph. Longer values are clipped with an ellipsis.
+        "value_width_columns": 4
       },
       // Receive/send rates and optional combined-traffic history graph.
       "network": {
@@ -683,12 +705,159 @@
           "enabled": false,
           // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
           "columns": 12
-        }
+        },
+        // Fixed terminal cells for the right-aligned value, excluding the metric label and graph. Longer values are clipped with an ellipsis.
+        "value_width_columns": 27
       },
       // Receive-rate label.
       "download_label": "↓",
       // Send-rate label.
       "upload_label": "↑"
-    }
+    },
+    // Spaces between visible date, input size, cursor and numeric summary groups.
+    "group_gap_columns": 8,
+    // Width, padding, internal gaps and colors for each toolbar region.
+    "regions": {
+      // Date and weekday region.
+      "date": {
+        // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
+        "width_columns": null,
+        // Padding cells before this region.
+        "padding_before_columns": 0,
+        // Padding cells after this region. null uses the normal separator between visible regions.
+        "padding_after_columns": 4,
+        // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
+        "item_gap_columns": null,
+        // Optional foreground and background overrides for this entire region.
+        "style": {
+          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          "color": null,
+          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          "background": null
+        }
+      },
+      // Length and line count region.
+      "size": {
+        // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
+        "width_columns": null,
+        // Padding cells before this region.
+        "padding_before_columns": 0,
+        // Padding cells after this region. null uses the normal separator between visible regions.
+        "padding_after_columns": null,
+        // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
+        "item_gap_columns": null,
+        // Optional foreground and background overrides for this entire region.
+        "style": {
+          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          "color": null,
+          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          "background": null
+        },
+        // Align values within their fields: left or right. Labels stay in place.
+        "alignment": "left",
+        // Maximum displayed digits per number; null shows all digits. On overflow try K/M/B/T, then leading digits and three dots. Sum and mean are limited separately.
+        "max_digits": null
+      },
+      // Line, column, position and optional editor fields.
+      "cursor": {
+        // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
+        "width_columns": null,
+        // Padding cells before this region.
+        "padding_before_columns": 0,
+        // Padding cells after this region. null uses the normal separator between visible regions.
+        "padding_after_columns": null,
+        // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
+        "item_gap_columns": null,
+        // Optional foreground and background overrides for this entire region.
+        "style": {
+          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          "color": null,
+          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          "background": null
+        },
+        // Align values within their fields: left or right. Labels stay in place.
+        "alignment": "left",
+        // Maximum displayed digits per number; null shows all digits. On overflow try K/M/B/T, then leading digits and three dots. Sum and mean are limited separately.
+        "max_digits": null
+      },
+      // Numeric sum and mean region.
+      "numbers": {
+        // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
+        "width_columns": null,
+        // Padding cells before this region.
+        "padding_before_columns": 0,
+        // Padding cells after this region. null uses the normal separator between visible regions.
+        "padding_after_columns": null,
+        // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
+        "item_gap_columns": null,
+        // Optional foreground and background overrides for this entire region.
+        "style": {
+          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          "color": null,
+          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          "background": null
+        },
+        // Align values within their fields: left or right. Labels stay in place.
+        "alignment": "left",
+        // Maximum displayed digits per number; null shows all digits. On overflow try K/M/B/T, then leading digits and three dots. Sum and mean are limited separately.
+        "max_digits": null
+      },
+      // CPU label, value and graph region.
+      "cpu": {
+        // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
+        "width_columns": 19,
+        // Padding cells before this region.
+        "padding_before_columns": 0,
+        // Padding cells after this region. null uses the normal separator between visible regions.
+        "padding_after_columns": null,
+        // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
+        "item_gap_columns": null,
+        // Optional foreground and background overrides for this entire region.
+        "style": {
+          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          "color": null,
+          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          "background": null
+        }
+      },
+      // Memory label, percentage and graph region.
+      "memory": {
+        // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
+        "width_columns": 19,
+        // Padding cells before this region.
+        "padding_before_columns": 0,
+        // Padding cells after this region. null uses the normal separator between visible regions.
+        "padding_after_columns": null,
+        // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
+        "item_gap_columns": null,
+        // Optional foreground and background overrides for this entire region.
+        "style": {
+          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          "color": null,
+          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          "background": null
+        }
+      },
+      // Network label, receive/send values and graph region.
+      "network": {
+        // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
+        "width_columns": 19,
+        // Padding cells before this region.
+        "padding_before_columns": 0,
+        // Padding cells after this region. null uses the normal separator between visible regions.
+        "padding_after_columns": null,
+        // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
+        "item_gap_columns": null,
+        // Optional foreground and background overrides for this entire region.
+        "style": {
+          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          "color": null,
+          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          "background": null
+        }
+      }
+    },
+    // Toolbar background in #RRGGBB, including the space between left and right groups. null uses the terminal default.
+    "background": null
   }
 }

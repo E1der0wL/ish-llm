@@ -6,11 +6,11 @@ from .state import DockMode
 
 @dataclass(frozen=True, slots=True)
 class Spacing(Record):
-    ROWS_RULE: ClassVar[Number] = Number(minimum=0, maximum=20, integer=True)
+    ROWS_RULE: ClassVar[Number] = Number(minimum=0, integer=True)
     after_rows: int = setting(
         ROWS_RULE,
         default=0,
-        description="Blank rows after this widget, including bottom spacing for the last widget."
+        description="Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden."
     )
     basic_after_rows: int | None = setting(
         Nullable(ROWS_RULE),
@@ -34,7 +34,9 @@ class ElementConfig(Record):
         description="Vertical spacing in terminal rows."
     )
 
+    def row_count(self, content_rows: int, mode: DockMode) -> int:
+        return content_rows + self.spacing.for_mode(mode) if self.enabled and content_rows else 0
+
     def arrange[T](self, rows: tuple[T, ...], mode: DockMode, blank: T) -> tuple[T, ...]:
-        if not self.enabled or not rows:
-            return ()
-        return rows + (blank,) * self.spacing.for_mode(mode)
+        count = self.row_count(len(rows), mode)
+        return rows + (blank,) * (count - len(rows)) if count else ()

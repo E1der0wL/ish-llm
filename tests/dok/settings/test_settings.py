@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import jsonschema
 from dok import ConfigStore, KeySequence, SettingsError, Shortcut, Width, WidthMode
 
 class SettingsTests(unittest.TestCase):
@@ -24,7 +25,6 @@ class SettingsTests(unittest.TestCase):
         self.assertIsInstance(result.dock.keys.toggle, KeySequence)
 
     def test_defaults_and_schema_are_derived_from_fields(self):
-        import jsonschema
         schema = DockConfig.schema()
         jsonschema.Draft202012Validator.check_schema(schema)
         jsonschema.validate(DockConfig().to_dict(), schema)
@@ -46,8 +46,21 @@ class SettingsTests(unittest.TestCase):
             ()
         )
 
+    def test_forecast_and_sampling_options_accept_extended_ranges_and_roundtrip(self):
+        data = {
+            "widgets": {"weather": {"days": 12, "refresh_minutes": 2880}},
+            "media": {"refresh_seconds": 0.25, "timeout_seconds": 120},
+            "system": {"refresh_seconds": 300, "history_samples": 10**100},
+        }
+        config = DockConfig.from_dict(data)
+        jsonschema.validate(data, DockConfig.schema())
+        self.assertEqual(config.widgets.weather.refresh_seconds, 2880 * 60)
+        with tempfile.TemporaryDirectory() as directory:
+            store = ConfigStore.for_home(directory)
+            store.save(config)
+            self.assertEqual(store.load(), config)
+
     def test_width_schema_and_interpretation_share_limits(self):
-        import jsonschema
         for mode, value in (('fixed', 38), ('fixed', 0.6), ('ratio', 0), ('ratio', 1.1)):
             data = {'mode': mode, 'value': value}
             with self.subTest(data=data):

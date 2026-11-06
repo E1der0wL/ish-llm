@@ -8,6 +8,19 @@ from dok import ConfigStore, PlaybackAction, ProgressConfig, SettingsError, Shor
 
 class DisplaySettingsTests(unittest.TestCase):
 
+    def test_initial_button_colors_and_keys_and_cross_widget_conflicts(self):
+        from dok.core.styles import MutedStyle
+        buttons = DockConfig.initial().widgets.media_controls.buttons
+        self.assertEqual([b.key.to_list() for b in buttons], [["f5"], ["f6"], ["f7"]])
+        self.assertEqual([b.style.color for b in buttons], ["", "", ""])
+        self.assertTrue(all(b.style.foreground == "fg:default" for b in buttons))
+        self.assertEqual(TransportButton("play", style=MutedStyle("#112233")).style.foreground, "#112233")
+        self.assertEqual(TransportButton("play", style={"color": "#ABCDEF"}).style.foreground, "#abcdef")
+        for key in (("c-w",), ("escape", "1")):
+            with self.subTest(key=key), self.assertRaises(SettingsError):
+                DockConfig(widgets={"media_controls": {"buttons": [{"action": "play", "key": key}]},
+                                    "shortcuts": {"items": [Shortcut(1, "ls", key=("escape", "1", "x"))]}})
+
     def test_display_settings_roundtrip_and_defaults(self):
         config = DockConfig(widgets={
             'title': TitleConfig(

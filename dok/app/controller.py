@@ -55,6 +55,13 @@ class DockController:
 
     def _entries(self, config: DockConfig):
         entries = [KeyRegistration(config.dock.keys.toggle, lambda event: self.toggle(), self._toggle_enabled)]
+        if config.media.enabled and config.widgets.media_controls.enabled:
+            for button in config.widgets.media_controls.keyed_buttons():
+                def control(event, action=button.action):
+                    if self._media_input.available(action):
+                        self._media.request(self._media.state, action=action,
+                                            start_task=self._prompt.app.create_background_task)
+                entries.append(KeyRegistration(button.key, control, self._dock_keys_enabled))
         for shortcut in config.widgets.shortcuts.items:
             if shortcut.enabled and shortcut.key is not None:
                 def execute(event, slot=shortcut.slot):
@@ -67,7 +74,10 @@ class DockController:
         return not self._state.closed and app.is_running and not app.is_done and self._host.editing_shell()
 
     def _shortcuts_enabled(self) -> bool:
-        return (self._config.widgets.shortcuts.enabled and self.visible and self._overlay.has_room
+        return self._config.widgets.shortcuts.enabled and self._dock_keys_enabled()
+
+    def _dock_keys_enabled(self) -> bool:
+        return (self.visible and self._overlay.has_room
                 and getattr(self._prompt.app.layout.current_control, "buffer", None) is self._prompt.default_buffer)
 
     def _before_render(self, app):

@@ -444,6 +444,27 @@ class RenderingTests(unittest.TestCase):
                 self.assertEqual(sum((cell.char == '━' for cell in cells)), expected // 2)
                 self.assertTrue(all(('#abcdef' in cell.style for cell in cells)))
 
+    def test_large_vertical_gaps_fit_or_fall_back_without_allocating_hidden_rows(self):
+        self.owner.requested_mode = DockMode.MAXIMIZED
+        for widget, rows, mode in (("weather", 10**100, DockMode.BASIC),
+                                   ("visualizer", 10**100, DockMode.HIDDEN),
+                                   ("visualizer", 21, DockMode.MAXIMIZED)):
+            with self.subTest(widget=widget, rows=rows):
+                self.owner.config = DockConfig(widgets={widget: {"spacing": {"after_rows": rows}}})
+                self.draw(rows=70)
+                self.assertEqual(self.overlay.display_mode, mode)
+
+    def test_unset_button_color_resolves_to_terminal_foreground_on_screen(self):
+        from prompt_toolkit.styles import Style
+        terminal_style = Style.from_dict({"": "#abcdef"})
+        for button_style in ({}, {"color": ""}, {"color": None}, {"color": "#112233"}):
+            self.owner.config = DockConfig(widgets={"media_controls": {"buttons": [
+                {"action": "play", "text": "PLAY", "style": button_style}]}})
+            screen, _ = self.draw()
+            cell = next(cell for cell in screen.data_buffer[5].values() if cell.char == "P")
+            expected = "112233" if button_style.get("color") else "default"
+            self.assertEqual(terminal_style.get_attrs_for_style_str(cell.style).color, expected)
+
     def test_transport_button_order_custom_text_color_and_hiding(self):
         self.owner.config = DockConfig(widgets={'media_controls': TransportConfig(buttons=(
             TransportButton('stop', text='STOP', style={'color': '#ff0000'}),

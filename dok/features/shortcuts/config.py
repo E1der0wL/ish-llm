@@ -242,12 +242,8 @@ class ShortcutsConfig(ElementConfig):
         self.validate_keys(())
 
     def validate_keys(self, reserved):
-        keys = list(reserved)
-        for item in self.items:
-            if item.enabled and item.key is not None:
-                if any(item.key.overlaps(key.keys) for key in keys):
-                    raise SettingsError(f"Overlapping dok keys: {item.key.to_list()}")
-                keys.append(item.key)
+        active = (item.key for item in self.items if item.enabled and item.key is not None)
+        KeySequence.validate_unique((*reserved, *active))
 
     def entry(self, slot):
         Shortcut.validate_slot(slot)

@@ -60,8 +60,8 @@ class TransportView:
             if index:
                 result.append((DockStyle.BACKGROUND, separator, swallow_mouse))
             enabled = self._interaction is not None and self._interaction.supports(button.action)
-            style = DockStyle.foreground(button.style.color)
-            if self._interaction is not None and not enabled:
+            style = DockStyle.foreground(button.style.foreground)
+            if self._interaction is not None and not (enabled or button.key and self._interaction.available(button.action)):
                 style += " dim"
             result.append((style, label, self._interaction.button(button.action) if enabled else swallow_mouse))
         return tuple(result)

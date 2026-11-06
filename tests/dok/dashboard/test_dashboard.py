@@ -72,7 +72,7 @@ class DashboardOwnerTests(unittest.TestCase):
             {'widgets': {'time': {'format': '%n'}}},
             {'widgets': {'date': {'format': '%'}}},
             {'widgets': {'weather': {'location': {'latitude': 91, 'longitude': 0}}}},
-            {'widgets': {'weather': {'days': 8}}},
+            {'widgets': {'weather': {'days': WeatherConfig.FORECAST_DAYS.maximum + 1}}},
             {'widgets': {'weather': {'refresh_minutes': 0}}},
             {'widgets': {'weather': {'temperature_unit': 'kelvin'}}},
             {'widgets': {'weather': {'icons': {'rain': 'bad\ntext'}}}},

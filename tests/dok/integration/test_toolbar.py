@@ -104,18 +104,14 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.prompt.default_buffer.selection_state = SelectionState(original_cursor_position=3)
         original = self.prompt.default_buffer.document
         line = await self.toolbar_line()
-        self.assertIn("Len:8", line)
-        self.assertIn("Lines:2", line)
-        self.assertIn("Ln:2", line)
-        self.assertIn("Col:3", line)
-        self.assertIn("Pos:9", line)
+        self.assertIn(f"Len:{8:<5}  Lines:{2:<5}    Ln:{2:<5}  Col:{3:<5}  Pos:{9:<5}    Σ 30(15)", line)
         self.assertIn("Σ 30(15)", line)
         self.assertEqual(self.prompt.default_buffer.document, original)
         self.prompt.default_buffer.selection_state = None
         line = await self.toolbar_line()
-        self.assertIn("Σ —", line)
-        self.dock.configure(replace(self.dock.config, toolbar=replace(self.dock.config.toolbar, numbers={"scope": "input"})))
-        self.assertIn("Σ 30(15)", await self.toolbar_line())
+        self.assertIn("Σ 30(15)", line)
+        self.dock.configure(replace(self.dock.config, toolbar=replace(self.dock.config.toolbar, numbers={"scope": "selection"})))
+        self.assertIn("Σ —", await self.toolbar_line())
 
     async def test_disable_uninstall_and_later_plugin_override_restore_only_owned_values(self):
         callback = self.prompt.bottom_toolbar

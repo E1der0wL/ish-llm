@@ -12,7 +12,7 @@ class DashboardView:
     def __init__(self):
         self._clock = ClockView()
 
-    def rows(self, config, snapshot, available):
+    def rows(self, config, snapshot, available, *, max_rows=None):
         now = config.clock.now()
         sections = (
             (config.widgets.weather, WeatherPresentation.rows(
@@ -26,6 +26,9 @@ class DashboardView:
                 available
             ),
         )
+        if max_rows is not None and sum(element.row_count(len(rows), DockMode.MAXIMIZED)
+                                        for element, rows in sections) > max_rows:
+            return None
         result = []
         for element, rows in sections:
             result.extend(element.arrange(rows, DockMode.MAXIMIZED, TextRow()))

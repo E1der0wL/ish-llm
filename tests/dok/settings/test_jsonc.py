@@ -41,6 +41,8 @@ class JsoncTests(unittest.TestCase):
             ])
             self.assertIsInstance(created.widgets.shortcuts.entry(7), Separator)
             self.assertEqual(store.path.read_text(encoding='utf-8'), Jsonc.dumps(created))
+            example = Path(__file__).resolve().parents[3] / 'docs/dok/config.example.jsonc'
+            self.assertEqual(example.read_text(encoding='utf-8'), Jsonc.dumps(created))
 
     def test_existing_empty_or_partial_config_never_acquires_example_shortcuts(self):
         with tempfile.TemporaryDirectory() as directory:

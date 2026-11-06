@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+import sys
 from typing import ClassVar
 
 from ...core.colors import DockPalette, HexColor
@@ -74,6 +75,7 @@ class WeatherSpacing(Spacing):
 
 @dataclass(frozen=True, slots=True)
 class WeatherConfig(ElementConfig):
+    FORECAST_DAYS: ClassVar[Number] = Number(minimum=1, maximum=16, integer=True)
     WEEKDAY_LABELS: ClassVar[tuple[str, ...]] = ("ᴍᴏɴ", "ᴛᴜᴇ", "ᴡᴇᴅ", "ᴛʜᴜ", "ꜰʀɪ", "ꜱᴀᴛ", "ꜱᴜɴ")
     spacing: WeatherSpacing = setting(Nested(WeatherSpacing), factory=WeatherSpacing)
     location: WeatherLocation | None = setting(Nullable(Nested(WeatherLocation)), default=None,
@@ -84,14 +86,14 @@ class WeatherConfig(ElementConfig):
         description="Temperature unit: celsius or fahrenheit."
     )
     days: int = setting(
-        Number(minimum=1, maximum=7, integer=True),
+        FORECAST_DAYS,
         default=7,
-        description="Number of forecast days to display. Fewer days are shown when space is limited."
+        description=f"Forecast days to display, from 1 to the Open-Meteo maximum of {FORECAST_DAYS.maximum}. Fewer days are shown when space is limited."
     )
     refresh_minutes: int = setting(
-        Number(minimum=5, maximum=1440, integer=True),
+        Number(minimum=1, integer=True),
         default=30,
-        description="Weather refresh interval in minutes. Reopening the dock reuses a valid cache until this interval expires."
+        description="Positive whole minutes between weather requests. Reopening the dock reuses the forecast until it expires."
     )
     style: WeatherStyle = setting(
         Nested(WeatherStyle),
@@ -141,7 +143,7 @@ class WeatherConfig(ElementConfig):
 
     @property
     def refresh_seconds(self):
-        return self.refresh_minutes * 60
+        return min(self.refresh_minutes * 60, sys.float_info.max)
 
     @property
     def request_key(self):
