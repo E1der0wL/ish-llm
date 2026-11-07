@@ -1019,6 +1019,7 @@ MESSAGES = {
     MessageKey.SHORTCUT_SAVE_CHAT: '저장 후 대화',
     MessageKey.SHORTCUT_ENGINE: '엔진',
     MessageKey.SHORTCUT_FIND: '찾기',
+    MessageKey.SHORTCUT_QUESTIONS: '질문 열기',
     MessageKey.SHORTCUT_HISTORY: '요청 목록',
     MessageKey.SHORTCUT_LOGS: '로그',
     MessageKey.SHORTCUT_SCROLL: '스크롤',

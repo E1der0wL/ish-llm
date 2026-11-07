@@ -14,6 +14,8 @@ MOVEMENT_KEYS = KeyName.MOVEMENT
 
 
 class ShortcutOrder:
+    FIRST = (KeyName.CONTROL_Q, KeyName.CONTROL_W)
+    PINNED = -1
     ESCAPE = 0
     CONTROL = 1
     ALT = 2
@@ -31,6 +33,8 @@ class Shortcut:
 
     def order(self):
         key = self.sequences[0]
+        if len(key) == 1 and key[0] in ShortcutOrder.FIRST:
+            return ShortcutOrder.PINNED, ShortcutOrder.FIRST.index(key[0])
         category = (
             ShortcutOrder.ESCAPE
             if key == (KeyName.ESCAPE,)
@@ -98,13 +102,14 @@ class ShortcutRegistry:
                 is_global=global_
             )(handler)
 
-    def scroll(self, handler, *, when=lambda: Shortcut.ACTIVE, visible=VISIBLE):
+    def scroll(self, handler, *, when=lambda: Shortcut.ACTIVE, visible=VISIBLE, global_=GLOBAL):
         self.add(
             [(KeyName.ESCAPE, key) for key in MOVEMENT_KEYS],
             ShortcutLabel.MOVEMENT if visible else ShortcutLabel.HIDDEN,
             ShortcutAction.SCROLL,
             handler,
             when=when,
+            global_=global_,
         )
 
     def active(self):

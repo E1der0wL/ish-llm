@@ -90,7 +90,6 @@ class GraphCanvas(UIControl):
         self._help = []
         self.bind(list(self.DIRECTIONS), self.SELECT_KEYS, MessagePattern.shortcut(ShortcutAction.SELECT),
                   lambda e: self.navigate(*self.DIRECTIONS[e.key_sequence[-1].key]))
-        self.registry.scroll(lambda e: self.scroll(e.key_sequence[-1].key))
         self._help.append((self.SCROLL_KEYS, MessagePattern.shortcut(ShortcutAction.SCROLL)))
         for key, (action, description) in actions.items():
             label = self.KEY_LABELS.get(key, key)

@@ -11,6 +11,7 @@ from prompt_toolkit.application.current import get_app
 from prompt_toolkit.key_binding import DynamicKeyBindings, merge_key_bindings
 from prompt_toolkit.layout.controls import BufferControl
 from .context import InputContext
+from .scrolling import ScrollNavigation
 from .registry import ShortcutRegistry, legend
 from ...widget.text_editing import TextEditing
 
@@ -152,6 +153,18 @@ class HubBindings:
             lambda e: view.on_interrupt(view.sessions[view.selected].id),
             when=lambda: c.composing and view.on_interrupt is not self.ABSENT,
         )
+        inbox = view.question.inbox
+        r.add(
+            [KeyName.CONTROL_R], ShortcutLabel.CONTROL_R,
+            ShortcutAction.QUESTIONS, lambda e: inbox.open(),
+            when=lambda: c.composing and inbox.can_open_current(),
+        )
+        # Keep reverse-history search out of the Home composer when its inbox is empty.
+        r.add(
+            [KeyName.CONTROL_R], ShortcutLabel.HIDDEN,
+            ShortcutAction.NONE, lambda e: self.NO_ACTION,
+            when=lambda: c.composing and not inbox.can_open_current(),
+        )
         r.add(
             [KeyName.TAB, KeyName.SHIFT_TAB],
             ShortcutLabel.TAB_SHIFT_TAB,
@@ -279,13 +292,10 @@ class HubBindings:
             lambda e: view.question.move_choice(-1 if e.key_sequence[-1].key == KeyName.UP else 1),
             when=lambda: c.composing and view.question.can_move_choice,
         )
-        r.scroll(self.scroll, when=lambda: c.chat)
-        r.scroll(self.scroll_settings, when=lambda: c.settings and not c.sidebar)
-        r.scroll(
-            lambda e: self.NO_ACTION,
-            when=lambda: c.settings and c.sidebar,
-            visible=self.HIDDEN,
-        )
+        scrolling = ScrollNavigation(view, c)
+        common.scroll(scrolling.handle, when=scrolling.available, global_=self.GLOBAL)
+        common.scroll(lambda e: self.NO_ACTION, when=lambda: view.visible and not scrolling.available(),
+                      visible=self.HIDDEN, global_=self.GLOBAL)
         # The composer's own hint row already shows send/completion/newline.
         r.add(
             list(view.question.CHOICE_DIGITS),
@@ -445,17 +455,6 @@ class HubBindings:
             buffer = self.view.composer.buffer
             buffer.suggestion = self.ABSENT
             buffer.cursor_right(count=event.arg)
-
-    def scroll(self, event):
-        if self.context.composing and self.view.question.is_approval:
-            self.view.question.details.scroll(event.key_sequence[-1].key)
-        else:
-            self.view.output.scroll(event.key_sequence[-1].key)
-        event.app.invalidate()
-
-    def scroll_settings(self, event):
-        self.view.settings.main.scroll(event.key_sequence[-1].key)
-        event.app.invalidate()
 
     def submit(self, event):
         view, buffer = self.view, self.view.composer.buffer

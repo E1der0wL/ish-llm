@@ -1,6 +1,7 @@
 """Approved composer UX, durable observations, and delayed callback boundaries."""
 
 import asyncio
+from dataclasses import replace
 from unittest import IsolatedAsyncioTestCase
 
 from prompt_toolkit.application.current import set_app
@@ -16,6 +17,9 @@ class QuestionInboxTests(IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.pipe = self.enterContext(create_pipe_input())
         self.app, self.view, _ = create_preview(input=self.pipe, output=SizedOutput())
+        self.view.project_id = 'p'
+        self.view.sessions[0] = replace(self.view.sessions[0], id='s')
+        self.view.sessions[1] = replace(self.view.sessions[1], id='other')
         self.enterContext(set_app(self.app))
         self.calls = []
         self.view.on_question_action = lambda *args: self.calls.append(args)
@@ -36,6 +40,62 @@ class QuestionInboxTests(IsolatedAsyncioTestCase):
         operation = self.calls[-1][2]
         self.calls[-1][-1](result)
         return operation
+
+    async def test_click_and_ctrl_r_reopen_the_deferred_answer_in_the_composer(self):
+        view, inbox = self.view, self.view.question.inbox
+        view.composer.text = 'ordinary draft'
+        self.show()
+        view.composer.text = 'answer draft'
+        view.question.return_to_input()
+        self.app.invalidate()
+        await eventually(lambda: inbox.open_button.window in self.app.layout.visible_windows)
+        positions = self.app.renderer._last_screen.visible_windows_to_write_positions
+        area = positions[inbox.open_button.window]
+        x, y = area.xpos + area.width // 2 + 1, area.ypos + 1
+        self.pipe.send_text(f'\x1b[<0;{x};{y}M\x1b[<0;{x};{y}m')
+        await eventually(lambda: bool(self.calls))
+        self.assertEqual(self.receive(self.items), 'list')
+        self.assertEqual(view.composer.text, 'answer draft')
+        self.assertIs(self.app.layout.current_control, view.composer.control)
+        view.question.return_to_input()
+        self.assertEqual(view.composer.text, 'ordinary draft')
+        self.pipe.send_text('\x12')
+        await eventually(lambda: len(self.calls) == 2)
+        self.assertEqual(self.receive(self.items), 'list')
+        self.assertEqual(view.composer.text, 'answer draft')
+        self.assertIsNone(view._dialog)
+
+    async def test_switch_while_question_lookup_is_in_flight(self):
+        view, question = self.view, self.view.question
+        self.show()
+        question.return_to_input()
+        self.pipe.send_text('\x12')
+        await eventually(lambda: len(self.calls) == 1)
+        view.select(1)
+        self.assertFalse(question.inbox.can_open_current())
+        self.receive(self.items)  # Old session replies before new snapshot arrives.
+        self.assertIsNone(question.item)
+        question.sync('p', 'other', ())
+        self.pipe.send_text('a\x12b')
+        await eventually(lambda: view.composer.text == 'ab')
+        self.assertEqual(len(self.calls), 1)
+        self.assertNotIn('Ctrl+R', dict(view.bindings.hints()))
+        view.select(0)
+        self.show()
+        question.return_to_input()
+        self.pipe.send_text('\x12')
+        await eventually(lambda: len(self.calls) == 2)
+        self.assertEqual(self.calls[-1][:2], ('p', 's'))
+
+    async def test_finished_question_hides_answer_button_and_restores_focus(self):
+        self.show([{**self.items[0], 'run_status': 'paused'}])
+        self.view.question.return_to_input()
+        self.assertTrue(self.view.question.inbox.can_open_current())
+        self.app.layout.focus(self.view.question.inbox.open_button)
+        self.show([{**self.items[0], 'run_status': 'completed'}])
+        self.assertFalse(self.view.question.inbox.can_open_current())
+        self.assertFalse(self.view.question.inbox.container.filter())
+        self.assertIs(self.app.layout.current_control, self.view.composer.control)
 
     async def test_tab_navigation_icons_and_drafts_without_extra_popup(self):
         self.view.composer.text = 'Ordinary draft'

@@ -382,7 +382,6 @@ class HubView:
                     lambda: self.output.invoke(EngineOutput.TAGS),
                 ),
                 (AuxiliaryIcon.PARTICIPANTS.value, lambda: self.output.participants.open()),
-                (AuxiliaryIcon.QUESTIONS.value, lambda: self.question.inbox.open()),
                 (
                     AuxiliaryIcon.FIND.value,
                     lambda: self.output.invoke(EngineOutput.FIND),

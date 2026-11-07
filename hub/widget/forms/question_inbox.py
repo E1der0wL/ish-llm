@@ -10,7 +10,7 @@ from llm.core.interactions import InteractionRequest, InteractionResponse, Inter
 from ...config.theme_style import ThemeSelector
 from ...asset.icon import AuxiliaryIcon, IconSet
 from ...locales.keys import MessageKey
-from ...model import QuestionPresentation, QuestionSource
+from ...model import QuestionPresentation, QuestionSource, SessionIdentity
 from ...backend.interactions.question_operations import (QuestionAction, QuestionList, QuestionRun,
     QuestionAnswer, QuestionDelivery, QuestionTargets)
 from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
@@ -70,7 +70,7 @@ class QuestionInbox:
             Window(FormattedTextControl(lambda: self.view.t(MessageKey.QUESTION_PENDING_NOTICE,
                    count=len(self.outstanding()))), height=1, style=ThemeSelector.MUTED.style),
             self.open_button,
-        ], height=1), Condition(lambda: bool(self.outstanding()) and not self.composer.item))
+        ], height=1), Condition(self.can_open_current))
         self.actions = ConditionalContainer(HSplit([
             ConditionalContainer(ActionBar(self.buttons, self.width), Condition(lambda: self.delivery is None)),
             ConditionalContainer(HSplit([
@@ -146,6 +146,11 @@ class QuestionInbox:
         return [*self.blocking, *(item for item in self.items.values()
                                  if not QuestionPresentation.observe(item).delivery)]
 
+    def can_open_current(self):
+        return (not self.view.no_sessions and self.composer.item is None
+                and self.identity == SessionIdentity.current(self.view).to_tuple()
+                and bool(self.outstanding()))
+
     def position(self):
         items = self.outstanding()
         index = next((i for i, item in enumerate(items, 1)
@@ -196,6 +201,8 @@ class QuestionInbox:
                 # A queued observation may predate our successful native write.
                 item = observed.retaining_answer(previous)
             self.items[key] = item
+        if get_app().layout.current_control is self.open_button.control and not self.can_open_current():
+            get_app().layout.focus(self.view.composer)
 
     @staticmethod
     def key(item):
@@ -282,14 +289,15 @@ class QuestionInbox:
             raise
 
     def open(self):
-        if self.composer.is_approval:
-            self.view.notice = self.view.t(MessageKey.QUESTION_BLOCKING_FIRST)
+        if not self.can_open_current():
             return
         self.hidden = False
         if item := self.candidate():
             self.select(QuestionPresentation.observe(item).request.id)
 
         def loaded(items):
+            if self.identity != SessionIdentity.current(self.view).to_tuple():
+                return  # Selection can change before the next backend snapshot.
             if items is not None:
                 self.items = {}
                 self.sync(*self.identity, [*self.blocking, *items])

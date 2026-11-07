@@ -161,6 +161,10 @@ class ExpandedOutputDialog:
 
     shortcut_context = DialogContext.READER
 
+    @property
+    def scroll_target(self):
+        return self.output
+
     def __init__(self, item, context, output, *, body=ABSENT):
         self.item, self.context, self.output = item, context, output
         self.t = context.language

@@ -5,6 +5,8 @@ from prompt_toolkit.layout.controls import FormattedTextControl
 from prompt_toolkit.utils import get_cwidth
 from ..config.theme_style import ThemeSelector
 from ..asset.icon import IconGlyphs
+from ..ui.input.registry import ShortcutOrder
+from ..ui.input.keys import KeyName
 
 
 class ShortcutBar(Window):
@@ -67,7 +69,11 @@ class ShortcutBar(Window):
         left = self.group(self.MODIFIERS[0], groups[self.MODIFIERS[0]], width)
         right = self.group(self.MODIFIERS[1], groups[self.MODIFIERS[1]], width)
         if left and right and self.cells(left) + self.cells(right) >= width:
-            left_budget = min(self.cells(left), max(width // 2, width - self.cells(right) - 1))
+            pinned = [item for item in groups[self.MODIFIERS[0]]
+                      if KeyName.CONTROL_PREFIX + item[0].casefold() in ShortcutOrder.FIRST]
+            pinned_width = self.cells(self.group(self.MODIFIERS[0], pinned, width))
+            left_budget = min(self.cells(left), max(pinned_width + self.ELLIPSIS_WIDTH,
+                                                    width // 2, width - self.cells(right) - 1))
             left = self.group(self.MODIFIERS[0], groups[self.MODIFIERS[0]], left_budget)
             right = self.group(self.MODIFIERS[1], groups[self.MODIFIERS[1]],
                                max(0, width - self.cells(left) - 1))

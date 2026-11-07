@@ -25,8 +25,6 @@ class WorkflowNavigation:
                               when=lambda: (editor.view._dialog is editor and not editor.inspector.editing
                                             and get_app().layout.current_control is not editor.identifier.control),
                               global_=True)
-        self.registry.scroll(lambda event: self.scroll(event.key_sequence[-1].key),
-                             when=lambda: editor.view._dialog is editor, visible=False)
 
     def region(self):
         e, current = self.editor, get_app().layout.current_control
@@ -98,14 +96,7 @@ class WorkflowNavigation:
         elif self.region() == WorkflowRegion.NODES:
             window = self.editor.sidebar_window
             if window.render_info is not None:
-                binding = window_scroll(window)
-                geometry = binding.geometry()
-                if key in (KeyName.HOME, KeyName.END):
-                    binding.scroll_to(0 if key == KeyName.HOME else geometry.limit)
-                else:
-                    delta = {KeyName.UP: -1, KeyName.DOWN: 1, KeyName.PAGE_UP: -geometry.visible,
-                             KeyName.PAGE_DOWN: geometry.visible}.get(key, 0)
-                    binding.scroll_to(geometry.offset + delta)
+                window_scroll(window).scroll(key)
         else:
             self.editor.canvas.scroll(key)
         get_app().invalidate()

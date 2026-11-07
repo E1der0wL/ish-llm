@@ -53,6 +53,7 @@ class ReadOnlyDialog(Dialog):
             min=self.MIN_ROWS, preferred=self.MAX_ROWS, max=self.MAX_ROWS
         )
         self.output.window.style = ThemeSelector.POPUP_OUTPUT.style
+        self.scroll_target = self.output
         navigation = PopupInput()
         self.shortcuts = registry = navigation.shortcuts
         self.receiver = navigation.receiver

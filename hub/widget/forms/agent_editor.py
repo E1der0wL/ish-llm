@@ -79,6 +79,7 @@ class AgentEditor(Dialog):
                          status_in_body=True,
                          size=PopupSize.LARGE)
         self.navigation = self.workspace
+        self.scroll_target = self.pane
         for field in self.identity.fields.values():
             self.bind_field(field)
         self.on_close = self.close

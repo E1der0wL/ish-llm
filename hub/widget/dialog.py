@@ -129,6 +129,7 @@ class PopupSurface(DynamicContainer):
 
 
 class Dialog(PTKDialog):
+    SCROLL_TARGET = "scroll_target"
     BODY = 'body'
     DIMENSIONS = ('width', 'height')
     OWNED_SIZE = 'Dialog dimensions are owned by PopupSize'
@@ -153,6 +154,10 @@ class Dialog(PTKDialog):
     @classmethod
     def navigation_for(cls, dialog):
         return getattr(dialog, cls.NAVIGATION, None)
+
+    @classmethod
+    def scroll_target_for(cls, dialog):
+        return getattr(dialog, cls.SCROLL_TARGET, cls.ABSENT_HOOK)
 
     @classmethod
     def close_handler(cls, dialog):

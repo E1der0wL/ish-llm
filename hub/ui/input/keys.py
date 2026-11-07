@@ -45,6 +45,7 @@ class KeyName:
     SHIFT_PREFIX = "s-"
     CONTROL_SHIFT_PREFIX = CONTROL_PREFIX + SHIFT_PREFIX
     CONTROL_Q = Keys.ControlQ.value
+    CONTROL_R = Keys.ControlR.value
     CONTROL_W = Keys.ControlW.value
     CONTROL_P = Keys.ControlP.value
     CONTROL_C = Keys.ControlC.value
@@ -73,6 +74,7 @@ class KeyName:
 
 
 class ShortcutAction:
+    QUESTIONS = "questions"
     OPEN_DIRECTORY = "open_directory"
     TOOLS_TOGGLE = "tools_toggle"
     OBJECT_SORT = "object_sort"
@@ -139,6 +141,7 @@ class ShortcutLabel:
     CONTROL_HORIZONTAL = "Ctrl+←→"
     SPACE_ENTER_RIGHT = "Space/Enter/→"
     CONTROL_Q = "Ctrl+Q"
+    CONTROL_R = "Ctrl+R"
     CONTROL_W = "Ctrl+W"
     CONTROL_P = "Ctrl+P"
     CONTROL_C = "Ctrl+C"

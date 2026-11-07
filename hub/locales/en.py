@@ -1019,6 +1019,7 @@ MESSAGES = {
     MessageKey.SHORTCUT_SAVE_CHAT: 'save & chat',
     MessageKey.SHORTCUT_ENGINE: 'engine',
     MessageKey.SHORTCUT_FIND: 'find',
+    MessageKey.SHORTCUT_QUESTIONS: 'open questions',
     MessageKey.SHORTCUT_HISTORY: 'turns',
     MessageKey.SHORTCUT_LOGS: 'logs',
     MessageKey.SHORTCUT_SCROLL: 'scroll',

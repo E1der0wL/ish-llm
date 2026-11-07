@@ -22,6 +22,7 @@ from ..controls import Button, ScrollbarMargin
 from ..clipboard import copy_text
 from .selection import SelectableControl
 from ..output_inspector import ExpandedOutputDialog
+from ..mouse_contract import MouseBinding
 from ...ui.input.registry import MOVEMENT_KEYS
 from ...ui.output.table import TableData
 from ...ui.output.labels import LabelText
@@ -108,12 +109,16 @@ class TableControl(SelectableControl):
         self.header = Window(
             FormattedTextControl(
                 self.header_text,
-                get_cursor_position=lambda: Point(self.left, TableControl.ORIGIN),
+                get_cursor_position=lambda: Point(self.header_left(), TableControl.ORIGIN),
             ),
             height=TableControl.HEADER_HEIGHT,
-            get_horizontal_scroll=lambda _: self.left,
+            get_horizontal_scroll=lambda _: self.header_left(),
         )
         self.container = HSplit([self.header, self.window])
+
+    def header_left(self):
+        viewport = MouseBinding.scroll(self.window)
+        return self.left if viewport is None else viewport.column_for(Point(self.left, self.row), self.left)
 
     def __pt_container__(self):
         return self.container
@@ -324,6 +329,10 @@ class TableInspector(ExpandedOutputDialog):
     DISPLAY_OFFSET = 1
     SEPARATOR = " • "
     NOTICE_FORMAT = " • {notice}"
+
+    @property
+    def scroll_target(self):
+        return self.output if self.raw_mode else self.table.window
 
     def __init__(self, item, context):
         self.table = TableControl(item, context)

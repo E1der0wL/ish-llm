@@ -80,6 +80,7 @@ class WorkflowEditor(DefinitionEditor):
         })
         self.inspector = WorkflowInspector(self)
         self.navigation = WorkflowNavigation(self)
+        self.scroll_target = self.navigation
         keys = KeyBindings()
         keys.add(KeyName.UP)(lambda e: self.sidebar.move(-1))
         keys.add(KeyName.DOWN)(lambda e: self.sidebar.move(1))

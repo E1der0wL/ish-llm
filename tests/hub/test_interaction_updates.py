@@ -127,8 +127,11 @@ class InteractionTests(unittest.IsolatedAsyncioTestCase):
             try:
                 pipe.send_text("\x11")
                 await eventually(lambda: view.visible)
-                self.assertFalse(any(binding.keys == ("c-r",) for binding in
-                    view.navigation_keys.get_bindings_for_keys(("c-r",))))
+                pipe.send_text("before\x12after")
+                await eventually(lambda: view.composer.text == "beforeafter")
+                self.assertIs(app.layout.current_control, view.composer.control)
+                self.assertIsNone(view.question.item)
+                view.composer.text = ""
                 for key in range(1, 13):
                     self.assertFalse(any(binding.keys == (f"f{key}",) for binding in
                         view.navigation_keys.get_bindings_for_keys((f"f{key}",))))

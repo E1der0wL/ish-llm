@@ -167,8 +167,7 @@ class QuestionComposer:
         )
 
     def leave(self):
-        focus_input = bool(self.item and (self.inbox.focused or
-            get_app().layout.current_control is self.manage_button.control))
+        focus_input = self.inbox.focused or get_app().layout.current_control is self.manage_button.control
         if self.item:
             if not (self.observation.nonblocking and self.inbox.busy and not self.view.composer.text):
                 self.drafts[self.identity] = self.view.composer.text

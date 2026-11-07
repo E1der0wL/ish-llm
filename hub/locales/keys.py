@@ -971,6 +971,7 @@ class MessageKey:
     SHORTCUT_SAVE_CHAT = 'shortcut_save_chat'
     SHORTCUT_ENGINE = 'shortcut_engine'
     SHORTCUT_FIND = 'shortcut_find'
+    SHORTCUT_QUESTIONS = 'shortcut_questions'
     SHORTCUT_HISTORY = 'shortcut_history'
     SHORTCUT_LOGS = 'shortcut_logs'
     SHORTCUT_SCROLL = 'shortcut_scroll'

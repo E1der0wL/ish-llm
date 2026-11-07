@@ -6,6 +6,7 @@ from typing import NamedTuple
 from collections.abc import Callable
 
 from prompt_toolkit.data_structures import Point
+from prompt_toolkit.formatted_text.utils import fragment_list_width
 from prompt_toolkit.mouse_events import MouseButton, MouseEventType as M
 from prompt_toolkit.layout.layout import walk
 from prompt_toolkit.layout.containers import to_container
@@ -14,6 +15,7 @@ from .input_contract import EditableControl, MouseResult
 from .output.selection import SelectableControl
 from ..config.theme_style import ThemeSelector, ThemeStyle
 from .mouse_contract import MouseBinding
+from ..ui.input.keys import KeyName
 
 
 class MouseHit(NamedTuple):
@@ -107,10 +109,12 @@ class WindowScroll:
     ABSENT = None
     SCROLL_TO = "scroll_to"
     ORIGIN = 0
+    PAGE_OVERLAP = 1
 
     def __init__(self, window):
         self.window = window
         self.manual = self.ABSENT
+        self.keyboard_position = self.ABSENT
         self.cursor = self.anchor = self.ABSENT
         self._native_scroll = window._scroll
         # Local adapter only: PTK classes and the host's windows are unchanged.
@@ -119,6 +123,19 @@ class WindowScroll:
     def _scroll(self, content, width, height):
         cursor = content.cursor_position
         self.cursor = cursor
+        if self.keyboard_position is not None:
+            if cursor == self.anchor and width > 0 and height > 0 and content.line_count:
+                line, offset, column = self.keyboard_position
+                line = min(line, content.line_count - 1)
+                offset = min(offset, self._rows(content, width, line) - 1)
+                line, offset = min((line, offset), self._end(content, width, height))
+                self.window.vertical_scroll, self.window.vertical_scroll_2 = line, offset
+                if column:
+                    column = min(column, self._right(content, width, height, line))
+                self.window.horizontal_scroll = column
+                self.keyboard_position = line, offset, column
+                return
+            self.keyboard_position = None
         if self.manual is not self.ABSENT:
             if cursor != self.anchor:
                 self.manual = self.ABSENT
@@ -145,6 +162,7 @@ class WindowScroll:
         )
 
     def scroll_to(self, position):
+        self.keyboard_position = None
         position = max(self.ORIGIN, min(self.geometry().limit, position))
         callback = getattr(self.window.content, self.SCROLL_TO, self.ABSENT)
         if callback is not self.ABSENT:
@@ -156,6 +174,70 @@ class WindowScroll:
                 self.cursor or self.window.render_info.ui_content.cursor_position
             )
             self.window.vertical_scroll = position
+
+    def _rows(self, content, width, line):
+        if self.window.wrap_lines():
+            return max(1, content.get_height_for_line(line, width, self.window.get_line_prefix))
+        return 1
+
+    def _advance(self, content, width, line, offset, delta):
+        """Move through just the wrapped rows crossed by this keystroke."""
+        last = content.line_count - 1
+        if not self.window.wrap_lines():
+            return max(0, min(last, line + delta)), 0
+        offset += delta
+        while offset < 0 and line > 0:
+            line -= 1
+            offset += self._rows(content, width, line)
+        while line < last:
+            rows = self._rows(content, width, line)
+            if offset < rows:
+                break
+            offset -= rows
+            line += 1
+        return line, max(0, min(offset, self._rows(content, width, line) - 1))
+
+    def _end(self, content, width, height):
+        last = content.line_count - 1
+        return self._advance(content, width, last, self._rows(content, width, last) - 1, 1 - height)
+
+    def _right(self, content, width, height, line):
+        if self.window.wrap_lines():
+            return 0
+        longest = max(fragment_list_width(content.get_line(i))
+                      for i in range(line, min(content.line_count, line + height)))
+        return max(0, longest - width)
+
+    def column_for(self, cursor, default):
+        if self.keyboard_position is not None and self.anchor == cursor:
+            return self.keyboard_position[2]
+        return default
+
+    def scroll(self, key):
+        info = self.window.render_info
+        if not info or not info.ui_content.line_count or min(info.window_width, info.window_height) <= 0:
+            return
+        content, width, height = info.ui_content, info.window_width, info.window_height
+        # Queued keys can arrive before the next paint.
+        line, offset, column = self.keyboard_position or (
+            self.window.vertical_scroll, self.window.vertical_scroll_2, self.window.horizontal_scroll)
+        line = min(line, content.line_count - 1)
+        if key in (KeyName.LEFT, KeyName.RIGHT):
+            if self.window.wrap_lines():
+                return
+            column = max(0, min(self._right(content, width, height, line),
+                                column + (1 if key == KeyName.RIGHT else -1)))
+        elif key == KeyName.HOME:
+            line, offset = 0, 0
+        elif key == KeyName.END:
+            line, offset = self._end(content, width, height)
+        else:
+            page = max(1, height - self.PAGE_OVERLAP)
+            delta = {KeyName.UP: -1, KeyName.DOWN: 1, KeyName.PAGE_UP: -page, KeyName.PAGE_DOWN: page}[key]
+            line, offset = min(self._advance(content, width, line, offset, delta), self._end(content, width, height))
+        self.manual = None
+        self.anchor = content.cursor_position
+        self.keyboard_position = line, offset, column
 
 
 def window_scroll(window):

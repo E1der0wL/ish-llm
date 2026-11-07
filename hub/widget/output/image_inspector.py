@@ -19,6 +19,10 @@ class ImageMode(StrEnum):
 
 
 class ImageInspector(ExpandedOutputDialog):
+    @property
+    def scroll_target(self):
+        return None if self.native else self.output
+
     def __init__(self, item, context, renderer, root):
         self.renderer, self.root = renderer, root()
         self.native, self.painter, self.closed, self.generation = False, None, False, 0

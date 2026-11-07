@@ -79,7 +79,6 @@ class SettingsEditorLayout:
                         ShortcutAction.SELECT, self.move)
         engine_keys.add([KeyName.LEFT], ShortcutLabel.LEFT, ShortcutAction.SIDEBAR,
                         lambda e: self.focus_sidebar())
-        engine_keys.scroll(lambda e: self.pane.scroll(e.key_sequence[-1].key))
         self.layout = TwoPanelPage(
             header=None, footer=None,
             sidebar=HSplit([
@@ -221,7 +220,6 @@ class SettingsEditorLayout:
                      self.move, when=available)
         registry.add([KeyName.LEFT], ShortcutLabel.LEFT, ShortcutAction.SIDEBAR,
                      lambda e: self.focus_sidebar(), when=available)
-        registry.scroll(lambda e: self.pane.scroll(e.key_sequence[-1].key))
 
     def move(self, event):
         controls = self.controls()
