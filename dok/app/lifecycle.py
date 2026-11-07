@@ -1,7 +1,7 @@
 """Connect independent feature tasks to the active host application."""
 
 from ..core.tasks import TaskSlot
-from ..features.clock.config import ClockConfig
+from ..features.clock.config import ClockConfig, ClockSchedule
 from ..features.clock.runtime import ClockRuntime
 from ..features.weather.runtime import WeatherRuntime
 
@@ -27,20 +27,25 @@ class DashboardRuntime:
     def snapshot_for(self, config):
         return self._weather.snapshot_for(config.widgets.weather)
 
-    def sync(self, *, active, config, app):
+    def begin_activation(self):
+        self._weather.begin_activation()
+
+    def sync(self, *, active, config, app, weather_active=False, clock_active=False, dock_active=False):
         if self._clock_task.closed:
             return
         self._clock_config = config.clock
-        schedule = config.clock.schedule(config.widgets.date, config.widgets.time)
+        schedule = (config.clock.schedule(config.widgets.date, config.widgets.time) if active
+                    else ClockSchedule.for_formats(config.clock))
         self._clock_task.sync(
-            active=active and config.widgets.needs_clock, key=schedule,
+            active=(active and config.widgets.needs_clock) or clock_active, key=schedule,
             run=lambda: self._clock.run(schedule), start=app.create_background_task,
         )
         weather = config.widgets.weather
         if not self._weather_task.running:
             self._weather.prepare(weather)
         self._weather_task.sync(
-            active=active and weather.can_fetch, key=weather.polling_key,
+            active=(active or weather_active or (dock_active and self._weather.retry_pending)) and weather.can_fetch,
+            key=weather.polling_key,
             run=lambda: self._weather.run(weather, self._now), start=app.create_background_task,
         )
 

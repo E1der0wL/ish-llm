@@ -5,20 +5,22 @@ from pyfiglet import Figlet
 
 from ...rendering.presentation import TextRow
 from ...rendering.text import fit, width
+from ...locales import Locale
+from ...locales.messages import WEEKDAYS
 
 
 class ClockView:
     def __init__(self):
         self._weekday = WeekdayRenderer()
 
-    def sections(self, date, time, weekday, now, available):
+    def sections(self, date, time, weekday, now, available, locale=Locale()):
         art = tuple(TextRow.plain(line, weekday.style.color)
                     for line in self._weekday.render(weekday, now.weekday(), available))
-        return ((weekday, art), (date, date.rows(now)), (time, time.rows(now)))
+        return ((weekday, art), (date, date.rows(now, locale)), (time, time.rows(now, locale)))
 
 
 class WeekdayRenderer:
-    NAMES = ("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
+    NAMES = tuple(day.upper() for day in WEEKDAYS)
     RENDER_WIDTH = 4096
 
     def __init__(self):

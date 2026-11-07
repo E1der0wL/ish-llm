@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP, localcontext
 from enum import StrEnum
 import re
+from ...locales import Locale, Message as M
 
 
 class InputField(StrEnum):
@@ -13,6 +14,10 @@ class InputField(StrEnum):
     POSITION = "position"
     MODE = "mode"
     ENCODING = "encoding"
+
+    def label(self, locale=Locale()):
+        return locale.text({self.LENGTH: M.LENGTH, self.LINES: M.LINES, self.LINE: M.LINE,
+            self.COLUMN: M.COLUMN, self.POSITION: M.POSITION, self.MODE: M.MODE, self.ENCODING: M.ENCODING}[self])
 
 
 class NumberScope(StrEnum):
@@ -94,11 +99,11 @@ class NumberCalculator:
             return NumberSummary(count, total, total / count if count else Decimal(0))
 
     @classmethod
-    def format(cls, value: Decimal, decimal_places: int | None) -> str:
+    def format(cls, value: Decimal, decimals: int | None) -> str:
         with localcontext() as context:
             context.prec = cls.PRECISION
-            if decimal_places is not None and -value.as_tuple().exponent > decimal_places:
-                value = value.quantize(Decimal(1).scaleb(-decimal_places), rounding=ROUND_HALF_UP)
+            if decimals is not None and -value.as_tuple().exponent > decimals:
+                value = value.quantize(Decimal(1).scaleb(-decimals), rounding=ROUND_HALF_UP)
             text = format(value if value else Decimal(0), ",f")
             return text.rstrip("0").rstrip(".") if "." in text else text
 
@@ -107,8 +112,8 @@ class NumberCalculator:
         return sum(char.isdigit() for char in text)
 
     @classmethod
-    def _forms(cls, value: Decimal, full: str, decimal_places: int | None, max_digits: int | None):
-        limited = max_digits is not None and cls._digits(full) > max_digits
+    def _forms(cls, value: Decimal, full: str, decimals: int | None, digits: int | None):
+        limited = digits is not None and cls._digits(full) > digits
         if not limited:
             yield full
         with localcontext() as context:
@@ -118,61 +123,61 @@ class NumberCalculator:
                 return
             tier = min(exponent // 3, len(cls.UNITS) - 1)
             power, suffix = 3 * tier, cls.UNITS[tier]
-            if max_digits is None and exponent >= 3 * len(cls.UNITS):
+            if digits is None and exponent >= 3 * len(cls.UNITS):
                 power, suffix = exponent, f"e{exponent}"
             scaled = value.scaleb(-power)
-            places = max(0, max_digits - scaled.adjusted() - 1) if limited else 2
-            if decimal_places is not None:
-                places = min(places, decimal_places)
+            places = max(0, digits - scaled.adjusted() - 1) if limited else 2
+            if decimals is not None:
+                places = min(places, decimals)
             for precision in dict.fromkeys((places, min(2, places), min(1, places), 0)):
-                digits = cls.format(scaled, precision).replace(",", "")
+                text = cls.format(scaled, precision).replace(",", "")
                 unit = suffix
-                if digits.lstrip("-") == "1000" and tier + 1 < len(cls.UNITS):
-                    digits = "-1" if value < 0 else "1"
+                if text.lstrip("-") == "1000" and tier + 1 < len(cls.UNITS):
+                    text = "-1" if value < 0 else "1"
                     unit = cls.UNITS[tier + 1]
-                if max_digits is None or cls._digits(digits) <= max_digits:
-                    yield digits + unit
+                if digits is None or cls._digits(text) <= digits:
+                    yield text + unit
 
     @staticmethod
-    def _prefix(full: str, max_digits: int | None, cells: int | None) -> str:
+    def _prefix(full: str, digits: int | None, cells: int | None) -> str:
         # A one-cell ellipsis leaves room for a digit in very narrow fields.
         if cells == 0:
             return ""
         marker = "..." if cells is None or cells >= 4 + full.startswith("-") else "…"
         prefix = ""
-        digits = 0
+        count = 0
         for char in full.replace(",", ""):
             if char.isdigit():
-                if max_digits is not None and digits >= max_digits:
+                if digits is not None and count >= digits:
                     break
-                digits += 1
+                count += 1
             if cells is not None and len(prefix) + len(marker) >= cells:
                 break
             prefix += char
         return prefix.rstrip(".-") + marker
 
     @classmethod
-    def compact(cls, value: Decimal, full: str, cells: int | None, *, max_digits: int | None = None,
-                decimal_places: int | None = None) -> str:
-        for form in cls._forms(value, full, decimal_places, max_digits):
+    def compact(cls, value: Decimal, full: str, cells: int | None, *, digits: int | None = None,
+                decimals: int | None = None) -> str:
+        for form in cls._forms(value, full, decimals, digits):
             if cells is None or len(form) <= cells:
                 return form
-        return cls._prefix(full, max_digits, cells)
+        return cls._prefix(full, digits, cells)
 
     @classmethod
-    def format_pair(cls, summary: NumberSummary, decimal_places: int | None, cells: int | None,
-                    *, max_digits: int | None = None) -> str:
-        total = cls.format(summary.total, decimal_places)
-        mean = cls.format(summary.average, decimal_places)
+    def format_pair(cls, summary: NumberSummary, decimals: int | None, cells: int | None,
+                    *, digits: int | None = None) -> str:
+        total = cls.format(summary.total, decimals)
+        mean = cls.format(summary.average, decimals)
         room = None if cells is None else cells - 2
         if room is not None and room < 2:
             return "…"
-        if max_digits is None and (room is None or len(total) + len(mean) <= room):
+        if digits is None and (room is None or len(total) + len(mean) <= room):
             return f"{total}({mean})"
 
         def forms(value, full):
-            options = tuple(dict.fromkeys(cls._forms(value, full, decimal_places, max_digits)))
-            return options or (cls._prefix(full, max_digits, None),)
+            options = tuple(dict.fromkeys(cls._forms(value, full, decimals, digits)))
+            return options or (cls._prefix(full, digits, None),)
 
         totals = forms(summary.total, total)
         means = forms(summary.average, mean)
@@ -186,6 +191,6 @@ class NumberCalculator:
 
         # Preserve a short operand and share the remaining cells when both are long.
         total_room = min(len(totals[0]), max((room + 1) // 2, room - len(means[0])))
-        t = cls.compact(summary.total, total, total_room, max_digits=max_digits, decimal_places=decimal_places)
-        m = cls.compact(summary.average, mean, room - len(t), max_digits=max_digits, decimal_places=decimal_places)
+        t = cls.compact(summary.total, total, total_room, digits=digits, decimals=decimals)
+        m = cls.compact(summary.average, mean, room - len(t), digits=digits, decimals=decimals)
         return f"{t}({m})"

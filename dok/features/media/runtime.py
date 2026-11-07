@@ -53,13 +53,13 @@ class MediaRuntime:
         self._publish(state)
 
     async def _run(self, config):
-        backend = self._factory(config.timeout_seconds)
+        backend = self._factory(config.timeout_s)
         try:
             await backend.connect()
             self._backend = backend
             while True:
                 await self._refresh(backend, config)
-                await asyncio.sleep(config.refresh_seconds)
+                await asyncio.sleep(config.refresh_s)
         except asyncio.CancelledError:
             raise
         except Exception as exc:

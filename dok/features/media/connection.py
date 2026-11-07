@@ -14,9 +14,9 @@ class MediaConfig(Record):
         description="Connect to MPRIS players on the Linux session bus while the dock is visible.")
     player: str | None = setting(Nullable(Text(nonblank=True, single_line=True)), default=None,
         description="Exact MPRIS bus name, or null to select a playing player and retain it until it exits.")
-    refresh_seconds: float = setting(POSITIVE_SECONDS, default=1.0,
+    refresh_s: float = setting(POSITIVE_SECONDS, default=1.0,
         description="Positive finite seconds between player state queries while visible. No polling while hidden.")
-    timeout_seconds: float = setting(POSITIVE_SECONDS, default=2.0,
+    timeout_s: float = setting(POSITIVE_SECONDS, default=2.0,
         description="Positive finite timeout in seconds for each D-Bus request. Failed commands are never retried.")
 
 

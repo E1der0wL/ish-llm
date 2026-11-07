@@ -8,11 +8,12 @@ import re
 
 from pyfiglet import Figlet, FigletFont
 
-from ...core.colors import DockPalette, HexColor
 from ...core.elements import ElementConfig, Spacing
 from ...core.records import Boolean, Nested, Nullable, Record, Rule, SettingsError, Text, setting
 from ...core.styles import TextStyle, BoldStyle
 from ...rendering.presentation import TextRow
+from ...locales import Locale, Message
+from ...locales.messages import MONTHS
 
 
 class TimezoneRule(Rule):
@@ -32,8 +33,7 @@ class TimezoneRule(Rule):
 class ClockFormat(Rule):
     DIRECTIVES = "YymdAaBbHIMSpzZ%"
     PATTERN = rf"^(?:[^%\x00-\x1f\x7f-\x9f\u2028\u2029]|%[{DIRECTIVES}])*$"
-    MONTHS = ("JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-              "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER")
+    MONTHS = tuple(month.upper() for month in MONTHS)
 
     def decode(self, value):
         Text(single_line=True).decode(value)
@@ -45,14 +45,16 @@ class ClockFormat(Rule):
         return {"type": "string", "pattern": self.PATTERN}
 
     @classmethod
-    def render(cls, fmt, now, *, weekdays: tuple[str, ...] | None = None):
+    def render(cls, fmt, now, *, weekdays: tuple[str, ...] | None = None, locale=Locale()):
         def token(match):
             value = match.group()
             if value in ("%B", "%b"):
-                month = cls.MONTHS[now.month - 1]
+                month = locale.month(now.month).upper()
                 return month if value == "%B" else month[:3]
-            if value in ("%a", "%A") and weekdays is not None:
-                return weekdays[now.weekday()]
+            if value in ("%a", "%A"):
+                return weekdays[now.weekday()] if weekdays is not None else locale.weekday(now.weekday(), abbreviated=value == "%a")
+            if value == "%p":
+                return locale.text(Message.AM if now.hour < 12 else Message.PM)
             return now.strftime(value)
         return re.sub(r"%.", token, fmt)
 
@@ -105,21 +107,21 @@ class DateConfig(ElementConfig):
     format: str = setting(
         ClockFormat(),
         default="%d %B, %Y.",
-        description="Date format. %d is day, %B uppercase English month, %Y year. Empty hides this row."
+        description="Date format. %d is day, %B localized month (uppercase in English), %Y year. Empty hides this row."
     )
 
     @property
     def needs_clock(self) -> bool:
         return self.enabled and bool(self.format)
 
-    def rows(self, now):
+    def rows(self, now, locale=Locale()):
         return (
-            TextRow.plain(ClockFormat.render(self.format, now), self.style.color, bold=self.style.bold),
+            TextRow.plain(ClockFormat.render(self.format, now, locale=locale), self.style.color, bold=self.style.bold),
         ) if self.needs_clock else ()
 
 @dataclass(frozen=True, slots=True)
 class TimeSpacing(Spacing):
-    after_rows: int = setting(Spacing.ROWS_RULE, default=2)
+    after: int = setting(Spacing.ROWS_RULE, default=2)
 
 
 @dataclass(frozen=True, slots=True)
@@ -136,9 +138,9 @@ class TimeConfig(ElementConfig):
     def needs_clock(self) -> bool:
         return self.enabled and bool(self.format)
 
-    def rows(self, now):
+    def rows(self, now, locale=Locale()):
         return (
-            TextRow.plain(ClockFormat.render(self.format, now), self.style.color),
+            TextRow.plain(ClockFormat.render(self.format, now, locale=locale), self.style.color),
         ) if self.needs_clock else ()
 
 
@@ -162,7 +164,7 @@ class FontRule(Rule):
 
 @dataclass(frozen=True, slots=True)
 class WeekdaySpacing(Spacing):
-    after_rows: int = setting(Spacing.ROWS_RULE, default=1)
+    after: int = setting(Spacing.ROWS_RULE, default=1)
 
 
 @dataclass(frozen=True, slots=True)

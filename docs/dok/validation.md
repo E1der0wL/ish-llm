@@ -294,3 +294,105 @@ Linux Python 3.12.14의 해시 검증된 Linux 스냅샷에서 dok 테스트 **1
 [계약 검토](contract-review-20261106.md)에서 날짜 해석·갱신 규칙의 중복과 빈 합계 문구의 좁은 화면 처리를 수정했다. 기존 공개 내보내기 39개·컨트롤러 시그니처·설정 생성자 인자 순서를 확인했고, 기본 JSONC와 문서 예시 11개도 Owner 선언에 부합했다.
 
 최종 Linux Python 3.12.14 스냅샷에서 dok 테스트 **177개 통과**(38.774초). 경고·건너뛴 테스트는 없었다. [실행 로그](../../tests/dok/reports/dok-3xuiyxqb/dok.txt), [소스 해시](../../tests/dok/reports/dok-3xuiyxqb/snapshot.json), [API·설정 검사 결과](../../tests/dok/reports/review-20261106/audit.json). ish 본체·llm·hub는 수정하지 않았고 llm/hub 전체 회귀는 실행하지 않았다.
+
+## 일반 팝업·알림과 캘린더·일별 날씨 (2026-11-07)
+
+일반 팝업의 중앙 배치·포커스 복원과 우측 하단 알림의 FIFO·가시 시간 타이머를 추가했다. 월간 캘린더와 기존 캐시를 공유하는 일별 날씨 상세를 연결했다. 크기·여백·스타일·키는 Owner 선언에서 검증·schema·영어 JSONC 주석을 생성한다. 하나의 기존 Float에 레이어를 조합하며 호스트 소스를 변경하지 않는다.
+
+Linux Python 3.12.14의 해시 검증 스냅샷에서 dok 테스트 **214개 통과**(unittest 69.202초). [실행 로그](../../tests/dok/reports/dok-_3y55s8_/dok.txt), [소스 해시](../../tests/dok/reports/dok-_3y55s8_/snapshot.json). 문서 설정 예시 13개를 Owner와 JSON schema로 검증했다. 실제 PTY에서 팝업 열기·닫기 후 기존 바로가기 제출, 문서·선택·검색 포커스 보존, 키 충돌 차단, 알림 중 타이핑·프롬프트 종료·대기·만료, 마우스 상세 버튼·색상·우측 하단 위치, 작은 화면 스크롤과 날씨 조회 공유를 확인했다.
+
+화면 검토용 실제 prompt-toolkit 셀 렌더링 PNG는 `tests/dok/reports/popup-preview-2026-11-07/`에 저장했다. 예보가 있는 캡처는 합성 샘플 데이터다. UI 확정은 사용자 검토를 기다린다. ish 본체·llm·hub 코드와 개인 WSL 설치·설정은 수정하지 않았으며 llm/hub 전체 회귀, 커밋·업로드는 수행하지 않았다.
+
+## 공통 테마와 확정된 하단 바 UI (2026-11-07)
+
+사용자가 합계 라벨을 `Total`로 바꾸는 조건으로 UI를 확정하고 테스트를 요청했다. `NumbersConfig`의 기본 선언을 변경하고 기본 JSONC·현재 문서·테스트에 반영했다. 네트워크 기본 라벨은 Nerd Font 아이콘 `󰛳`, 왼쪽 세 숫자 그룹 사이는 4칸, 그룹 내부 간격은 2칸이다. 숫자 표시칸의 정렬용 여백은 별도로 유지한다. 새 Theme 필드는 기존 `DockConfig` 위치 인자를 바꾸지 않도록 끝에 추가했다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 스냅샷에서 **dok 테스트 218개 통과**(unittest 63.467초), 건너뛴 테스트는 없다. [최종 실행 로그](../../tests/dok/reports/dok-4_58cjkb/dok.txt), [소스 해시](../../tests/dok/reports/dok-4_58cjkb/snapshot.json). 선택적 dok→Hub 등록 테스트에는 Hub·llm 소스의 읽기 전용 복사본을 의존성으로 제공했다. [의존성 해시](../../tests/dok/reports/dok-optional-9lnmns4t/dependencies.json). `tests/dok/manual/theme_validation.py`가 복사를 준비하고 `tests/dok/run_linux.py`가 **tests/dok만** 발견·실행한다. 사용자 Hub 작업공간이나 설치된 플러그인은 사용하지 않는다.
+
+공통 색상 선언·참조 검증·schema·설정 왕복, 터미널 기본색, 독 여백 배경, 바로가기/비주얼라이저의 독립 색상 보존, 팝업 테마 변경 시 캐시 갱신, 하단 바의 좁은 폭·고정 폭·우측 정렬, 실제 PTY 입력·팝업 닫기·바로가기 제출을 검증했다. 초기 실행의 실패 1건은 이전 NET 문자 라벨에 맞춘 테스트 기대값이었다. 아이콘으로 짧아진 라벨 뒤에는 원래 너비 적응 규칙에 따라 `↓1 MiB/s ↑1 KiB/s`가 들어가므로 기대값을 갱신했다. 초기 로그도 `dok-m8deqe32/`에 보존한다. asyncio 디버그의 일부 느린 콜백 진단은 있었으나 최종 실패·오류는 없다.
+
+초기 JSONC가 `DockConfig.initial()`의 생성물과 정확히 일치하며, 현재 문서의 설정 예시 **14개**가 Owner와 JSON schema 검증을 통과했다. [설정 검사 결과](../../tests/dok/reports/theme-preview-2026-11-07-final/docs-validation.json), [최종 하단 바 렌더링](../../tests/dok/reports/theme-preview-2026-11-07-final/toolbar.png). 캘린더 편집·일정 저장/예약 알림·시간별 날씨의 개편 화면은 아직 시안이며, 이번 결과는 그 미연결 기능의 동작 검증을 포함하지 않는다.
+
+이번 수정은 `dok/`, `docs/dok/`, `tests/dok/`에 한정했다. ish 본체·llm·hub 수정, llm/hub 전체 회귀, 개인 WSL 배포·설정 변경, 커밋·업로드는 수행하지 않았다.
+
+## 캘린더 편집·예약 알림·현재/시간별 날씨 연결 (2026-11-07)
+
+확정된 시안을 실행되는 팝업에 연결했다. 날짜 선택·일정 선택·입력·저장·삭제·휴일·반복·알림 시각을 캘린더 Owner API와 연결하고, 원자적 저장·revision 충돌·프로세스 간 잠금·알림 처리 기록을 추가했다. 알림 작업은 프롬프트 사이에도 살아 있는 이벤트 루프에서 실행하고 기존 가시 시간 대기열을 사용한다. 현재·일별·시간별 날씨는 한 Open-Meteo 요청과 기존 캐시를 공유한다. 일반 팝업 API와 하나의 Float·포커스 복원 계약은 유지한다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 스냅샷에서 **dok 테스트 237개 전부 통과**(unittest 68.552초), 건너뛴 테스트는 없다. [최종 로그](../../tests/dok/reports/dok-tacroc19/dok.txt), [소스 해시](../../tests/dok/reports/dok-tacroc19/snapshot.json), [선택적 Hub/llm 의존성 복사 해시](../../tests/dok/reports/dok-optional-7fw952xu/dependencies.json). 명령은 `python tests/dok/manual/theme_validation.py`이며 실제 탐색 대상은 `tests/dok`뿐이다. llm/hub 테스트 모음은 실행하지 않았다.
+
+추가 검증은 월말·윤년·일광절약 시간, 날짜 범위·다일 일정, 저장 재열기·수정 충돌·저장 실패 시 원본 유지, 손상 파일 보존, 반복 알림의 최신 회차 계산·재시작/시계 역행 중복 방지·비활성화·종료, 실제 키 입력/한글/F2 저장·마우스 저장·미저장 확인·작은 창, 명령 실행 중 알림 대기와 복귀 후 타이핑 보존이다. 날씨는 현재/시간별 배열·누락값·범위·시간 순서·DST 중복 시각·강수확률 색·단절 그래프·좁은 화면의 FIGlet 폴백을 검사했다. 기존 dok PTY·MPRIS·오디오·toolbar·팝업·Hub 등록 검증도 통과했다.
+
+초기 검증에서 패널 하위 타입 기본값의 저장 왕복, 미설정 날씨 문구 색, 너무 좁은 FIGlet 폭을 수정했다. 최종 생성 JSONC는 Owner와 완전히 일치하며 문서 설정 예시 **14개**도 검증했다. [설정 검사](../../tests/dok/reports/connected-popups-2026-11-07/docs-validation.json). 자동 테스트 외에 Open-Meteo에 동탄 좌표를 한 번 요청해 현재 날씨·2일/48시간 예보·Asia/Seoul 시간대·강수확률의 실제 수신을 확인했다. [실제 조회 결과](../../tests/dok/reports/connected-popups-2026-11-07/live-weather.json).
+
+연결된 실제 렌더러의 [캘린더](../../tests/dok/reports/connected-popups-2026-11-07/calendar-editor.png), [드롭다운](../../tests/dok/reports/connected-popups-2026-11-07/calendar-dropdown.png), [날씨](../../tests/dok/reports/connected-popups-2026-11-07/weather-hourly.png)는 합성 데이터로 생성했다. 캘린더 캡처는 임시 CalendarStore에 저장한 일정을 읽는다. 개인 일정·설정 파일이나 WSL 설치 플러그인에는 쓰지 않았다.
+
+알림은 OS 데몬이 아니며 ish가 꺼져 있으면 발생하지 않는다. 재시작 시 지나간 알림은 이벤트별 최신 회차로 모으고, 처리 기록 저장 후 화면에 표시하기 전에 강제 종료되면 그 회차가 표시되지 않을 수 있다. 자세한 계약은 [캘린더](calendar.md)를 따른다. 수정은 `dok/`, `docs/dok/`, `tests/dok/`로 제한했으며 ish 본체·llm·hub 변경, 개인 WSL 배포, 커밋·업로드는 수행하지 않았다.
+
+## 확정된 팝업 UI·ESC 입력 지연 검증 (2026-11-07)
+
+사용자가 `popup-layout-2026-11-07-v3/` UI를 확정한 뒤 검증했다. 캘린더의 제목·하단 바 여백, 전체 일정 배경, 날짜/시각 분리, 하루 종일의 포함 종료일 편집, 한 행 반복 설정, 확장 메모와 고정 버튼을 검사한다. 날씨는 상단·강수확률 아래 여백, 선택 시간의 체감온도·바람·습도·강우량·자외선 지수, 영역 전환에 따른 하단 키 안내를 검사한다. 버튼 선택은 배경을 유지하고 title 전경색으로 표시한다. 하단 툴바의 기본 라벨은 `Total:`다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 테스트 246개 전부 통과**(unittest 59.125초), 건너뛴 테스트는 없다. [최종 로그](../../tests/dok/reports/dok-vd4iuo5j/dok.txt), [소스 해시](../../tests/dok/reports/dok-vd4iuo5j/snapshot.json), [선택적 의존성 복사 해시](../../tests/dok/reports/dok-optional-zy1e9krv/dependencies.json). 실행 명령은 Linux Python으로 `tests/dok/manual/theme_validation.py`를 호출하며 실제 테스트 탐색은 `tests/dok`에 한정한다.
+
+ESC는 `popups.input.escape_seconds` 기본 0.05초를 팝업 포커스 중 각 파서·키 조합 대기에 적용한다. 고정 sleep으로 동작을 추정하지 않고 실제 입력부터 팝업이 닫힌 렌더 결과까지 별도 관측 파이프로 측정했다. 실제 Linux PTY에서 캘린더 **110.5ms**, 날씨 **109.7ms**, 입력 파이프에서 **104.6ms**였다. 자동 검증의 허용 기준은 500ms이며 이전 약 1.5초 기본 대기와 구분한다. Windows Terminal의 화면 표시 지연 자체를 측정한 값은 아니다. 분할 전달된 CSI 방향키·Alt 조합, 프롬프트 보존, 포커스 이탈·재설정·해제 시 원래 시간값 복원과 다른 플러그인의 후속 변경 보존도 통과했다.
+
+초기 실행 245개 중 하루 종일 종료일을 Python 최대 날짜로 지정한 경계 테스트가 실패했다. 포함 종료일을 저장용 미포함 시각으로 변환할 때의 OverflowError를 EventDraft가 검증 오류로 돌려주도록 수정했다. 초기 로그는 `dok-eu5in95t/`에 보존하며, 수정 후 최종 실행은 모두 통과했다. [기본 JSONC와 현재 문서 예시 14개의 Owner/schema 검증](../../tests/dok/reports/dok-vd4iuo5j/docs-validation.json)도 통과했다.
+
+확정된 화면 형태는 유지했다. ish 본체·llm·hub를 수정하지 않았으며 llm/hub 전체 회귀, 개인 WSL 설치본·설정 변경, 커밋·업로드는 수행하지 않았다.
+
+## 날씨 실패 후 dock 재열기 재시도 (2026-11-07)
+
+명시적인 숨김→열림 전환을 WeatherRuntime.begin_activation()에 전달한다. 날씨 Owner가 실패 여부·진행 중인 요청·재시도 의도·갱신 기한을 판단하며, 대기 중인 작업을 깨워 한 번 재시도한다. 성공한 캐시의 갱신 주기는 그대로다. 기본 크기로 다시 열어도 재시도 한 번을 완료하고, 재렌더링·크기 변경·이미 열린 dock의 show() 호출은 실패 재시도를 유발하지 않는다. 빠른 재열기는 합쳐지고 이전 요청의 취소 정리가 끝나기 전에 새로운 요청을 시작하지 않는다.
+
+Linux Python 3.12.14의 해시 검증된 스냅샷에서 **dok 테스트 251개 전부 통과**(unittest 58.810초), 건너뛴 테스트는 없다. [실행 로그](../../tests/dok/reports/dok-tx2mqzsr/dok.txt), [소스 해시](../../tests/dok/reports/dok-tx2mqzsr/snapshot.json), [선택적 의존성 복사 해시](../../tests/dok/reports/dok-optional-r479bssq/dependencies.json). 새 검증은 같은 렌더 사이클의 빠른 재열기, 실패 후 기본 크기 재시도, 반복 실패 시 대기, 진행 중 요청 중복 방지, 취소 정리 직렬화, 실제 Ctrl+W 재열기와 성공 캐시·프롬프트 보존이다. 테스트의 날씨 조회는 모의 backend이며 개인 위치를 전송하지 않는다.
+
+WSL 설치본의 관련 dok 파일 4개가 수정 전 소스와 일치함을 확인한 뒤 테스트한 파일만 반영했다. 원본 백업은 `/home/user/.cache/dok-weather-retry-20261107-v5fiiqx8/`이며 개인 `~/ish/dok/config.jsonc`의 바이트 일치를 확인했다. [배포 파일 해시](../../tests/dok/reports/dok-tx2mqzsr/deployment.json), [실제 ish Python의 설치본 확인](../../tests/dok/reports/dok-tx2mqzsr/installed-smoke.json). 실행 중인 ish는 재시작해야 새 코드가 적용된다. ish 본체·llm·hub 수정, llm/hub 전체 회귀, 커밋·업로드는 수행하지 않았다.
+
+## UI 언어·선택 시간대 날짜·터미널 마우스 활성화 (2026-11-07)
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 테스트 266개 전부 통과**(unittest 67.792초). [실행 로그](../../tests/dok/reports/dok-h1prtx_q/dok.txt), [소스 해시](../../tests/dok/reports/dok-h1prtx_q/snapshot.json), [선택적 의존성 복사 해시](../../tests/dok/reports/dok-optional-383m25ak/dependencies.json). 영어·한국어 팩의 메시지/서식 변수 일치, 언어/schema/설정 왕복, 사용자 문구 보존, 초안·확인 상태를 유지하는 언어 전환, 선택 시간대의 자정 날짜 경계를 검증했다. 생성 JSONC도 현재 Owner 출력과 일치했다. 전체 실행 이후 이미 검증한 Language·Locale을 루트 `__all__`에 추가한 변경은 실제 설치 Python의 공개 내보내기 확인으로 보완했다.
+
+실제 ish 프로세스에서 클릭 신호를 직접 넣으면 처리되지만 터미널에 SGR 활성화 신호가 나오지 않는 현상을 재현했다. Application의 필터만 교체하고 Renderer의 생성 시 필터는 그대로였던 것이 원인이다. DockMouse가 두 공개 필터를 각각 보존·연결·복원하도록 수정했다. PTY 자동 테스트는 활성/해제 제어 신호까지 확인하며, 서로 다른 기존 필터와 다른 플러그인의 후속 변경도 보존한다. 실제 PTY ESC 응답은 캘린더 113.4ms, 날씨 112.2ms, 입력 파이프는 109.8ms였다.
+
+WSL의 실제 ish 1.2.1 실행기와 격리된 임시 홈으로 배포 전후를 검사했다. 수정 후 캘린더·날씨 각각 활성화/해제 신호와 SGR 클릭 처리를 확인했다. [설치본 PTY 결과](../../tests/dok/reports/mouse-renderer-fix/installed-after-deploy.json). Windows Terminal 창 자체에서 사람의 물리 클릭을 관측한 검증은 아니다. 실제 ish Python으로 EN/KO 팝업의 24가지 화면 크기와 공개 내보내기도 확인했다. [설치본 언어/폭 검사](../../tests/dok/reports/mouse-renderer-fix/locales-installed.json)
+
+WSL dok 코드 31개 파일을 반영하고 98개 Python 파일의 해시를 검증했다. 개인 설정과 일정 데이터는 바이트 단위로 보존했다. 백업은 `/home/user/.cache/dok-locales-mouse-jixwcsdd/`이며 [배포 기록](../../tests/dok/reports/mouse-renderer-fix/deployment.json)에 해시를 남겼다. ish를 완전히 다시 시작해야 새 코드가 적용된다. ish 본체·llm·hub 수정, llm/hub 전체 회귀, 실제 날씨 조회, 커밋·업로드는 수행하지 않았다.
+
+## 상태 문구 언어팩 전용화·CPU 초기 기준선 (2026-11-07)
+
+TitleTexts·WeatherTexts와 대응 설정/schema 필드를 제거하고 재생 접두 문구·오디오/날씨 연결 실패 안내를 Locale API로만 읽는다. 기본 JSONC와 현재 문서 예시에서 해당 옵션을 제거했다. CPU 그래프의 첫 유효 측정 전 구간은 MetricFormat이 점 기준선으로 그리며 실제 측정값·수집 이력에는 값을 보충하지 않는다. 측정 후 누락 구간과 네트워크 그래프의 빈 구간은 유지한다.
+
+Linux Python 3.12.14의 해시 검증된 스냅샷에서 **dok 테스트 268개 통과**(74.318초). [실행 로그](../../tests/dok/reports/dok-y5w5_0bq/dok.txt), [소스 해시](../../tests/dok/reports/dok-y5w5_0bq/snapshot.json). 상태 설정 제거·schema 거부·기본 JSONC, 두 언어의 독/날씨 상세 안내, 진단 우선순위, 시작/부분 이력/누락값/크기별 그래프를 확인했다. ish 본체·llm·hub 수정과 llm/hub 전체 회귀는 수행하지 않았다.
+
+WSL 코드 6개 파일을 반영하고 개인 설정에서는 `widgets.title.texts`와 `widgets.weather.texts` 객체만 제거했다. 나머지 JSON 값·외부 주석·일정 데이터를 보존하고 원본을 `/home/user/.cache/dok-status-language-c4m2g9ur/`에 백업했다. [배포 기록](../../tests/dok/reports/dok-status-language-c4m2g9ur/deployment.json). 기존 파일의 일회성 편집이며 런타임 호환/이전 설정 변환은 추가하지 않았다. 실행 중 ish는 다시 시작해야 새 코드가 적용된다.
+
+간헐적인 `[[[[[` 입력은 실제 장애 순간의 원인이 아직 확정되지 않았다. 정상 갱신/마우스 입력과 포커스 제어 신호 합성 입력을 비교했고, 일반 텍스트를 저장하지 않는 임시 진단 실행기를 마련했다. [조사 결과와 기록 방법](input-diagnostics.md).
+
+## 설정 이름 간소화·하단 바 바깥 여백·CPU 8단계 표시 (2026-11-07)
+
+설정 Owner의 필드명을 `width`, `value_width`, `pad_left`, `pad_right`, `gap`, `align`, `digits` 등으로 줄이고 소비 코드·schema·JSONC·현재 문서를 함께 정리했다. 시간 단위는 `_s`·`_min`으로 명시한다. 구 이름 별칭·런타임 자동 변환은 추가하지 않았다. 변경 전 runtime/initial 값과 새 이름으로 대응한 결과가 일치하는지 확인했고, Open-Meteo의 외부 요청 필드명은 유지했다. [이름 변경표](options.md#간소화한-설정-이름).
+
+하단 바 `pad_left`·`pad_right`의 런타임 기본값은 각각 0, 생성 파일 값은 각각 1이다. 배경 런타임 기본값은 공통 테마를 유지하고 생성 파일은 하단 바 전용 `#1D2035`를 사용한다. ThemeBackground가 RGB·이름 해석을 소유하며 팔레트·공통 역할 기본값은 바꾸지 않았다. 여백은 무제한 비음수 정수로 받되 실제 할당은 화면 너비 안으로 제한한다. 오른쪽 시스템 영역은 오른쪽 여백 직전까지 정렬한다.
+
+CPU는 기존 Braille 높이 4단계 대신 `▁▂▃▄▅▆▇█`의 8단계(12.5% 간격)를 MetricFormat에서 그린다. 한 셀에 한 측정값을 표시하고 0–100% 축을 유지한다. 시작 전 구간은 최저 블록으로 채우되 실제 이력은 변조하지 않으며 측정 중 누락은 빈칸이다. 메모리·네트워크 그래프 방식은 유지한다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 테스트 275개 전부 통과**(108.443초). [실행 로그](../../tests/dok/reports/dok-wss3c6re/dok.txt), [소스 해시](../../tests/dok/reports/dok-wss3c6re/snapshot.json), [선택적 의존성 복사 해시](../../tests/dok/reports/dok-optional-7t7f7_1y/dependencies.json). 구 설정 거부·Owner/schema 일치·생성 폼 일치, 매우 큰 여백·0칸 화면·배경 상속·재로드·프롬프트 보존, 8단계 경계·최근 이력·결측, 숫자 축약·부호·평균·말줄임을 검증했다. [현재 문서 설정 예제 16개](../../tests/dok/reports/dok-wss3c6re/docs-validation.json)도 Owner/schema를 통과했다. 기존 ESC 입력 파이프 검사는 117.5ms로 통과했다.
+
+간소화 후 첫 실행에서 자릿수 제한 인자와 기존 로컬 문자열/카운터 이름의 충돌이 발견되어 로컬 변수명을 분리했다. 초기 실패 기록은 `dok-_u3cs7bh/`에 보존했고 위 최종 전체 실행에서 재검증했다. 이전 바깥 여백 작업의 중간 실패 기록 `dok-ll1kbrr4/`도 보존한다. 새 toolbar 테스트의 오래된 Window 참조 비교는 재로드 후 공개 callback 소유권 검사로 고쳤고, 동일 실행에서 실패한 기존 ESC 분할 입력 검사는 단독 실행과 최종 전체 실행에서 통과했다. ESC 런타임 동작은 이번 작업에서 변경하지 않았다.
+
+ish 본체·llm·hub 코드는 수정하지 않았고 llm/hub 전체 회귀 테스트는 실행하지 않았다. 이번 변경은 작업 폴더에만 적용했으며 WSL 설치본·개인 설정·일정 데이터, 커밋·업로드는 변경하지 않았다.
+
+## 간소화 설정의 WSL 적용 (2026-11-07)
+
+사용자 요청으로 WSL 개인 설정을 새 이름으로 바꿨다. 사전 확인 당시 설치된 dok Python 파일 98개는 이미 `dok-wss3c6re` 검증 소스와 모두 일치했지만 개인 JSONC에는 이전 필드명이 남아 있었다. 코드 복사 없이 98개 파일 해시를 확인하고 `~/ish/dok/config.jsonc`의 키 41개만 바꿨다. 테마 참조 값 변경은 필요하지 않았다.
+
+변경 전 설정의 의미는 해시가 일치하는 이전 검증 스냅샷 `dok-y5w5_0bq`의 Owner로 읽고, 새 Owner로 읽은 결과와 모든 유효 설정 값이 같은지 확인했다. JSONC의 키 토큰만 치환하여 기존 주석·서식·개인 값은 보존했다. 생성 폼의 새 여백 1칸·배경 `#1D2035`를 기존 파일에 추가하지 않았다. 나머지 개인 파일·일정 데이터의 해시도 동일했다.
+
+원본 개인 폴더와 설치 플러그인을 `/home/user/.cache/dok-compact-settings-jpn5_wtu/`에 백업했다. 실제 ish 1.2.1의 Python으로 준비 파일과 적용 파일을 각각 읽고 CPU 8단계 표시, 좁은/넓은 4가지 toolbar 너비, 음악 버튼·팝업 설정 접근을 확인했다. [배포·설정 보존 기록](../../tests/dok/reports/dok-compact-settings-jpn5_wtu/deployment.json). 실행 중인 사용자 ish는 종료하지 않았으며 재시작하면 적용된다. ish 본체·llm·hub는 수정하지 않았고 전체 회귀 재실행이나 커밋·업로드는 하지 않았다.
+
+## 커밋 전 계약 검토 (2026-11-07)
+
+[검토 기록](contract-review-20261107.md)에 Owner·호스트·저장·작업 수명 경계를 정리했다. 연속 취소 중 캘린더 파일 작업의 잠금이 일찍 풀리는 문제를 재현한 뒤 `run_blocking()`으로 수정하고 시스템 수집도 같은 규칙을 사용하게 했다. 팝업 테마 역할은 공개 Enum을 참조하도록 정리했다.
+
+커밋된 hub/llm 의존성과 Linux Python 3.12.14를 사용해 **dok 276개 테스트 전부 통과**(87.607초). [로그](../../tests/dok/reports/dok-qknemr6e/dok.txt), [소스 해시](../../tests/dok/reports/dok-qknemr6e/snapshot.json), [의존성 해시](../../tests/dok/reports/dok-committed-deps-6sfnvcq9/dependencies.json). 실제 Hub 등록·사용자 설정 보존도 통과했으며 llm/hub 전체 회귀 테스트는 수행하지 않았다. ESC 입력 파이프 검사는 108.7ms였다.

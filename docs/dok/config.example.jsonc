@@ -1,6 +1,11 @@
 // dok configuration: edit values, then run ish_reload to apply them.
 // Line comments (//) and block comments (/* ... */) are supported. Trailing commas are not allowed.
 // All settings are shown. Explicit values take precedence; omitted fields use this version's defaults.
+// Widths and horizontal gaps use terminal cells; spacing.after/basic_after use rows. _s means seconds; _min means minutes.
+// Edit shared RGB colors in theme.colors and map UI roles in theme.roles. null roles follow the terminal.
+// Other color/background fields use theme role or palette names; region nulls inherit as documented.
+// toolbar.background also accepts a toolbar-only #RRGGBB override; toolbar outer padding is measured in cells.
+// Shortcut entry colors and visualizer gradient stops remain independent #RRGGBB values.
 {
   // Dock width and mode keys.
   "dock": {
@@ -18,7 +23,7 @@
     },
     // Mouse reporting and dock-only action routing.
     "mouse": {
-      // Enable dock-only mouse actions while visible. Terminal text selection requires Shift+drag.
+      // Enable mouse actions on visible dock and notification regions. General popups always enable mouse support while focused, then restore the previous state. Terminal text selection requires Shift+drag.
       "enabled": false
     }
   },
@@ -43,35 +48,30 @@
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 1,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": null
+        "after": 1,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": null
       },
-      // Forecast location. null disables weather requests. Supply your own latitude and longitude.
-      // Object format: {"latitude": <latitude>, "longitude": <longitude>, "label": "<location name>"}
+      // Forecast location. null disables weather requests. Supply your own lat and lon.
+      // Object format: {"lat": <lat>, "lon": <lon>, "label": "<location name>"}
       "location": null,
       // Temperature unit: celsius or fahrenheit.
-      "temperature_unit": "celsius",
+      "unit": "celsius",
       // Forecast days to display, from 1 to the Open-Meteo maximum of 16. Fewer days are shown when space is limited.
       "days": 7,
-      // Positive whole minutes between weather requests. Reopening the dock reuses the forecast until it expires.
-      "refresh_minutes": 30,
+      // Positive whole minutes between scheduled weather requests. Successful forecasts keep this cadence when the dock reopens. After a failed request, explicitly reopening the dock retries immediately; an in-flight request is never duplicated.
+      "refresh_min": 30,
       // Weather foreground and low-temperature colors.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#d1d5db",
-        // Low temperature foreground color in #RRGGBB format.
-        "low_temperature_color": "#77818d"
-      },
-      // Weather status messages.
-      "texts": {
-        // Message displayed when a weather request fails.
-        "unavailable": "날씨 연결 실패"
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground",
+        // Low temperature foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "low_color": "low_temp"
       },
       // Target weather width as a fraction of the dock width. Enough space is retained to prevent temperature overlap.
       "width_ratio": 0.5,
       // Horizontal icon offset in cells. Negative moves left; positive moves right. Clamped within each column.
-      "icon_offset_columns": -1,
+      "icon_offset": -1,
       // Icons or single-line text for each weather condition.
       "icons": {
         // Clear sky icon.
@@ -91,26 +91,26 @@
         // Unknown weather icon. Also used when no forecast location is configured.
         "unknown": "?"
       },
-      // Weather weekday labels in Monday-to-Sunday order. Small capitals, regular letters, and other text are supported.
-      "weekday_labels": ["ᴍᴏɴ", "ᴛᴜᴇ", "ᴡᴇᴅ", "ᴛʜᴜ", "ꜰʀɪ", "ꜱᴀᴛ", "ꜱᴜɴ"]
+      // null uses localized weekdays (English uses small capitals). An array overrides Monday through Sunday; custom labels are preserved.
+      "weekdays": null
     },
     // Maximized pyfiglet weekday art.
-    "weekday_art": {
+    "weekday": {
       // Show this widget. false removes its content and trailing spacing.
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 1,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": null
+        "after": 1,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": null
       },
       // Installed pyfiglet font name. Examples: future, slant, ansi_regular, small.
       "font": "future",
       // Weekday art foreground color.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#d1d5db"
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground"
       },
       // Use abbreviated English weekdays. Automatically falls back to abbreviations or plain text when space is limited.
       "abbreviated": false
@@ -122,18 +122,18 @@
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 0,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": null
+        "after": 0,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": null
       },
       // Date foreground color and bold text.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#d1d5db",
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground",
         // Render text in bold.
         "bold": true
       },
-      // Date format. %d is day, %B uppercase English month, %Y year. Empty hides this row.
+      // Date format. %d is day, %B localized month (uppercase in English), %Y year. Empty hides this row.
       "format": "%d %B, %Y."
     },
     // Maximized time row.
@@ -143,14 +143,14 @@
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 2,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": null
+        "after": 2,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": null
       },
       // Time foreground color.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#d1d5db"
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground"
       },
       // Time format. %H is hour, %M minute, %S second. %S enables second updates; empty hides this row.
       "format": "-%H:%M-"
@@ -162,9 +162,9 @@
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 0,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": null
+        "after": 0,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": null
       },
       // Solid color or horizontal gradient stops.
       "style": {
@@ -172,7 +172,7 @@
         "colors": ["#67e8f9", "#c084fc", "#fb7185"]
       },
       // Visualizer length in terminal cells. Clamped to the dock width.
-      "width_columns": 38
+      "width": 38
     },
     // Playback progress bar. Seek is available when the connected player supports it.
     "progress": {
@@ -181,17 +181,17 @@
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 0,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": null
+        "after": 0,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": null
       },
-      // Foreground appearance.
+      // Theme selector for time labels and remaining track. The played track and position marker use theme.roles.foreground.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#6b7280"
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "muted"
       },
       // Progress bar length in cells, excluding the time labels. Clamped to the available space.
-      "width_columns": 48
+      "width": 48
     },
     // Application title and audio connection messages.
     "title": {
@@ -200,33 +200,26 @@
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 1,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": 0
+        "after": 1,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": 0
       },
       // Foreground appearance.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#d1d5db"
-      },
-      // Title prefix and audio connection message.
-      "texts": {
-        // Text before application names. An empty string shows names only. Trailing spaces are preserved.
-        "prefix": "Now playing: ",
-        // Title text when the audio connection fails. An empty string uses the normal title instead.
-        "audio_error": "Audio connection failed"
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground"
       }
     },
     // Music buttons. Unsupported player actions are dimmed and inactive.
-    "media_controls": {
+    "controls": {
       // Show this widget. false removes its content and trailing spacing.
       "enabled": true,
       // Vertical spacing in terminal rows.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 2,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": 1
+        "after": 2,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": 1
       },
       // Buttons in display order. [] draws no buttons.
       "buttons": [
@@ -235,10 +228,10 @@
           "action": "previous",
           // Button icon or text. An empty string uses the default action symbol. Nerd Font glyphs require a compatible font.
           "text": "󰒮",
-          // Foreground appearance.
+          // Button text color. Unavailable controls are dimmed, including when using the terminal default.
           "style": {
-            // Button foreground in #RRGGBB. An empty string, null or an omitted color uses the terminal's default text color.
-            "color": ""
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Key sequence for this action while the dock is visible and the player supports it. For example ["f6"]. Use null to disable the key.
           "key": ["f5"]
@@ -248,10 +241,10 @@
           "action": "play_pause",
           // Button icon or text. An empty string uses the default action symbol. Nerd Font glyphs require a compatible font.
           "text": "󰐎",
-          // Foreground appearance.
+          // Button text color. Unavailable controls are dimmed, including when using the terminal default.
           "style": {
-            // Button foreground in #RRGGBB. An empty string, null or an omitted color uses the terminal's default text color.
-            "color": ""
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Key sequence for this action while the dock is visible and the player supports it. For example ["f6"]. Use null to disable the key.
           "key": ["f6"]
@@ -261,10 +254,10 @@
           "action": "next",
           // Button icon or text. An empty string uses the default action symbol. Nerd Font glyphs require a compatible font.
           "text": "󰒭",
-          // Foreground appearance.
+          // Button text color. Unavailable controls are dimmed, including when using the terminal default.
           "style": {
-            // Button foreground in #RRGGBB. An empty string, null or an omitted color uses the terminal's default text color.
-            "color": ""
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Key sequence for this action while the dock is visible and the player supports it. For example ["f6"]. Use null to disable the key.
           "key": ["f7"]
@@ -278,11 +271,11 @@
       // Vertical rows and horizontal cells between shortcut entries.
       "spacing": {
         // Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden.
-        "after_rows": 1,
-        // Basic-mode trailing rows. null uses after_rows.
-        "basic_after_rows": null,
+        "after": 1,
+        // Basic-mode trailing rows. null uses after.
+        "basic_after": null,
         // Horizontal cells between entries. Reduced when space is limited.
-        "item_gap_columns": 2
+        "gap": 2
       },
       // Shortcut and separator entries. Omitted or [] leaves all numbered slots empty.
       "items": [
@@ -498,18 +491,18 @@
     // Exact MPRIS bus name, or null to select a playing player and retain it until it exits.
     "player": null,
     // Positive finite seconds between player state queries while visible. No polling while hidden.
-    "refresh_seconds": 1.0,
+    "refresh_s": 1.0,
     // Positive finite timeout in seconds for each D-Bus request. Failed commands are never retried.
-    "timeout_seconds": 2.0
+    "timeout_s": 2.0
   },
   // Linux CPU, memory and network sampling. WSL metrics do not represent the entire Windows host.
   "system": {
     // Collect Linux system metrics while a system toolbar is visible.
     "enabled": true,
     // Positive finite seconds between samples. Sampling runs outside the UI thread.
-    "refresh_seconds": 1.0,
+    "refresh_s": 1.0,
     // Recent samples to keep in memory for graphs. Zero keeps only the current reading.
-    "history_samples": 120,
+    "history": 120,
     // Network interfaces to sum, for example ["eth0"]. null selects active non-loopback interfaces; bridges/VPNs may count traffic twice.
     "interfaces": null
   },
@@ -524,15 +517,15 @@
       // Show the date at the far left.
       "enabled": true,
       // Hide this date only while the dock is actually painted, in either basic or maximized mode.
-      "hide_when_dock_visible": true,
+      "hide_with_dock": true,
       // Date format using the shared clock timezone. %a and %A use the weekday labels below.
       "format": "%Y-%m-%d(%a)",
-      // Seven weekday labels, Monday through Sunday.
-      "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      // null uses localized weekday abbreviations (English: Mon through Sun). An array supplies seven custom labels, Monday through Sunday.
+      "weekdays": null,
       // Date foreground color.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#d1d5db"
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground"
       }
     },
     // Left-hand shell prompt status fields.
@@ -544,77 +537,77 @@
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
           "field": "length",
-          // Text immediately before the value.
-          "label": "Len:",
+          // Text before the value. null uses the field's localized label (English: Len:, Lines:, Ln:, Col:, Pos:); strings are preserved verbatim.
+          "label": null,
           // Show this input status item.
           "enabled": true,
           // Input status foreground color.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#d1d5db"
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Fixed field width in cells, or null to reserve five cells and grow for longer values.
-          "value_width_columns": null
+          "value_width": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
           "field": "lines",
-          // Text immediately before the value.
-          "label": "Lines:",
+          // Text before the value. null uses the field's localized label (English: Len:, Lines:, Ln:, Col:, Pos:); strings are preserved verbatim.
+          "label": null,
           // Show this input status item.
           "enabled": true,
           // Input status foreground color.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#d1d5db"
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Fixed field width in cells, or null to reserve five cells and grow for longer values.
-          "value_width_columns": null
+          "value_width": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
           "field": "line",
-          // Text immediately before the value.
-          "label": "Ln:",
+          // Text before the value. null uses the field's localized label (English: Len:, Lines:, Ln:, Col:, Pos:); strings are preserved verbatim.
+          "label": null,
           // Show this input status item.
           "enabled": true,
           // Input status foreground color.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#d1d5db"
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Fixed field width in cells, or null to reserve five cells and grow for longer values.
-          "value_width_columns": null
+          "value_width": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
           "field": "column",
-          // Text immediately before the value.
-          "label": "Col:",
+          // Text before the value. null uses the field's localized label (English: Len:, Lines:, Ln:, Col:, Pos:); strings are preserved verbatim.
+          "label": null,
           // Show this input status item.
           "enabled": true,
           // Input status foreground color.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#d1d5db"
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Fixed field width in cells, or null to reserve five cells and grow for longer values.
-          "value_width_columns": null
+          "value_width": null
         },
         {
           // Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.
           "field": "position",
-          // Text immediately before the value.
-          "label": "Pos:",
+          // Text before the value. null uses the field's localized label (English: Len:, Lines:, Ln:, Col:, Pos:); strings are preserved verbatim.
+          "label": null,
           // Show this input status item.
           "enabled": true,
           // Input status foreground color.
           "style": {
-            // Foreground color in #RRGGBB format.
-            "color": "#d1d5db"
+            // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+            "color": "foreground"
           },
           // Fixed field width in cells, or null to reserve five cells and grow for longer values.
-          "value_width_columns": null
+          "value_width": null
         }
       ]
     },
@@ -624,21 +617,21 @@
       "enabled": true,
       // selection uses the prompt's selected ranges; input uses the entire prompt buffer. Terminal-native mouse selection is not visible to dok.
       "scope": "input",
-      // Text before sum(mean).
-      "label": "Σ ",
+      // Text before sum(mean). null uses the UI language (English: Total: ); a string is preserved verbatim.
+      "label": null,
       // Optional fractional-place limit before display, rounded half up. null uses the calculated precision.
-      "decimal_places": null,
+      "decimals": null,
       // Shown when no numbers are selected/found.
-      "empty_text": "—",
+      "empty": "—",
       // Shown if a calculation exceeds 100,000 input characters, 10,000 numbers or 256 digits per number.
-      "limit_text": "…",
+      "overflow": "…",
       // Sum and mean foreground color.
       "style": {
-        // Foreground color in #RRGGBB format.
-        "color": "#d1d5db"
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground"
       },
       // Fixed width for sum(mean), or null to reserve fifteen cells and grow for longer results.
-      "value_width_columns": null
+      "value_width": null
     },
     // Right-aligned CPU, memory and network display.
     "system": {
@@ -646,7 +639,7 @@
       "enabled": true,
       // Metric display order and priority; later metrics are omitted first if their text cannot fit.
       "order": ["cpu", "memory", "network"],
-      // Average CPU utilization and recent-history line graph.
+      // Average CPU utilization and eight-level history graph on a fixed 0–100% scale. The unused leading history uses the lowest block from startup; the numeric value stays unknown until measured.
       "cpu": {
         // Show this metric in the right-hand group.
         "enabled": true,
@@ -654,18 +647,18 @@
         "label": "",
         // Metric text and graph foreground color.
         "style": {
-          // Foreground color in #RRGGBB format.
-          "color": "#b6c78c"
+          // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "color": "cpu"
         },
         // Graph visibility and maximum length.
         "graph": {
           // Show a compact graph; it shrinks before any text is removed.
           "enabled": true,
-          // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
-          "columns": 12
+          // Maximum terminal cells. CPU uses one sample per cell with eight block heights (12.5% steps); network uses two Braille samples per cell; memory uses a thin capacity bar.
+          "width": 12
         },
         // Fixed terminal cells for the right-aligned value, excluding the metric label and graph. Longer values are clipped with an ellipsis.
-        "value_width_columns": 4
+        "value_width": 4
       },
       // Memory utilization percentage and optional capacity bar.
       "memory": {
@@ -675,39 +668,39 @@
         "label": "",
         // Metric text and graph foreground color.
         "style": {
-          // Foreground color in #RRGGBB format.
-          "color": "#8ccfc8"
+          // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "color": "memory"
         },
         // Graph visibility and maximum length.
         "graph": {
           // Show a compact graph; it shrinks before any text is removed.
           "enabled": true,
-          // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
-          "columns": 12
+          // Maximum terminal cells. CPU uses one sample per cell with eight block heights (12.5% steps); network uses two Braille samples per cell; memory uses a thin capacity bar.
+          "width": 12
         },
         // Fixed terminal cells for the right-aligned value, excluding the metric label and graph. Longer values are clipped with an ellipsis.
-        "value_width_columns": 4
+        "value_width": 4
       },
       // Receive/send rates and optional combined-traffic history graph.
       "network": {
         // Show this metric in the right-hand group.
         "enabled": true,
-        // Metric icon or label, usually a Nerd Font glyph.
-        "label": "NET",
+        // Network icon or text. The default network glyph requires a Nerd Font.
+        "label": "󰛳",
         // Metric text and graph foreground color.
         "style": {
-          // Foreground color in #RRGGBB format.
-          "color": "#d49abb"
+          // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "color": "network"
         },
         // Graph visibility and maximum length.
         "graph": {
           // Show a compact graph; it shrinks before any text is removed.
           "enabled": false,
-          // Maximum terminal columns. CPU/network use two Braille samples per column; memory uses a thin capacity bar.
-          "columns": 12
+          // Maximum terminal cells. CPU uses one sample per cell with eight block heights (12.5% steps); network uses two Braille samples per cell; memory uses a thin capacity bar.
+          "width": 12
         },
         // Fixed terminal cells for the right-aligned value, excluding the metric label and graph. Longer values are clipped with an ellipsis.
-        "value_width_columns": 27
+        "value_width": 27
       },
       // Receive-rate label.
       "download_label": "↓",
@@ -715,149 +708,493 @@
       "upload_label": "↑"
     },
     // Spaces between visible date, input size, cursor and numeric summary groups.
-    "group_gap_columns": 8,
+    "gap": 4,
     // Width, padding, internal gaps and colors for each toolbar region.
     "regions": {
       // Date and weekday region.
       "date": {
         // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
-        "width_columns": null,
+        "width": null,
         // Padding cells before this region.
-        "padding_before_columns": 0,
+        "pad_left": 0,
         // Padding cells after this region. null uses the normal separator between visible regions.
-        "padding_after_columns": 4,
+        "pad_right": 4,
         // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
-        "item_gap_columns": null,
+        "gap": null,
         // Optional foreground and background overrides for this entire region.
         "style": {
-          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          // Theme role or palette name for every element and padding cell in this region. null uses individual element selectors.
           "color": null,
-          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          // Theme role or palette name for the region including padding. null inherits toolbar.background; use background for the shared theme background.
           "background": null
         }
       },
       // Length and line count region.
       "size": {
         // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
-        "width_columns": null,
+        "width": null,
         // Padding cells before this region.
-        "padding_before_columns": 0,
+        "pad_left": 0,
         // Padding cells after this region. null uses the normal separator between visible regions.
-        "padding_after_columns": null,
+        "pad_right": null,
         // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
-        "item_gap_columns": null,
+        "gap": 2,
         // Optional foreground and background overrides for this entire region.
         "style": {
-          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          // Theme role or palette name for every element and padding cell in this region. null uses individual element selectors.
           "color": null,
-          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          // Theme role or palette name for the region including padding. null inherits toolbar.background; use background for the shared theme background.
           "background": null
         },
         // Align values within their fields: left or right. Labels stay in place.
-        "alignment": "left",
+        "align": "left",
         // Maximum displayed digits per number; null shows all digits. On overflow try K/M/B/T, then leading digits and three dots. Sum and mean are limited separately.
-        "max_digits": null
+        "digits": null
       },
       // Line, column, position and optional editor fields.
       "cursor": {
         // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
-        "width_columns": null,
+        "width": null,
         // Padding cells before this region.
-        "padding_before_columns": 0,
+        "pad_left": 0,
         // Padding cells after this region. null uses the normal separator between visible regions.
-        "padding_after_columns": null,
+        "pad_right": null,
         // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
-        "item_gap_columns": null,
+        "gap": 2,
         // Optional foreground and background overrides for this entire region.
         "style": {
-          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          // Theme role or palette name for every element and padding cell in this region. null uses individual element selectors.
           "color": null,
-          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          // Theme role or palette name for the region including padding. null inherits toolbar.background; use background for the shared theme background.
           "background": null
         },
         // Align values within their fields: left or right. Labels stay in place.
-        "alignment": "left",
+        "align": "left",
         // Maximum displayed digits per number; null shows all digits. On overflow try K/M/B/T, then leading digits and three dots. Sum and mean are limited separately.
-        "max_digits": null
+        "digits": null
       },
       // Numeric sum and mean region.
       "numbers": {
         // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
-        "width_columns": null,
+        "width": null,
         // Padding cells before this region.
-        "padding_before_columns": 0,
+        "pad_left": 0,
         // Padding cells after this region. null uses the normal separator between visible regions.
-        "padding_after_columns": null,
+        "pad_right": null,
         // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
-        "item_gap_columns": null,
+        "gap": 2,
         // Optional foreground and background overrides for this entire region.
         "style": {
-          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          // Theme role or palette name for every element and padding cell in this region. null uses individual element selectors.
           "color": null,
-          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          // Theme role or palette name for the region including padding. null inherits toolbar.background; use background for the shared theme background.
           "background": null
         },
         // Align values within their fields: left or right. Labels stay in place.
-        "alignment": "left",
+        "align": "left",
         // Maximum displayed digits per number; null shows all digits. On overflow try K/M/B/T, then leading digits and three dots. Sum and mean are limited separately.
-        "max_digits": null
+        "digits": null
       },
       // CPU label, value and graph region.
       "cpu": {
         // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
-        "width_columns": 19,
+        "width": 19,
         // Padding cells before this region.
-        "padding_before_columns": 0,
+        "pad_left": 0,
         // Padding cells after this region. null uses the normal separator between visible regions.
-        "padding_after_columns": null,
+        "pad_right": null,
         // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
-        "item_gap_columns": null,
+        "gap": null,
         // Optional foreground and background overrides for this entire region.
         "style": {
-          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          // Theme role or palette name for every element and padding cell in this region. null uses individual element selectors.
           "color": null,
-          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          // Theme role or palette name for the region including padding. null inherits toolbar.background; use background for the shared theme background.
           "background": null
         }
       },
       // Memory label, percentage and graph region.
       "memory": {
         // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
-        "width_columns": 19,
+        "width": 19,
         // Padding cells before this region.
-        "padding_before_columns": 0,
+        "pad_left": 0,
         // Padding cells after this region. null uses the normal separator between visible regions.
-        "padding_after_columns": null,
+        "pad_right": null,
         // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
-        "item_gap_columns": null,
+        "gap": null,
         // Optional foreground and background overrides for this entire region.
         "style": {
-          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          // Theme role or palette name for every element and padding cell in this region. null uses individual element selectors.
           "color": null,
-          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          // Theme role or palette name for the region including padding. null inherits toolbar.background; use background for the shared theme background.
           "background": null
         }
       },
       // Network label, receive/send values and graph region.
       "network": {
         // Positive content width in cells, including internal gaps and graphs. null fits the contents. Outer padding is added separately.
-        "width_columns": 19,
+        "width": 19,
         // Padding cells before this region.
-        "padding_before_columns": 0,
+        "pad_left": 0,
         // Padding cells after this region. null uses the normal separator between visible regions.
-        "padding_after_columns": null,
+        "pad_right": null,
         // Nonnegative spaces between fields, the sum label and result, or metric labels, values and graphs. null uses their usual spacing. Date text uses date.format.
-        "item_gap_columns": null,
+        "gap": null,
         // Optional foreground and background overrides for this entire region.
         "style": {
-          // Foreground for every element and padding cell in this region. null uses individual element colors.
+          // Theme role or palette name for every element and padding cell in this region. null uses individual element selectors.
           "color": null,
-          // Background in #RRGGBB for the region including padding. null uses the toolbar background.
+          // Theme role or palette name for the region including padding. null inherits toolbar.background; use background for the shared theme background.
           "background": null
         }
       }
     },
-    // Toolbar background in #RRGGBB, including the space between left and right groups. null uses the terminal default.
-    "background": null
-  }
+    // Toolbar background including the center gap and outer padding. Use a theme role/palette name or #RRGGBB for a toolbar-only override. background follows the shared theme background. Runtime default: background; newly generated files: #1D2035.
+    "background": "#1d2035",
+    // Nonnegative blank cells at the left edge of the entire toolbar. Runtime default: 0; newly generated files: 1. Fitted to the terminal width; left padding is reserved first if both edges cannot fit.
+    "pad_left": 1,
+    // Nonnegative blank cells at the right edge of the entire toolbar. System metrics align immediately before this padding. Runtime default: 0; newly generated files: 1. Fitted to the width remaining after left padding.
+    "pad_right": 1
+  },
+  // Centered calendar/weather popups and bottom-right notifications. Focused general popups always support mouse actions; notifications follow dock.mouse.enabled.
+  "popups": {
+    // Centered popup defaults within the ish input area.
+    "general": {
+      // Popup width.
+      "width": {
+        // fixed counts terminal cells; ratio is a fraction of the available input area.
+        "mode": "fixed",
+        // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+        "value": 72
+      },
+      // Popup height.
+      "height": {
+        // fixed counts terminal cells; ratio is a fraction of the available input area.
+        "mode": "fixed",
+        // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+        "value": 20
+      },
+      // Space outside the panel. General popups center in the remaining input area; notifications align bottom right.
+      "margin": {
+        // Nonnegative top rows, fitted to the viewport.
+        "top": 1,
+        // Nonnegative right cells, fitted to the viewport.
+        "right": 1,
+        // Nonnegative bottom rows, fitted to the viewport.
+        "bottom": 1,
+        // Nonnegative left cells, fitted to the viewport.
+        "left": 1
+      },
+      // Space inside the panel; reduced when needed to keep content visible.
+      "padding": {
+        // Nonnegative top rows, fitted to the viewport.
+        "top": 0,
+        // Nonnegative right cells, fitted to the viewport.
+        "right": 1,
+        // Nonnegative bottom rows, fitted to the viewport.
+        "bottom": 0,
+        // Nonnegative left cells, fitted to the viewport.
+        "left": 1
+      },
+      // Draw a box border when the viewport has room.
+      "border": true,
+      // Panel text, background and border colors.
+      "style": {
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground",
+        // Panel background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "background": "background",
+        // Panel border. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "border_color": "separator"
+      }
+    },
+    // Non-focusing bottom-right notification queue.
+    "notifications": {
+      // Allow queued in-process notifications. Disabling clears pending notifications.
+      "enabled": true,
+      // Small bottom-right panel above the bottom toolbar.
+      "panel": {
+        // Popup width.
+        "width": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 40
+        },
+        // Popup height.
+        "height": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 7
+        },
+        // Space outside the panel. General popups center in the remaining input area; notifications align bottom right.
+        "margin": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 1,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 1,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Space inside the panel; reduced when needed to keep content visible.
+        "padding": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 0,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 0,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Draw a box border when the viewport has room.
+        "border": true,
+        // Panel text, background and border colors.
+        "style": {
+          // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "color": "foreground",
+          // Panel background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "background": "background",
+          // Panel border. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "border_color": "separator"
+        }
+      },
+      // Visible seconds before closing; null requires dismissal. Countdown pauses while hidden or a general popup is open.
+      "duration_s": 6,
+      // Dismiss the visible notification. Default Alt+X; null disables this binding.
+      "dismiss_key": ["escape", "x"],
+      // Open details for the visible notification. Default Alt+N; null disables this binding.
+      "details_key": ["escape", "n"]
+    },
+    // Monthly calendar popup.
+    "calendar": {
+      // Enable the monthly calendar popup. No external calendar account is connected.
+      "enabled": true,
+      // Open the calendar. Default Alt+C; null disables this binding.
+      "key": ["escape", "c"],
+      // Calendar size and appearance. null uses popups.general; the default fits both calendar and editor within the available input area.
+      "panel": {
+        // Popup width.
+        "width": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 136
+        },
+        // Popup height.
+        "height": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 44
+        },
+        // Space outside the panel. General popups center in the remaining input area; notifications align bottom right.
+        "margin": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 1,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 1,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Space inside the panel; reduced when needed to keep content visible.
+        "padding": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 0,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 0,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Draw a box border when the viewport has room.
+        "border": true,
+        // Panel text, background and border colors.
+        "style": {
+          // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "color": "foreground",
+          // Panel background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "background": "background",
+          // Panel border. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "border_color": "separator"
+        }
+      },
+      // First column weekday: 0 Monday through 6 Sunday. Default Sunday.
+      "week_start": 6,
+      // Deliver saved event reminders while ish is running. Late reminders coalesce to the latest occurrence per event; delivery receipts survive restart.
+      "reminders": true,
+      // Seconds between reminder checks. No shell commands or agents are executed.
+      "poll_s": 1
+    },
+    // Current, daily and hourly weather details popup.
+    "weather": {
+      // Enable current, daily and hourly weather details, sharing the dashboard cache.
+      "enabled": true,
+      // Open weather details. Default Alt+W; null disables this binding.
+      "key": ["escape", "w"],
+      // Weather panel dimensions. null uses popups.general.
+      "panel": {
+        // Popup width.
+        "width": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 112
+        },
+        // Popup height.
+        "height": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 36
+        },
+        // Space outside the panel. General popups center in the remaining input area; notifications align bottom right.
+        "margin": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 1,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 1,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Space inside the panel; reduced when needed to keep content visible.
+        "padding": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 0,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 0,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Draw a box border when the viewport has room.
+        "border": true,
+        // Panel text, background and border colors.
+        "style": {
+          // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "color": "foreground",
+          // Panel background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "background": "background",
+          // Panel border. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "border_color": "separator"
+        }
+      },
+      // pyfiglet font for current temperature; plain text is used when the art cannot fit.
+      "font": "future",
+      // Width of each hourly column, fitted to the viewport.
+      "hour_width": 8,
+      // Temperature graph height, fitted to the viewport.
+      "graph_height": 5
+    },
+    // Popup-only keyboard timing; shell settings are restored when focus leaves.
+    "input": {
+      // Seconds to distinguish Escape from terminal/Alt sequences while a popup has focus. Applies to both parser and key binding waits; original host values are restored on exit. Increase for slow remote terminals.
+      "escape_s": 0.05
+    }
+  },
+  // Shared named colors and semantic roles. All themed style fields reference these names; shortcuts and the visualizer retain their own RGB colors.
+  "theme": {
+    // Shared 18-color palette for dock, toolbar and popups. Shortcut RGB colors and visualizer gradients stay independent.
+    "colors": {
+      // Dark blue-gray surfaces. RGB in #RRGGBB.
+      "black": "#253047",
+      // Soft coral for destructive actions and warm accents. RGB in #RRGGBB.
+      "red": "#e58c76",
+      // Lime for save actions and CPU. RGB in #RRGGBB.
+      "green": "#a3e635",
+      // Warm yellow for warnings. RGB in #RRGGBB.
+      "yellow": "#e5c07b",
+      // Blue for Saturdays. RGB in #RRGGBB.
+      "blue": "#60a5fa",
+      // Soft purple for network activity. RGB in #RRGGBB.
+      "purple": "#b4a7d6",
+      // Cyan for titles and memory. RGB in #RRGGBB.
+      "cyan": "#67e8f9",
+      // Cool light gray for menus. RGB in #RRGGBB.
+      "white": "#a8b2bf",
+      // Muted text and low temperatures. RGB in #RRGGBB.
+      "comment": "#77818d",
+      // Visible dark gray for borders and separators. RGB in #RRGGBB.
+      "bright_black": "#475569",
+      // Bright coral. RGB in #RRGGBB.
+      "bright_red": "#f6a594",
+      // Bright lime. RGB in #RRGGBB.
+      "bright_green": "#bef264",
+      // Bright warm yellow. RGB in #RRGGBB.
+      "bright_yellow": "#f3d59e",
+      // Bright blue. RGB in #RRGGBB.
+      "bright_blue": "#93c5fd",
+      // Bright lavender. RGB in #RRGGBB.
+      "bright_purple": "#d1c4ef",
+      // Bright cyan. RGB in #RRGGBB.
+      "bright_cyan": "#a5f3fc",
+      // Bright light gray. RGB in #RRGGBB.
+      "bright_white": "#e5e7eb",
+      // Secondary labels and hints. RGB in #RRGGBB.
+      "bright_comment": "#94a3b8"
+    },
+    // Map UI roles to palette names. null means terminal default, not another role. No hex values or role-to-role aliases here.
+    "roles": {
+      // Normal text, dates, time, media controls and played track. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "foreground": null,
+      // Shared dock, toolbar and popup background; null preserves terminal transparency. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "background": null,
+      // Popup titles, focused button text, selected calendar events and weather graph. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "title": "cyan",
+      // Title bars, buttons and menu surfaces. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "button_bg": "black",
+      // Entire calendar event pane. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "editor_bg": "black",
+      // Editable text fields, including empty cells and memo rows. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "input_bg": "bright_black",
+      // Save and success actions. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "save": "green",
+      // Delete actions and high temperatures. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "delete": "red",
+      // Labels, help, remaining track and zero precipitation probability. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "muted": "bright_comment",
+      // Borders and solid separators. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "separator": "bright_black",
+      // Connection failures and warnings. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "warning": "yellow",
+      // Errors. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "error": "red",
+      // Inactive placeholders. Unavailable music buttons additionally remain dimmed. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "disabled": "comment",
+      // Dropdown item text. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "menu_text": "white",
+      // Selected menu item text. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "selected_fg": "black",
+      // Selected menu item background. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "selected_bg": "white",
+      // Scrollbar thumb; its track uses button_bg. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "scrollbar": "cyan",
+      // Toolbar CPU text and graph. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "cpu": "green",
+      // Toolbar memory text and graph. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "memory": "cyan",
+      // Toolbar network text and graph. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "network": "purple",
+      // Calendar Saturdays. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "saturday": "blue",
+      // Calendar Sundays. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "sunday": "red",
+      // User-registered calendar holidays. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "holiday": "red",
+      // Low forecast temperature. Palette name; null uses the terminal default. Bright colors do not imply bold.
+      "low_temp": "comment"
+    }
+  },
+  // UI language: null follows ish's selected language with English fallback. "en" selects English; "ko" selects Korean. Custom text, event content and ASCII weekday art are preserved.
+  "language": null
 }

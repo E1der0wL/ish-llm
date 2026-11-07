@@ -1,5 +1,7 @@
 """Interactive preview using the real ish layout; submitted commands are printed, not executed."""
 import asyncio
+import json
+import os
 from contextlib import closing
 from pathlib import Path
 import sys
@@ -17,6 +19,16 @@ async def preview(*, audio_enabled=True, offline=False):
     with tempfile.TemporaryDirectory() as directory, closing(create_input()) as input:
         prompt = HostPrompt(input, create_output())
         dock = install(prompt, config_path=Path(directory) / 'config.jsonc')
+        # Separate observation pipe: no diagnostics are injected into terminal input/output.
+        probe_fd = os.environ.get("DOK_TEST_POPUP_FD")
+        previous_popup = None
+        def observe_popup(app):
+            nonlocal previous_popup
+            state = (dock._popups.modal, dock._popups.page.content().title if dock._popups.modal else "")
+            if probe_fd is not None and state != previous_popup:
+                os.write(int(probe_fd), (json.dumps({"visible": state[0], "title": state[1]}) + "\n").encode())
+                previous_popup = state
+        prompt.app.after_render += observe_popup
         dock.configure(DockConfig(
             media={'enabled': not offline},
             audio=AudioConfig(enabled=audio_enabled and not offline),
@@ -41,6 +53,7 @@ async def preview(*, audio_enabled=True, offline=False):
                     break
                 print(f'Submitted: {command!r}')
         finally:
+            prompt.app.after_render -= observe_popup
             dock.uninstall()
 if __name__ == '__main__':
     asyncio.run(preview(audio_enabled='--no-audio' not in sys.argv, offline='--offline' in sys.argv))

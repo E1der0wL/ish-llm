@@ -10,7 +10,31 @@ from ..core.state import DockMode
 from ..dashboard.layout import DockGeometry
 from ..dashboard.view import DashboardView
 from ..dashboard.widgets import DockRow
-from .presentation import DockStyle
+from ..locales import Locale
+
+
+class OverlayLayers(Container):
+    """Keep one host Float while painting independent plugin-owned layers."""
+
+    def __init__(self, *layers):
+        self.layers = layers
+
+    def reset(self):
+        for layer in self.layers:
+            layer.reset()
+
+    def preferred_width(self, max_available_width):
+        return Dimension.exact(0)
+
+    def preferred_height(self, width, max_available_height):
+        return Dimension.exact(0)
+
+    def get_children(self):
+        return list(self.layers)
+
+    def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
+        for layer in self.layers:
+            layer.write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
 
 
 class DockControl(FormattedTextControl):
@@ -33,9 +57,10 @@ class DockRowWindow(Window):
 class DockOverlay(Container):
     TRANSPARENT = True
 
-    def __init__(self, controller, view):
+    def __init__(self, controller, view, *, locale=Locale):
         self._controller = controller
         self._view = view
+        self._locale = locale
         self._available = (0, 0)
         self._dashboard = DashboardView()
         self.display_mode = DockMode.HIDDEN
@@ -44,7 +69,7 @@ class DockOverlay(Container):
         self._windows = {
             row: DockRowWindow(
                 DockControl(lambda row=row: list(self._fragments[row]), focusable=False, show_cursor=False),
-                height=1, wrap_lines=False, style=DockStyle.BACKGROUND,
+                height=1, wrap_lines=False, style=lambda: self._controller.config.theme.paint(),
             ) for row in DockRow
         }
 
@@ -70,7 +95,7 @@ class DockOverlay(Container):
     def _layout(self, height, width):
         owner = self._controller
         body_width = owner.config.dock.width.resolve(owner.pty_columns(), width)
-        extra = (self._dashboard.rows(owner.config, owner.weather, body_width, max_rows=height)
+        extra = (self._dashboard.rows(owner.config, owner.weather, body_width, max_rows=height, locale=self._locale())
                  if owner.requested_mode == DockMode.MAXIMIZED else ())
         if extra is None:
             return DockGeometry.resolve(DockMode.BASIC, height, body_width, 0, owner.config), (), body_width
@@ -88,7 +113,7 @@ class DockOverlay(Container):
         if self.display_mode == DockMode.HIDDEN:
             return
         lines = self._view.render(owner.config, owner.playback, owner.audio, owner.diagnostic,
-                                  write_position.width, body_width, extra, self.display_mode)
+                                  write_position.width, body_width, extra, self.display_mode, locale=self._locale())
         top = write_position.ypos + write_position.height - DockGeometry.height(self.display_mode, len(extra), owner.config)
         for line in lines:
             if line.width:
@@ -100,7 +125,7 @@ class DockOverlay(Container):
                             focusable=False,
                             show_cursor=False
                         ),
-                        height=1, wrap_lines=False, style=DockStyle.BACKGROUND,
+                        height=1, wrap_lines=False, style=lambda: self._controller.config.theme.paint(),
                     )
                 self._fragments[line.row] = line.fragments
                 position = WritePosition(write_position.xpos + line.left, top + line.row, line.width, 1)

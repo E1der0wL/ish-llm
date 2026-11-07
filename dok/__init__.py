@@ -2,8 +2,10 @@
 
 from .core.elements import ElementConfig, Spacing
 from .core.styles import TextStyle, BoldStyle
+from .core.theme import Theme, ThemeColors, ThemeRoles, ThemeColor, ThemeRole
 from .core.records import SettingsError
 from .core.state import DockMode
+from .locales import Language, Locale
 from .dashboard.config import WidgetsConfig
 from .features.audio.config import AudioConfig, VisualizerConfig
 from .features.audio.models import AudioSnapshot, AudioStatus
@@ -22,6 +24,11 @@ from .features.weather.models import TemperatureUnit, WeatherSnapshot
 from .integrations.ish.keys import KeySequence
 from .settings.config import DockConfig, DockSettings, DockKeys, Width, WidthMode
 from .settings.store import ConfigStore
+from .settings.popups import PopupSettings
+from .popups.config import PopupPanel, PopupDimension, PopupInsets, PopupStyle, NotificationConfig
+from .popups.models import PopupContent, PopupAction, PopupPage
+from .features.calendar.config import CalendarConfig
+from .features.weather.popup import WeatherPopupConfig
 
 
 def install(prompt, *, config_path=None):
@@ -35,6 +42,10 @@ def uninstall(prompt):
     return uninstall_plugin(prompt)
 
 __all__ = [
+    "Language", "Locale",
+    "Theme", "ThemeColors", "ThemeRoles", "ThemeColor", "ThemeRole",
+    "PopupSettings", "PopupPanel", "PopupDimension", "PopupInsets", "PopupStyle", "NotificationConfig",
+    "PopupContent", "PopupAction", "PopupPage", "CalendarConfig", "WeatherPopupConfig",
     "SystemConfig", "SystemSnapshot", "ToolbarConfig", "ToolbarDate", "InputConfig", "InputItem",
     "NumbersConfig", "SystemDisplay", "GraphConfig", "InputField", "NumberScope", "NumberSummary",
     "MediaConfig", "PlayerState", "MouseConfig",

@@ -1,8 +1,9 @@
 """Title, progress and capability-aware transport widgets."""
 
-from ...rendering.presentation import DockStyle, RenderContext, swallow_mouse
+from ...rendering.presentation import RenderContext, swallow_mouse
 from ...rendering.text import fit, fit_labels, width
 from .config import ProgressConfig, TitleConfig, TransportConfig
+from ...core.theme import ThemeRole
 
 
 class ProgressView:
@@ -23,15 +24,27 @@ class ProgressView:
         snapshot = context.playback
         left, right = self._time(snapshot.position), self._time(snapshot.duration)
         length = self.element.display_length(context.width - width(left + right) - 2 * width(self.TIME_SEPARATOR))
-        filled = int(snapshot.progress * length)
-        if self._interaction is not None and self._interaction.can_seek and length > 1:
-            style = DockStyle.foreground(self.element.style.color)
-            return ((style, left + self.TIME_SEPARATOR, swallow_mouse), *(
-                (style, "━" if index < filled else "─", self._interaction.seek(index / (length - 1)))
-                for index in range(length)
-            ), (style, self.TIME_SEPARATOR + right, swallow_mouse))
-        text = self.TIME_SEPARATOR.join((left, "━" * filled + "─" * (length - filled), right))
-        return ((DockStyle.foreground(self.element.style.color), fit(text, context.width), swallow_mouse),)
+        track_style = context.theme.paint(self.element.style.color)
+        if not length:
+            labels = self.TIME_SEPARATOR.join((left, "", right))
+            return ((track_style, fit(labels, context.width), swallow_mouse),)
+
+        last = length - 1
+        handle = round(snapshot.progress * last)
+        played_style = context.theme.paint()
+        played = "━" * handle + "●"
+        remaining = "─" * (last - handle)
+        result = [(track_style, left + self.TIME_SEPARATOR, swallow_mouse)]
+        if last and self._interaction is not None and self._interaction.can_seek:
+            for index, char in enumerate(played + remaining):
+                style = played_style if index <= handle else track_style
+                result.append((style, char, self._interaction.seek(index / last)))
+        else:
+            result.append((played_style, played, swallow_mouse))
+            if remaining:
+                result.append((track_style, remaining, swallow_mouse))
+        result.append((track_style, self.TIME_SEPARATOR + right, swallow_mouse))
+        return tuple(result)
 
 
 class TitleView:
@@ -40,9 +53,9 @@ class TitleView:
 
     def render(self, context: RenderContext) -> tuple:
         snapshot, audio = context.playback, context.audio
-        title = snapshot.caption if snapshot.has_metadata else self.element.application_caption(audio.applications) or snapshot.caption
-        diagnostic = context.diagnostic or self.element.audio_error_caption(audio.diagnostic)
-        style = DockStyle.ERROR if diagnostic else DockStyle.foreground(self.element.style.color)
+        title = snapshot.display_caption(context.locale) if snapshot.has_metadata else self.element.application_caption(audio.applications, context.locale) or snapshot.display_caption(context.locale)
+        diagnostic = context.diagnostic or self.element.audio_error_caption(audio.diagnostic, context.locale)
+        style = context.theme.paint(ThemeRole.WARNING if diagnostic else self.element.style.color)
         return ((style, fit(diagnostic or title, context.width), swallow_mouse),)
 
 
@@ -58,9 +71,9 @@ class TransportView:
         result = []
         for index, (button, label) in enumerate(zip(buttons, labels)):
             if index:
-                result.append((DockStyle.BACKGROUND, separator, swallow_mouse))
+                result.append((context.theme.paint(), separator, swallow_mouse))
             enabled = self._interaction is not None and self._interaction.supports(button.action)
-            style = DockStyle.foreground(button.style.foreground)
+            style = context.theme.paint(button.style.color)
             if self._interaction is not None and not (enabled or button.key and self._interaction.available(button.action)):
                 style += " dim"
             result.append((style, label, self._interaction.button(button.action) if enabled else swallow_mouse))

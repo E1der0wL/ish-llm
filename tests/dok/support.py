@@ -11,6 +11,7 @@ from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.output import DummyOutput
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "ish.platform/src"))
+from ish.ui.input import HandoffKeyProcessor
 from ish.ui.prompt import Prompt
 
 
@@ -42,6 +43,10 @@ class HostPrompt(Prompt):
         PromptSession.__init__(self, input=input, output=output or Output(),
                                history=InMemoryHistory(), multiline=True, bottom_toolbar="HOST TOOLBAR",
                                **kwargs)
+        # The fixture supplies live editor input only; ish Enter reads this
+        # processor's native-search state even for ordinary live submissions.
+        bindings = self.app.key_processor._bindings
+        self.app.key_processor = HandoffKeyProcessor(bindings, self.app._default_bindings)
         self.key_bindings = self._create_key_binding()
 
     def _validate_editor_submission(self, text):

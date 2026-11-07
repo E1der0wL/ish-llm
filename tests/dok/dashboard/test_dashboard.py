@@ -47,10 +47,10 @@ class DashboardOwnerTests(unittest.TestCase):
             widgets=WidgetsConfig(
                 date=DateConfig(format='%Y년 %m월 %d일'),
                 time=TimeConfig(format='%H:%M:%S'),
-                weekday_art=WeekdayConfig(font='small', abbreviated=True),
+                weekday=WeekdayConfig(font='small', abbreviated=True),
                 weather=WeatherConfig(
                     location=WeatherLocation(37.5665, 126.978, '서울'),
-                    temperature_unit='fahrenheit'
+                    unit='fahrenheit'
                 )
             )
         )
@@ -61,25 +61,25 @@ class DashboardOwnerTests(unittest.TestCase):
         defaults = DockConfig.from_dict({})
         self.assertIsNone(defaults.widgets.weather.location)
         self.assertFalse(defaults.widgets.weather.can_fetch)
-        self.assertEqual(defaults.widgets.weekday_art.font, 'future')
+        self.assertEqual(defaults.widgets.weekday.font, 'future')
         self.assertIsNone(defaults.clock.timezone)
         jsonschema.validate(config.to_dict(), DockConfig.schema())
         schema = DockConfig.schema()
         for data in (
-            {'widgets': {'weekday_art': {'font': 'not-a-font'}}},
+            {'widgets': {'weekday': {'font': 'not-a-font'}}},
             {'clock': {'timezone': 'bad/zone'}},
             {'clock': {'timezone': ''}},
             {'widgets': {'time': {'format': '%n'}}},
             {'widgets': {'date': {'format': '%'}}},
-            {'widgets': {'weather': {'location': {'latitude': 91, 'longitude': 0}}}},
+            {'widgets': {'weather': {'location': {'lat': 91, 'lon': 0}}}},
             {'widgets': {'weather': {'days': WeatherConfig.FORECAST_DAYS.maximum + 1}}},
-            {'widgets': {'weather': {'refresh_minutes': 0}}},
-            {'widgets': {'weather': {'temperature_unit': 'kelvin'}}},
+            {'widgets': {'weather': {'refresh_min': 0}}},
+            {'widgets': {'weather': {'unit': 'kelvin'}}},
             {'widgets': {'weather': {'icons': {'rain': 'bad\ntext'}}}},
-            {'widgets': {'weather': {'style': {'low_temperature_color': 'gray'}}}},
+            {'widgets': {'weather': {'style': {'low_color': 'gray'}}}},
             {'widgets': {'weather': {'width_ratio': 0}}},
             {'widgets': {'weather': {'width_ratio': 1.1}}},
-            {'widgets': {'weather': {'icon_offset_columns': 0.5}}},
+            {'widgets': {'weather': {'icon_offset': 0.5}}},
             {'widgets': {'date': {'style': {'bold': 'true'}}}}
         ):
             with self.subTest(data=data):
@@ -163,7 +163,12 @@ class DashboardOwnerTests(unittest.TestCase):
 
     @staticmethod
     def payload():
-        return {'daily': {
+        return {'timezone': 'Asia/Seoul',
+                'current': {'time': 1793653200, 'temperature_2m': 12, 'apparent_temperature': 11, 'weather_code': 61},
+                'hourly': {'time': [1793653200, 1793656800], 'temperature_2m': [12, 13],
+                           'apparent_temperature': [11, 12], 'weather_code': [61, 0], 'precipitation_probability': [70, 0],
+                           'wind_speed_10m': [8, 12], 'relative_humidity_2m': [55, 60], 'rain': [0.8, 0], 'uv_index': [2.5, 3]},
+                'daily': {
             'time': ['2026-11-03', '2026-11-04'],
             'weather_code': [61, 0],
             'temperature_2m_max': [18, None],
@@ -182,7 +187,7 @@ class DashboardOwnerTests(unittest.TestCase):
         lines = WeatherPresentation.lines(config, WeatherSnapshot(days, moment, 'offline'), 80)
         self.assertNotIn('Open-Meteo', ''.join(lines))
         self.assertNotIn('서울', ''.join(lines))
-        self.assertIn(config.texts.unavailable, lines[-1])
+        self.assertIn("Weather connection failed", lines[-1])
         self.assertIn('11/03 06:29', lines[-1])
         self.assertIn('18° 6°', lines[2])
         self.assertTrue(all((width(line) <= 80 for line in lines)))
@@ -200,9 +205,9 @@ class DashboardOwnerTests(unittest.TestCase):
         self.assertEqual(rows[0].cells, 40)
         self.assertEqual(rows[1].cells, rows[0].cells)
         self.assertEqual(rows[2].cells, rows[0].cells)
-        centered_icons = WeatherPresentation.rows(replace(config, icon_offset_columns=0), snapshot, 80)[1].text
+        centered_icons = WeatherPresentation.rows(replace(config, icon_offset=0), snapshot, 80)[1].text
         self.assertEqual(rows[1].text.index(config.icons.rain), centered_icons.index(config.icons.rain) - 1)
-        low_spans = [span for span in rows[2].spans if span.color == config.style.low_temperature_color]
+        low_spans = [span for span in rows[2].spans if span.color == config.style.low_color]
         self.assertEqual([span.text for span in low_spans], ['6°', '-1°'])
         for available in (1, 20, 39, 80):
             compact = WeatherPresentation.rows(config, snapshot, available)
@@ -212,13 +217,13 @@ class DashboardOwnerTests(unittest.TestCase):
         today = date(2026, 12, 31)
         stale = WeatherSnapshot(OpenMeteo.decode(self.payload(), 2), error='old failure')
         for icons in ({}, {'unknown': '❔'}):
-            config = WeatherConfig(icons=icons, weekday_labels=('M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'))
+            config = WeatherConfig(icons=icons, weekdays=('M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'))
             rows = WeatherPresentation.rows(config, stale, 80, today=today)
             self.assertEqual(len(rows), 3)
             self.assertEqual(rows[0].text.split(), ['Th', 'F', 'Sa', 'Su', 'M', 'T', 'W'])
             self.assertEqual(rows[1].text.split(), [config.icons.unknown] * config.days)
             self.assertEqual(rows[2].text.count('--° --°'), config.days)
-            lows = [span.text for span in rows[2].spans if span.color == config.style.low_temperature_color]
+            lows = [span.text for span in rows[2].spans if span.color == config.style.low_color]
             self.assertEqual(lows, ['--°'] * config.days)
             for available in (0, 1, 20, 39):
                 compact = WeatherPresentation.rows(config, stale, available, today=today)
@@ -227,7 +232,7 @@ class DashboardOwnerTests(unittest.TestCase):
 
     def test_placeholder_dates_follow_shared_clock_without_other_clock_widgets(self):
         config = DockConfig(widgets={
-            'weather': {'days': 2}, 'weekday_art': {'enabled': False},
+            'weather': {'days': 2}, 'weekday': {'enabled': False},
             'date': {'enabled': False}, 'time': {'enabled': False},
         })
         self.assertTrue(config.widgets.needs_clock)
@@ -274,7 +279,7 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
                     raise
             if self.fail:
                 raise OSError('offline')
-            return (ForecastDay(date(2026, 11, 3), WeatherKind.CLEAR, 18, 6),)
+            return WeatherSnapshot((ForecastDay(date(2026, 11, 3), WeatherKind.CLEAR, 18, 6),))
 
         def create(coroutine):
             task = asyncio.create_task(coroutine)
@@ -293,8 +298,8 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
             while not predicate():
                 await asyncio.sleep(0.005)
 
-    def sync(self, active=True, config=None):
-        self.runtime.sync(active=active, config=config or self.config, app=self.app)
+    def sync(self, active=True, config=None, *, dock_active=False):
+        self.runtime.sync(active=active, config=config or self.config, app=self.app, dock_active=dock_active)
 
     async def stop(self):
         self.sync(False)
@@ -317,7 +322,7 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
         await self.until(lambda: bool(self.runtime.snapshot.days))
         config = DockConfig.from_dict({'widgets': {
             'weather': {'enabled': False},
-            'weekday_art': {'enabled': False},
+            'weekday': {'enabled': False},
             'date': {'enabled': False},
             'time': {'enabled': False}
         }})
@@ -350,6 +355,106 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.sleep(0.02)
         self.assertEqual(self.calls, 2)
 
+    async def test_explicit_reopen_wakes_failure_without_duplicate_requests(self):
+        self.fail = True
+        self.sync()
+        await self.until(lambda: bool(self.runtime.snapshot.error))
+        # The close/open can occur before a render cancels the sleeping task.
+        self.fail = False
+        for _ in range(3):
+            self.runtime.begin_activation()
+        self.sync()
+        await self.until(lambda: bool(self.runtime.snapshot.days) and not self.runtime.snapshot.error)
+        self.assertEqual(self.calls, 2)
+        saved = self.runtime.snapshot
+        await self.stop()
+        self.runtime.begin_activation()
+        self.sync()
+        await asyncio.sleep(.03)
+        self.assertEqual(self.calls, 2)
+        self.assertIs(self.runtime.snapshot, saved)
+
+    async def test_basic_reopen_retries_once_and_failure_waits_for_another_reopen(self):
+        self.fail = True
+        self.sync()
+        await self.until(lambda: bool(self.runtime.snapshot.error))
+        await self.stop()
+        self.runtime.begin_activation()
+        self.sync(False, dock_active=True)
+        await self.until(lambda: self.calls == 2)
+        for _ in range(3):
+            self.sync(False, dock_active=True)
+            await asyncio.sleep(.01)
+        self.assertEqual(self.calls, 2)
+        self.assertEqual(self.runtime.snapshot.error, 'offline')
+        await self.stop()
+        self.fail = False
+        self.runtime.begin_activation()
+        self.sync(False, dock_active=True)
+        await self.until(lambda: bool(self.runtime.snapshot.days))
+        self.assertEqual(self.calls, 3)
+
+    async def test_reopen_during_retry_does_not_queue_another_attempt(self):
+        self.fail = True
+        self.sync()
+        await self.until(lambda: bool(self.runtime.snapshot.error))
+        self.gate = asyncio.Event()
+        self.runtime.begin_activation()
+        self.sync()
+        await self.until(lambda: self.calls == 2)
+        for _ in range(3):
+            self.runtime.begin_activation()
+            self.sync()
+            await asyncio.sleep(0)
+        self.gate.set()
+        await asyncio.sleep(.03)
+        self.assertEqual(self.calls, 2)
+        self.assertEqual(self.runtime.snapshot.error, 'offline')
+
+    async def test_reopen_retry_waits_for_cancelled_request_cleanup(self):
+        calls, live, maximum = 0, 0, 0
+        cleanup, release = asyncio.Event(), asyncio.Event()
+        async def fetch(config):
+            nonlocal calls, live, maximum
+            calls += 1
+            live += 1
+            maximum = max(maximum, live)
+            try:
+                if calls == 1:
+                    raise OSError('offline')
+                if calls == 2:
+                    try:
+                        await asyncio.Event().wait()
+                    finally:
+                        cleanup.set()
+                        await release.wait()
+                return WeatherSnapshot((ForecastDay(date(2026,11,3), WeatherKind.CLEAR,18,6),))
+            finally:
+                live -= 1
+        runtime = DashboardRuntime(lambda: None, SimpleNamespace(fetch=fetch))
+        try:
+            runtime.sync(active=True, config=self.config, app=self.app)
+            await self.until(lambda: bool(runtime.snapshot.error))
+            runtime.begin_activation()
+            runtime.sync(active=True, config=self.config, app=self.app)
+            await self.until(lambda: calls == 2)
+            runtime.sync(active=False, config=self.config, app=self.app)
+            await asyncio.wait_for(cleanup.wait(), 3)
+            for _ in range(3):
+                runtime.begin_activation()
+                runtime.sync(active=False, dock_active=True, config=self.config, app=self.app)
+                await asyncio.sleep(0)
+            self.assertEqual(calls, 2)
+            release.set()
+            await self.until(lambda: not runtime._weather_task.running)
+            runtime.sync(active=False, dock_active=True, config=self.config, app=self.app)
+            await self.until(lambda: bool(runtime.snapshot.days))
+            self.assertEqual(calls, 3)
+            self.assertEqual(maximum, 1)
+        finally:
+            release.set()
+            runtime.close()
+
     async def test_hide_cancels_fetch_and_new_location_cannot_show_old_data(self):
         self.sync()
         await self.until(lambda: bool(self.runtime.snapshot.days))
@@ -378,14 +483,14 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
         weather = replace(
             self.config.widgets.weather,
             location=replace(self.config.widgets.weather.location, label='renamed'),
-            icons={'clear': 'SUN'}, style={'color': '#abcdef'}, spacing={'after_rows': 3},
+            icons={'clear': 'SUN'}, style={'color': 'cyan'}, spacing={'after': 3},
         )
         changed = replace(
             self.config, dock={'width': {'value': 90}},
             widgets=replace(
                 self.config.widgets, weather=weather, shortcuts={'items': []},
-                time=TimeConfig(format='%I:%M', style={'color': '#123456'}),
-                weekday_art=WeekdayConfig(font='small'),
+                time=TimeConfig(format='%I:%M', style={'color': 'blue'}),
+                weekday=WeekdayConfig(font='small'),
             ),
         )
         for _ in range(3):
@@ -424,7 +529,7 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
         original_tasks = tuple(self.tasks)
         saved = self.runtime.snapshot
         changed = replace(self.config, widgets=replace(
-            self.config.widgets, weather=replace(self.config.widgets.weather, refresh_minutes=5),
+            self.config.widgets, weather=replace(self.config.widgets.weather, refresh_min=5),
         ))
         self.gate = asyncio.Event()
         self.sync(config=changed)
@@ -447,7 +552,7 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 finally:
                     started_cleanup.set()
                     await release_cleanup.wait()
-            return (ForecastDay(date(2026, 11, 3), WeatherKind.CLEAR, 18, 6),)
+            return WeatherSnapshot((ForecastDay(date(2026, 11, 3), WeatherKind.CLEAR, 18, 6),))
 
         runtime = DashboardRuntime(lambda: None, SimpleNamespace(fetch=fetch))
         first = self.config
@@ -490,7 +595,8 @@ class DashboardRuntimeTests(unittest.IsolatedAsyncioTestCase):
         config = replace(self.config.widgets.weather, days=2)
         with patch('dok.integrations.weather.open_meteo.httpx.AsyncClient', return_value=client):
             days = await OpenMeteo().fetch(config)
-        self.assertEqual(len(days), 2)
+        self.assertEqual(len(days.days), 2)
+        self.assertEqual(len(days.hours), 2)
         self.assertEqual(requests[0].url.params['timezone'], 'auto')
         self.assertTrue(client.is_closed)
         client = httpx.AsyncClient(transport=httpx.MockTransport(lambda request: httpx.Response(503)))

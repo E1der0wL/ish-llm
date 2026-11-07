@@ -10,7 +10,12 @@ class Jsonc:
     INDENT = 2
     HEADER = ("dok configuration: edit values, then run ish_reload to apply them.",
               "Line comments (//) and block comments (/* ... */) are supported. Trailing commas are not allowed.",
-              "All settings are shown. Explicit values take precedence; omitted fields use this version's defaults.")
+              "All settings are shown. Explicit values take precedence; omitted fields use this version's defaults.",
+              "Widths and horizontal gaps use terminal cells; spacing.after/basic_after use rows. _s means seconds; _min means minutes.",
+              "Edit shared RGB colors in theme.colors and map UI roles in theme.roles. null roles follow the terminal.",
+              "Other color/background fields use theme role or palette names; region nulls inherit as documented.",
+              "toolbar.background also accepts a toolbar-only #RRGGBB override; toolbar outer padding is measured in cells.",
+              "Shortcut entry colors and visualizer gradient stops remain independent #RRGGBB values.")
 
     @staticmethod
     def uncomment(text: str) -> str:

@@ -9,6 +9,28 @@ type TaskFactory = Callable[[], Coroutine[Any, Any, None]]
 type TaskStarter = Callable[[Coroutine[Any, Any, None]], asyncio.Task[None]]
 
 
+async def run_blocking[T](function: Callable[..., T], *args: Any) -> T:
+    """Keep a blocking worker owned until completion, even after repeat cancel.
+
+    Cancelling its asyncio wrapper cannot stop a thread. Drain it before releasing
+    the caller's lock/task slot; a late worker error must not replace cancellation.
+    """
+    task = asyncio.create_task(asyncio.to_thread(function, *args))
+    try:
+        return await asyncio.shield(task)
+    except asyncio.CancelledError:
+        while not task.done():
+            try:
+                await asyncio.shield(task)
+            except asyncio.CancelledError:
+                continue
+            except Exception:
+                break
+        if not task.cancelled():
+            task.exception()
+        raise
+
+
 class TaskSlot:
     """Own task lifetime only; activation and retry policy belong to the caller.
 

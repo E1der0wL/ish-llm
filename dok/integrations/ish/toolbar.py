@@ -51,7 +51,7 @@ class DockToolbar:
         owner = self._controller
         return self._view.render(owner.config.toolbar, self._status.read(), owner.system,
             owner.system_history, owner.config.clock.now(), self._dock_visible,
-            self._prompt.app.output.get_size().columns)
+            self._prompt.app.output.get_size().columns, theme=owner.config.theme, locale=owner.locale)
 
     @property
     def owned(self):
@@ -72,7 +72,7 @@ class DockToolbar:
         owner = self._controller
         if dock_visible != self._dock_visible:
             self._dock_visible = dock_visible
-            if self.owned and owner.config.toolbar.date.hide_when_dock_visible:
+            if self.owned and owner.config.toolbar.date.hide_with_dock:
                 self._prompt.app.invalidate()
         date = owner.config.toolbar.date
         schedule = date.schedule(owner.config.clock)

@@ -10,6 +10,7 @@ from dok import DockConfig, ToolbarConfig
 from dok.features.system.models import SystemSnapshot
 from dok.features.toolbar.editor import EditorSnapshot, NumberCalculator, NumberScope
 from dok.features.toolbar.view import MetricFormat, ToolbarView
+from dok.features.toolbar.config import Metric
 from dok.rendering.text import width
 from dok.settings.jsonc import Jsonc
 
@@ -52,13 +53,13 @@ class NumberTests(unittest.TestCase):
 class ToolbarTests(unittest.TestCase):
     def test_owner_schema_and_jsonc_share_nested_defaults_and_validation(self):
         config = DockConfig(toolbar={"date": {"weekdays": ["M", "T", "W", "T", "F", "S", "S"]},
-                                   "system": {"order": ["network", "cpu"], "cpu": {"graph": {"columns": 20}}}})
+                                   "system": {"order": ["network", "cpu"], "cpu": {"graph": {"width": 20}}}})
         self.assertEqual(config.toolbar.system.cpu.label, ToolbarConfig().system.cpu.label)
         self.assertEqual(DockConfig.from_dict(Jsonc.loads(Jsonc.dumps(config))), config)
         jsonschema.validate(config.to_dict(), DockConfig.schema())
-        for data in ({"system": {"order": ["cpu", "cpu"]}}, {"numbers": {"decimal_places": -1}},
-                     {"system": {"cpu": {"value_width_columns": 0}}},
-                     {"system": {"network": {"value_width_columns": 2.5}}},
+        for data in ({"system": {"order": ["cpu", "cpu"]}}, {"numbers": {"decimals": -1}},
+                     {"system": {"cpu": {"value_width": 0}}},
+                     {"system": {"network": {"value_width": 2.5}}},
                      {"date": {"weekdays": ["Mon"]}}, {"date": {"format": "%Q"}}):
             with self.subTest(data=data):
                 with self.assertRaises(ValueError):
@@ -69,12 +70,12 @@ class ToolbarTests(unittest.TestCase):
     def test_large_layout_values_roundtrip_and_paint_only_the_available_cells(self):
         huge = 10 ** 100
         view = ToolbarView()
-        for layout in ({"width_columns": huge}, {"item_gap_columns": huge},
-                       {"padding_before_columns": huge}, {"padding_after_columns": huge}):
-            config = ToolbarConfig(group_gap_columns=huge, numbers={"decimal_places": huge},
+        for layout in ({"width": huge}, {"gap": huge},
+                       {"pad_left": huge}, {"pad_right": huge}):
+            config = ToolbarConfig(gap=huge, numbers={"decimals": huge},
                 regions={name: layout for name in ("size", "cursor", "numbers", "cpu", "network")},
                 input={"items": [{"field": "line"}] * 20},
-                system={"cpu": {"graph": {"columns": huge}, "value_width_columns": huge}})
+                system={"cpu": {"graph": {"width": huge}, "value_width": huge}})
             with self.subTest(layout=layout):
                 jsonschema.validate(config.to_dict(), ToolbarConfig.schema())
                 self.assertEqual(ToolbarConfig.from_dict(Jsonc.loads(Jsonc.dumps(config))), config)
@@ -82,9 +83,9 @@ class ToolbarTests(unittest.TestCase):
                     parts = view.render(config, EditorSnapshot(text="1.123456789876"), SAMPLE, (), NOW, False, columns)
                     self.assertEqual(sum(width(text) for _, text in parts), columns)
         config = ToolbarConfig(date={"enabled": False}, system={"enabled": False}, numbers={"enabled": False},
-            regions={"size": {"item_gap_columns": 72}}, input={"items": [
-                {"field": "length", "label": "L", "value_width_columns": 1},
-                {"field": "lines", "label": "N", "value_width_columns": 1}]})
+            regions={"size": {"gap": 72}}, input={"items": [
+                {"field": "length", "label": "L", "value_width": 1},
+                {"field": "lines", "label": "N", "value_width": 1}]})
         text = "".join(s for _, s in view.render(config, EditorSnapshot(), SAMPLE, (), NOW, False, 85))
         self.assertTrue(text.startswith("L0" + " " * 72 + "N1"))
 
@@ -93,7 +94,7 @@ class ToolbarTests(unittest.TestCase):
         self.assertEqual(date.render(NOW), "2026-11-06(Fri)")
         self.assertTrue(date.visible(False))
         self.assertFalse(date.visible(True))
-        self.assertTrue(replace(date, hide_when_dock_visible=False).visible(True))
+        self.assertTrue(replace(date, hide_with_dock=False).visible(True))
         self.assertEqual(replace(date, format="%%a %a").render(NOW), "%a Fri")
         self.assertEqual(DockConfig(clock={"timezone": "Asia/Seoul"}).clock.now().utcoffset().total_seconds(), 9 * 3600)
 
@@ -121,8 +122,8 @@ class ToolbarTests(unittest.TestCase):
         shown = "".join(text for _, text in view.render(config, EditorSnapshot(), SAMPLE, (SAMPLE,), NOW, True, 220))
         self.assertTrue(wide.startswith("2026-11-06(Fri)    Len:"))
         self.assertTrue(shown.startswith("Len:"))
-        self.assertTrue(wide.endswith("↓1M ↑1K/s"))
-        self.assertTrue(shown.endswith("↓1M ↑1K/s"))
+        self.assertTrue(wide.endswith("↓1 MiB/s ↑1 KiB/s"))
+        self.assertTrue(shown.endswith("↓1 MiB/s ↑1 KiB/s"))
 
     def test_graphs_are_bounded_and_unknown_samples_leave_gaps(self):
         graph = MetricFormat.line((0, 100, None, 50), 2)
@@ -131,6 +132,26 @@ class ToolbarTests(unittest.TestCase):
         self.assertEqual(MetricFormat.line((), 0), "")
         self.assertEqual(MetricFormat.bar(50, 4), "━━──")
         self.assertEqual(MetricFormat.bytes(1024, rate=True), "1 KiB/s")
+
+    def test_cpu_graph_fills_startup_history_without_fabricating_measurements(self):
+        unknown = SystemSnapshot()
+        for history in ((), (unknown,)):
+            self.assertEqual(MetricFormat.graph(Metric.CPU, unknown, history, 4), '▁' * 4)
+            self.assertEqual(MetricFormat.percent(unknown.cpu_percent), '—')
+        history = (replace(SAMPLE, cpu_percent=100), unknown)
+        graph = MetricFormat.graph(Metric.CPU, unknown, history, 4)
+        self.assertEqual(graph, '▁▁█ ')
+        self.assertEqual(MetricFormat.graph(Metric.NETWORK, unknown, (), 4), '\u2800' * 4)
+        for columns in (0, 1, 40):
+            self.assertEqual(width(MetricFormat.graph(Metric.CPU, SAMPLE, (SAMPLE,), columns)), columns)
+
+    def test_cpu_graph_distinguishes_eight_levels_and_keeps_recent_samples(self):
+        samples = tuple(replace(SAMPLE, cpu_percent=value)
+                        for value in (0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5))
+        self.assertEqual(MetricFormat.graph(Metric.CPU, samples[-1], samples, 8), '▁▂▃▄▅▆▇█')
+        self.assertEqual(MetricFormat.graph(Metric.CPU, samples[-1], samples, 3), '▆▇█')
+        self.assertEqual(MetricFormat.cpu_history((-5, 12.49, 12.5, 99.9, 100, 120), 6), '▁▁▂███')
+        self.assertEqual(MetricFormat.cpu_history((None, 25, None, 50), 5), '▁▁▃ ▅')
 
     def test_metric_positions_stay_fixed_as_values_and_units_change(self):
         view = ToolbarView()
@@ -147,25 +168,28 @@ class ToolbarTests(unittest.TestCase):
             for sample, memory_percent in samples:
                 fragments = view.render(config, EditorSnapshot(), sample, (sample,), NOW, False, columns)
                 line = "".join(text for _, text in fragments)
-                positions.append(tuple(width(line[:line.index(label)]) for label in ("CPU", "MEM", "NET")))
+                positions.append(tuple(width(line[:line.index(label)]) for label in ("CPU", "MEM", config.system.network.label)))
                 memory = next(text for _, text in fragments if text.startswith("MEM "))
                 self.assertEqual(memory.split("─")[0].split("━")[0].rstrip(), f"MEM {memory_percent:>4}")
                 self.assertEqual(width(line), columns)
             self.assertEqual(len(set(positions)), 1)
 
-    def test_generated_toolbar_has_equal_metric_widths_and_two_eight_cell_gaps(self):
+    def test_generated_toolbar_has_equal_metric_widths_and_four_cell_group_gaps(self):
         config = DockConfig.from_dict(Jsonc.loads(Jsonc.dumps(DockConfig.initial()))).toolbar
+        self.assertEqual(config.gap, 4)
+        self.assertEqual([group.gap for group in
+                          (config.regions.size, config.regions.cursor, config.regions.numbers)], [2, 2, 2])
         view = ToolbarView()
         for snapshot in (SystemSnapshot(), SAMPLE, replace(SAMPLE, received_per_second=1023.9 * 1024**2,
                                                            sent_per_second=1023.9 * 1024**3)):
             fragments = view.render(config, EditorSnapshot(), snapshot, (snapshot,), NOW, False, 240)
             line = "".join(text for _, text in fragments)
-            self.assertTrue(line.startswith(f"2026-11-06(Fri)    Len:{0:<5}  Lines:{1:<5}"
-                                            f"        Ln:{1:<5}  Col:{1:<5}  Pos:{1:<5}        Σ —"))
+            self.assertTrue(line.startswith(f" 2026-11-06(Fri)    Len:{0:<5}  Lines:{1:<5}"
+                                            f"    Ln:{1:<5}  Col:{1:<5}  Pos:{1:<5}    Total:  —"))
             starts = [width(line[:line.index(item.label)]) for _, item in config.system.items()]
             boundary = width(config.separator)
             self.assertEqual([starts[1] - starts[0] - boundary, starts[2] - starts[1] - boundary,
-                              width(line) - starts[2]], [19, 19, 19])
+                              width(line) - starts[2] - config.pad_right], [19, 19, 19])
             net = line[line.index(config.system.network.label):]
             self.assertIn("↓", net)
             self.assertIn("↑", net)
@@ -173,8 +197,8 @@ class ToolbarTests(unittest.TestCase):
 
     def test_custom_value_widths_align_clip_and_fit_a_narrow_terminal(self):
         config = ToolbarConfig(system={"order": ["memory", "network"],
-            "memory": {"label": "MEM", "value_width_columns": 6, "graph": {"enabled": False}},
-            "network": {"label": "NET", "value_width_columns": 7}, "download_label": "수신"})
+            "memory": {"label": "MEM", "value_width": 6, "graph": {"enabled": False}},
+            "network": {"label": "NET", "value_width": 7}, "download_label": "수신"})
         view = ToolbarView()
         fragments = view.render(config, EditorSnapshot(), SAMPLE, (), NOW, False, 100)
         self.assertIn("MEM    25%", [text for _, text in fragments])
@@ -183,6 +207,49 @@ class ToolbarTests(unittest.TestCase):
         self.assertTrue(network.endswith("…"))
         fragments = view.render(config, EditorSnapshot(), SAMPLE, (), NOW, False, 7)
         self.assertEqual("".join(text for _, text in fragments), "MEM 25%")
+
+    def test_outer_padding_defaults_initial_file_and_validation(self):
+        defaults = ToolbarConfig()
+        self.assertEqual((defaults.pad_left, defaults.pad_right, defaults.background),
+                         (0, 0, 'background'))
+        initial = DockConfig.from_dict(Jsonc.loads(Jsonc.dumps(DockConfig.initial()))).toolbar
+        self.assertEqual((initial.pad_left, initial.pad_right, initial.background),
+                         (1, 1, '#1d2035'))
+        for field in ('pad_left', 'pad_right'):
+            for value in (-1, True, 1.5, None):
+                raw = {field: value}
+                with self.subTest(raw=raw):
+                    with self.assertRaises(ValueError):
+                        ToolbarConfig.from_dict(raw)
+                    with self.assertRaises(jsonschema.ValidationError):
+                        jsonschema.validate(raw, ToolbarConfig.schema())
+        huge = ToolbarConfig(pad_left=10**100, pad_right=10**100)
+        jsonschema.validate(huge.to_dict(), ToolbarConfig.schema())
+        self.assertEqual(huge.split_width(3), (3, 0, 0))
+        self.assertEqual(ToolbarConfig.from_dict(huge.to_dict()), huge)
+
+    def test_outer_padding_preserves_inner_layout_right_alignment_and_background(self):
+        from dok import Theme
+        theme = Theme(colors={'blue': '#112233'})
+        view = ToolbarView()
+        base = ToolbarConfig(background='#1D2035', regions={'cpu': {'style': {'background': 'blue'}}})
+        for padding_left, padding_right in ((0,0), (1,1), (2,3), (10**100,10**100)):
+            config = replace(base, pad_left=padding_left, pad_right=padding_right)
+            for columns in (0,1,2,3,7,40,240):
+                with self.subTest(left=padding_left, right=padding_right, columns=columns):
+                    parts = view.render(config, EditorSnapshot(), SAMPLE, (SAMPLE,), NOW, False, columns, theme=theme)
+                    text = ''.join(s for _, s in parts)
+                    left, content, right = config.split_width(columns)
+                    inner = ''.join(s for _, s in view.render(base, EditorSnapshot(), SAMPLE, (SAMPLE,), NOW, False, content, theme=theme))
+                    self.assertEqual(text, ' ' * left + inner + ' ' * right)
+                    self.assertEqual(width(text), columns)
+                    if columns:
+                        self.assertIn('bg:#1d2035', parts[0][0])
+                        self.assertIn('bg:#1d2035', parts[-1][0])
+        parts = view.render(replace(base, pad_left=2, pad_right=3),
+                            EditorSnapshot(), SAMPLE, (), NOW, False, 240, theme=theme)
+        self.assertTrue(any('bg:#112233' in style and text for style, text in parts))
+        self.assertTrue(''.join(s for _, s in parts).endswith('↓1 MiB/s ↑1 KiB/s   '))
 
     def test_disabled_sections_do_not_leave_separators(self):
         view = ToolbarView()
@@ -193,32 +260,32 @@ class ToolbarTests(unittest.TestCase):
     def test_numeric_region_defaults_roundtrip_and_show_long_values(self):
         for config in (DockConfig(), DockConfig.from_dict(Jsonc.loads(Jsonc.dumps(DockConfig.initial())))):
             toolbar = config.toolbar
-            self.assertIsNone(toolbar.numbers.decimal_places)
+            self.assertIsNone(toolbar.numbers.decimals)
             for group in (toolbar.regions.size, toolbar.regions.cursor, toolbar.regions.numbers):
-                self.assertEqual(group.alignment, "left")
-                self.assertIsNone(group.max_digits)
+                self.assertEqual(group.align, "left")
+                self.assertIsNone(group.digits)
             editor = EditorSnapshot(text="12345678.987654", length=1234567, lines=2, position=234567)
             text = "".join(v for _, v in ToolbarView().render(toolbar, editor, SAMPLE, (), NOW, False, 250))
             self.assertIn("Len:1234567  Lines:2", text)
             self.assertIn("Pos:234567", text)
-            self.assertIn("Σ 12,345,678.987654(12,345,678.987654)", text)
+            self.assertIn("Total:  12,345,678.987654(12,345,678.987654)", text)
 
     def test_numeric_policy_is_independent_for_each_group(self):
         toolbar = ToolbarConfig(date={"enabled": False}, system={"enabled": False}, regions={
-            "size": {"alignment": "right", "max_digits": 3},
-            "cursor": {"alignment": "left", "max_digits": 2},
-            "numbers": {"alignment": "right", "max_digits": 3}})
+            "size": {"align": "right", "digits": 3},
+            "cursor": {"align": "left", "digits": 2},
+            "numbers": {"align": "right", "digits": 3}})
         editor = EditorSnapshot(text="-12345 -12345", length=12345, lines=2, line=4, column=5, position=123456)
         text = "".join(v for _, v in ToolbarView().render(toolbar, editor, SAMPLE, (), NOW, False, 150))
         self.assertIn("Len:12.3K  Lines:    2", text)
         self.assertIn("Ln:4      Col:5      Pos:12...", text)
-        self.assertIn("Σ " + "-24.7K(-12.3K)".rjust(15), text)
+        self.assertIn("Total:  " + "-24.7K(-12.3K)".rjust(15), text)
         self.assertEqual(width(text), 150)
-        options = {"regions": {"numbers": {"alignment": "left", "max_digits": 2}}}
+        options = {"regions": {"numbers": {"align": "left", "digits": 2}}}
         summary = NumberCalculator().calculate(EditorSnapshot(text="-123456 0"), NumberScope.INPUT)
         toolbar = ToolbarConfig.from_dict(options)
-        self.assertEqual(toolbar.numbers.render(summary, layout=toolbar.regions.numbers).strip(), "Σ -12...(-62K)")
-        for invalid in ({"alignment": "center"}, {"max_digits": 0}, {"max_digits": True}):
+        self.assertEqual(toolbar.numbers.render(summary, layout=toolbar.regions.numbers).strip(), "Total: -12...(-62K)")
+        for invalid in ({"align": "center"}, {"digits": 0}, {"digits": True}):
             data = {"regions": {"cursor": invalid}}
             with self.subTest(invalid=invalid), self.assertRaises(ValueError):
                 ToolbarConfig.from_dict(data)
@@ -227,28 +294,30 @@ class ToolbarTests(unittest.TestCase):
 
     def test_long_counts_and_summary_fit_without_losing_the_sign_or_parentheses(self):
         config = ToolbarConfig(date={"enabled": False}, system={"enabled": False},
-            input={"items": [{"field": "length", "label": "Len:", "value_width_columns": 5}]},
-            numbers={"value_width_columns": 11})
+            input={"items": [{"field": "length", "label": "Len:", "value_width": 5}]},
+            numbers={"value_width": 11})
         editor = EditorSnapshot(text="-1234567 0", length=1234567)
         line = "".join(text for _, text in ToolbarView().render(config, editor, SAMPLE, (), NOW, False, 60))
-        self.assertTrue(line.startswith("Len:1.23M    Σ "), line)
+        self.assertTrue(line.startswith("Len:1.23M    Total: "), line)
         exact = ToolbarView().render(config, replace(editor, length=12345), SAMPLE, (), NOW, False, 60)
-        self.assertTrue("".join(text for _, text in exact).startswith("Len:12345    Σ "))
-        self.assertIn("Σ -1M(-617K)", line)
+        self.assertTrue("".join(text for _, text in exact).startswith("Len:12345    Total: "))
+        self.assertIn("Total:  -1M(-617K)", line)
         self.assertEqual(width(line), 60)
 
     def test_region_width_padding_internal_gap_and_background_cover_exact_cells(self):
-        config = ToolbarConfig(background="#101010", date={"enabled": False}, numbers={"enabled": False},
-            input={"items": [{"field": "length", "label": "L", "value_width_columns": 1},
-                             {"field": "lines", "label": "N", "value_width_columns": 1}]},
-            system={"order": ["cpu"], "cpu": {"label": "C", "value_width_columns": 4}},
-            regions={"size": {"width_columns": 10, "item_gap_columns": 3, "padding_before_columns": 2,
-                              "padding_after_columns": 1, "style": {"background": "#111111", "color": "#ff0000"}},
-                     "cpu": {"width_columns": 12, "item_gap_columns": 2, "padding_before_columns": 1,
-                             "padding_after_columns": 2, "style": {"background": "#222222"}}})
+        from dok import Theme
+        theme = Theme(colors={"black": "#101010", "blue": "#111111", "purple": "#222222", "red": "#ff0000"})
+        config = ToolbarConfig(background="black", date={"enabled": False}, numbers={"enabled": False},
+            input={"items": [{"field": "length", "label": "L", "value_width": 1},
+                             {"field": "lines", "label": "N", "value_width": 1}]},
+            system={"order": ["cpu"], "cpu": {"label": "C", "value_width": 4}},
+            regions={"size": {"width": 10, "gap": 3, "pad_left": 2,
+                              "pad_right": 1, "style": {"background": "blue", "color": "red"}},
+                     "cpu": {"width": 12, "gap": 2, "pad_left": 1,
+                             "pad_right": 2, "style": {"background": "purple"}}})
         view = ToolbarView()
         for columns in (1, 5, 12, 20, 40, 100):
-            fragments = view.render(config, EditorSnapshot(), SAMPLE, (SAMPLE,), NOW, False, columns)
+            fragments = view.render(config, EditorSnapshot(), SAMPLE, (SAMPLE,), NOW, False, columns, theme=theme)
             self.assertEqual(sum(width(text) for _, text in fragments), columns)
         left = "".join(text for style, text in fragments if "bg:#111111" in style)
         right = "".join(text for style, text in fragments if "bg:#222222" in style)
@@ -262,6 +331,6 @@ class ToolbarTests(unittest.TestCase):
     def test_empty_optional_text_does_not_displace_input_on_a_narrow_toolbar(self):
         config = ToolbarConfig(date={"format": "%a", "weekdays": [""] * 7},
             input={"items": [{"field": "length", "label": "Len:"}]},
-            numbers={"label": "", "empty_text": ""}, system={"enabled": False})
+            numbers={"label": "", "empty": ""}, system={"enabled": False})
         fragments = ToolbarView().render(config, EditorSnapshot(), SAMPLE, (), NOW, False, 5)
         self.assertEqual("".join(text for _, text in fragments), "Len:0")

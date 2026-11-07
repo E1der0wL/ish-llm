@@ -16,8 +16,8 @@
     "visualizer": {
       "enabled": true,
       "spacing": {
-        "after_rows": 0,
-        "basic_after_rows": null
+        "after": 0,
+        "basic_after": null
       },
       "style": {
         "colors": [
@@ -26,7 +26,7 @@
           "#fb7185"
         ]
       },
-      "width_columns": 38
+      "width": 38
     }
   }
 }

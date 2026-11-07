@@ -6,11 +6,12 @@ from datetime import date
 import sys
 from typing import ClassVar
 
-from ...core.colors import DockPalette, HexColor
 from ...core.elements import ElementConfig, Spacing
 from ...core.records import Choice, Nested, Nullable, Number, Record, Sequence, Text, setting
 from ...core.styles import TextStyle
+from ...core.theme import ThemeRole, theme_reference
 from .models import TemperatureUnit, WeatherKind
+from ...locales import Locale, Language
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,44 +34,32 @@ class WeatherIcons(Record):
 
 @dataclass(frozen=True, slots=True)
 class WeatherLocation(Record):
-    latitude: float = setting(
+    lat: float = setting(
         Number(minimum=-90, maximum=90),
         description="Latitude of the forecast location."
     )
-    longitude: float = setting(
+    lon: float = setting(
         Number(minimum=-180, maximum=180),
         description="Longitude of the forecast location."
     )
     label: str = setting(
         Text(single_line=True),
         default="",
-        description="Location label for your reference. Not displayed or used to look up coordinates."
+        description="Location label shown in weather details. Not used to look up coordinates."
     )
 
     @property
     def coordinates(self) -> tuple[float, float]:
-        return self.latitude, self.longitude
+        return self.lat, self.lon
 
 
 @dataclass(frozen=True, slots=True)
 class WeatherStyle(TextStyle):
-    low_temperature_color: str = setting(
-        HexColor(),
-        default="#77818d",
-        description="Low temperature foreground color in #RRGGBB format."
-    )
-
-@dataclass(frozen=True, slots=True)
-class WeatherTexts(Record):
-    unavailable: str = setting(
-        Text(single_line=True),
-        default="날씨 연결 실패",
-        description="Message displayed when a weather request fails."
-    )
+    low_color: str = theme_reference(ThemeRole.LOW_TEMP, "Low temperature foreground")
 
 @dataclass(frozen=True, slots=True)
 class WeatherSpacing(Spacing):
-    after_rows: int = setting(Spacing.ROWS_RULE, default=1)
+    after: int = setting(Spacing.ROWS_RULE, default=1)
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,8 +68,8 @@ class WeatherConfig(ElementConfig):
     WEEKDAY_LABELS: ClassVar[tuple[str, ...]] = ("ᴍᴏɴ", "ᴛᴜᴇ", "ᴡᴇᴅ", "ᴛʜᴜ", "ꜰʀɪ", "ꜱᴀᴛ", "ꜱᴜɴ")
     spacing: WeatherSpacing = setting(Nested(WeatherSpacing), factory=WeatherSpacing)
     location: WeatherLocation | None = setting(Nullable(Nested(WeatherLocation)), default=None,
-        description="Forecast location. null disables weather requests. Supply your own latitude and longitude.\nObject format: {\"latitude\": <latitude>, \"longitude\": <longitude>, \"label\": \"<location name>\"}")
-    temperature_unit: TemperatureUnit = setting(
+        description="Forecast location. null disables weather requests. Supply your own lat and lon.\nObject format: {\"lat\": <lat>, \"lon\": <lon>, \"label\": \"<location name>\"}")
+    unit: TemperatureUnit = setting(
         Choice(TemperatureUnit),
         default=TemperatureUnit.CELSIUS,
         description="Temperature unit: celsius or fahrenheit."
@@ -90,27 +79,22 @@ class WeatherConfig(ElementConfig):
         default=7,
         description=f"Forecast days to display, from 1 to the Open-Meteo maximum of {FORECAST_DAYS.maximum}. Fewer days are shown when space is limited."
     )
-    refresh_minutes: int = setting(
+    refresh_min: int = setting(
         Number(minimum=1, integer=True),
         default=30,
-        description="Positive whole minutes between weather requests. Reopening the dock reuses the forecast until it expires."
+        description="Positive whole minutes between scheduled weather requests. Successful forecasts keep this cadence when the dock reopens. After a failed request, explicitly reopening the dock retries immediately; an in-flight request is never duplicated."
     )
     style: WeatherStyle = setting(
         Nested(WeatherStyle),
         factory=WeatherStyle,
         description="Weather foreground and low-temperature colors."
     )
-    texts: WeatherTexts = setting(
-        Nested(WeatherTexts),
-        factory=WeatherTexts,
-        description="Weather status messages."
-    )
     width_ratio: float = setting(
         Number(minimum=0, maximum=1, exclusive_minimum=True),
         default=0.5,
         description="Target weather width as a fraction of the dock width. Enough space is retained to prevent temperature overlap."
     )
-    icon_offset_columns: int = setting(
+    icon_offset: int = setting(
         Number(integer=True),
         default=-1,
         description="Horizontal icon offset in cells. Negative moves left; positive moves right. Clamped within each column."
@@ -120,18 +104,20 @@ class WeatherConfig(ElementConfig):
         factory=WeatherIcons,
         description="Icons or single-line text for each weather condition."
     )
-    weekday_labels: tuple[str, ...] = setting(
-        Sequence(
+    weekdays: tuple[str, ...] | None = setting(
+        Nullable(Sequence(
             Text(nonblank=True, single_line=True),
             minimum=len(WEEKDAY_LABELS),
             maximum=len(WEEKDAY_LABELS)
-        ),
-        default=WEEKDAY_LABELS,
-        description="Weather weekday labels in Monday-to-Sunday order. Small capitals, regular letters, and other text are supported.",
+        )),
+        default=None,
+        description="null uses localized weekdays (English uses small capitals). An array overrides Monday through Sunday; custom labels are preserved.",
     )
 
-    def weekday_label(self, day: date) -> str:
-        return self.weekday_labels[day.weekday()]
+    def weekday_label(self, day: date, locale=Locale()) -> str:
+        if self.weekdays is not None:
+            return self.weekdays[day.weekday()]
+        return self.WEEKDAY_LABELS[day.weekday()] if locale.language == Language.ENGLISH else locale.weekday(day.weekday(), abbreviated=True)
 
     @property
     def can_fetch(self):
@@ -142,14 +128,14 @@ class WeatherConfig(ElementConfig):
         return self.enabled and self.location is None
 
     @property
-    def refresh_seconds(self):
-        return min(self.refresh_minutes * 60, sys.float_info.max)
+    def refresh_s(self):
+        return min(self.refresh_min * 60, sys.float_info.max)
 
     @property
     def request_key(self):
-        return (self.location.coordinates if self.location is not None else None, self.temperature_unit, self.days)
+        return (self.location.coordinates if self.location is not None else None, self.unit, self.days)
 
     @property
     def polling_key(self):
         """Only query identity and cadence affect the collection task."""
-        return self.request_key, self.refresh_seconds
+        return self.request_key, self.refresh_s

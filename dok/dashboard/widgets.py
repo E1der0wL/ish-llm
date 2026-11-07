@@ -42,6 +42,6 @@ def body_widgets(config, execute=None, media=None) -> tuple[BodyWidget, ...]:
         BodyWidget(DockRow.VISUALIZER, VisualizerView(config.widgets.visualizer)),
         BodyWidget(DockRow.PROGRESS, ProgressView(config.widgets.progress, media)),
         BodyWidget(DockRow.TITLE, TitleView(config.widgets.title)),
-        BodyWidget(DockRow.TRANSPORT, TransportView(config.widgets.media_controls, media)),
+        BodyWidget(DockRow.TRANSPORT, TransportView(config.widgets.controls, media)),
         BodyWidget(DockRow.SHORTCUTS, ShortcutView(config, execute)),
     )

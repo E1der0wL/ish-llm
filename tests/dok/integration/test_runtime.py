@@ -163,7 +163,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         buffer.complete_state = CompletionState(original, [Completion('CANDIDATE')], complete_index=None)
         self.dock.show()
         visible = screen_lines(await render(self.prompt.app))
-        self.assertTrue(any(('플레이어 연결 안 됨' in line for line in visible)), visible)
+        self.assertTrue(any(('Player disconnected' in line for line in visible)), visible)
         self.assertTrue(any(('editor-29' in line for line in visible)), visible)
         self.assertTrue(any(('HOST TOOLBAR' in line for line in visible)), visible)
         self.assertEqual(buffer.document, original)
@@ -270,7 +270,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
                     behind = screen_lines(await render(self.prompt.app))
                     self.dock.show()
                     front = screen_lines(await render(self.prompt.app))
-                    title = next((index for index, line in enumerate(front) if '플레이어 연결 안 됨' in line))
+                    title = next((index for index, line in enumerate(front) if 'Player disconnected' in line))
                     strip = slice(title - 2, title + 5)
                     self.assertTrue(any(('CAND-' in line for line in behind[strip])), behind)
                     self.assertTrue(any(('CAND-' in line for line in front[strip])), front)
@@ -472,7 +472,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.dock.requested_visible)
         self.output.columns = 120
         large = screen_lines(await render(self.prompt.app))
-        self.assertTrue(any(('플레이어' in line for line in large)), large)
+        self.assertTrue(any(('Player' in line for line in large)), large)
 
     async def test_next_prompt_restores_visibility_and_submission_gate(self):
         self.dock.configure(DockConfig(widgets={'shortcuts': {'items': (Shortcut(1, 'echo'),)}}))
@@ -502,7 +502,7 @@ class RuntimeTests(unittest.IsolatedAsyncioTestCase):
         await self.start('next draft')
         await run_in_terminal(lambda: None)
         visible = screen_lines(await render(self.prompt.app))
-        self.assertTrue(any(('플레이어 연결 안 됨' in line for line in visible)), visible)
+        self.assertTrue(any(('Player disconnected' in line for line in visible)), visible)
         self.assertEqual(self.prompt.default_buffer.text, 'next draft')
         self.assertTrue(self.dock.requested_visible)
 

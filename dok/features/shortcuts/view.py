@@ -2,9 +2,10 @@
 
 from prompt_toolkit.mouse_events import MouseButton, MouseEventType
 
-from ...rendering.presentation import DockStyle, RenderContext, swallow_mouse
+from ...rendering.presentation import RenderContext, swallow_mouse
 from ...rendering.text import display_text, fit_labels, width
 from .config import Shortcut
+from ...core.colors import DockPalette
 
 
 class ShortcutView:
@@ -36,8 +37,8 @@ class ShortcutView:
         result = []
         for index, (item, label) in enumerate(zip(slots, labels)):
             if index:
-                result.append((DockStyle.BACKGROUND, separator, swallow_mouse))
+                result.append((context.theme.paint(), separator, swallow_mouse))
             enabled = item is not None and item.enabled
-            result.append((DockStyle.foreground(item.display_color) if item else DockStyle.DIM, label,
+            result.append((context.theme.literal(item.display_color if item else DockPalette.MUTED), label,
                            self._handler(item) if enabled else swallow_mouse))
         return tuple(result)

@@ -157,8 +157,8 @@ class SlotEntryRule(Rule):
 
 @dataclass(frozen=True, slots=True)
 class ShortcutSpacing(Spacing):
-    after_rows: int = setting(Spacing.ROWS_RULE, default=1)
-    item_gap_columns: int = setting(
+    after: int = setting(Spacing.ROWS_RULE, default=1)
+    gap: int = setting(
         Number(minimum=0, integer=True),
         default=2,
         description="Horizontal cells between entries. Reduced when space is limited."
@@ -256,4 +256,4 @@ class ShortcutsConfig(ElementConfig):
     def separator(self, available: int) -> str:
         reserved = sum(len(Shortcut.compact_label(slot)) for slot in Shortcut.slots())
         maximum = max(0, (available - reserved) // (Shortcut.COUNT - 1))
-        return " " * min(self.spacing.item_gap_columns, maximum)
+        return " " * min(self.spacing.gap, maximum)

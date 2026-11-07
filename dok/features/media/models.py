@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import ClassVar
 import math
+from ...locales import Locale, Message
 
 
 class PlaybackStatus(StrEnum):
@@ -29,7 +30,7 @@ class PlaybackAction(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class PlaybackSnapshot:
-    DISCONNECTED_TITLE: ClassVar[str] = "플레이어 연결 안 됨"
+    DISCONNECTED_TITLE: ClassVar[str] = Message.PLAYER_DISCONNECTED.value
     status: PlaybackStatus = PlaybackStatus.UNAVAILABLE
     title: str = DISCONNECTED_TITLE
     artist: str = ""
@@ -51,6 +52,9 @@ class PlaybackSnapshot:
     @property
     def caption(self):
         return " — ".join(part for part in (self.artist, self.title) if part)
+
+    def display_caption(self, locale=Locale()):
+        return self.caption if self.has_metadata else locale.text(Message.PLAYER_DISCONNECTED)
 
     @property
     def has_metadata(self) -> bool:

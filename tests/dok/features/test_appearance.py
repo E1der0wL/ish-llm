@@ -47,7 +47,7 @@ class AppearanceTests(unittest.TestCase):
     def test_colors_roundtrip_through_owner_store_and_schema(self):
         config = DockConfig(widgets={
             'shortcuts': {'items': (Shortcut(1, 'git', style={'color': '#AaBBCC'}),)},
-            'visualizer': VisualizerConfig(style={'colors': ('#abcdef', '#FEDCBA')}, width_columns=48)
+            'visualizer': VisualizerConfig(style={'colors': ('#abcdef', '#FEDCBA')}, width=48)
         })
         jsonschema.validate(config.to_dict(), DockConfig.schema())
         with tempfile.TemporaryDirectory() as directory:
@@ -79,13 +79,13 @@ class AppearanceTests(unittest.TestCase):
 
     def test_length_validation_and_default_are_shared_with_schema(self):
         config = VisualizerConfig()
-        self.assertEqual(config.width_columns, 38)
+        self.assertEqual(config.width, 38)
         self.assertEqual(
-            VisualizerConfig.schema()['properties'][VisualizerConfig.names().width_columns]['default'],
-            config.width_columns
+            VisualizerConfig.schema()['properties'][VisualizerConfig.names().width]['default'],
+            config.width
         )
         for length in (0, -1, 2.5, True, '48', None):
-            data = {'widgets': {'visualizer': {'width_columns': length}}}
+            data = {'widgets': {'visualizer': {'width': length}}}
             with self.subTest(length=length):
                 with self.assertRaises(SettingsError):
                     DockConfig.from_dict(data)
@@ -94,15 +94,15 @@ class AppearanceTests(unittest.TestCase):
 
     def test_display_length_preserves_range_and_clamps_before_allocating(self):
         levels = (0.0, 0.8, 0.2, 1.0)
-        self.assertEqual(VisualizerConfig(width_columns=2).display_levels(levels, 80), (0.8, 1.0))
-        self.assertEqual(VisualizerConfig(width_columns=1).display_levels(levels, 80), (1.0,))
+        self.assertEqual(VisualizerConfig(width=2).display_levels(levels, 80), (0.8, 1.0))
+        self.assertEqual(VisualizerConfig(width=1).display_levels(levels, 80), (1.0,))
         self.assertEqual(
-            VisualizerConfig(width_columns=5).display_levels((0.0, 1.0), 80),
+            VisualizerConfig(width=5).display_levels((0.0, 1.0), 80),
             (0.0, 0.25, 0.5, 0.75, 1.0)
         )
-        self.assertEqual(VisualizerConfig(width_columns=10 ** 100).display_levels(levels, 2), (0.8, 1.0))
-        self.assertEqual(VisualizerConfig(width_columns=10).display_levels(levels, 0), ())
-        self.assertEqual(VisualizerConfig(width_columns=4).display_levels(levels, 80), levels)
+        self.assertEqual(VisualizerConfig(width=10 ** 100).display_levels(levels, 2), (0.8, 1.0))
+        self.assertEqual(VisualizerConfig(width=10).display_levels(levels, 0), ())
+        self.assertEqual(VisualizerConfig(width=4).display_levels(levels, 80), levels)
 
     def test_registered_shortcuts_never_use_numeric_placeholders(self):
         self.assertEqual(Shortcut(1, 'git', icon='🌿', label='Git').display(), '🌿 Git')

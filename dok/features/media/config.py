@@ -4,33 +4,18 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import ClassVar
 
-from ...core.colors import HexColor
 from ...core.elements import ElementConfig, Spacing
 from ...core.records import Choice, Nested, Nullable, Number, Record, Sequence, SettingsError, Text, setting
-from ...core.styles import TextStyle, MutedStyle
+from ...core.styles import TextStyle, SecondaryStyle
 from ...integrations.ish.keys import KeyRule, KeySequence
 from .models import PlaybackAction
-
-
-@dataclass(frozen=True, slots=True)
-class TitleTexts(Record):
-    prefix: str = setting(
-        Text(single_line=True),
-        default="Now playing: ",
-        description="Text before application names. An empty string shows names only. Trailing spaces are preserved."
-    )
-    audio_error: str = setting(
-        Text(single_line=True),
-        default="Audio connection failed",
-        description="Title text when the audio connection fails. An empty string uses the normal title instead."
-    )
-
+from ...locales import Locale, Message
 
 
 @dataclass(frozen=True, slots=True)
 class TitleSpacing(Spacing):
-    after_rows: int = setting(Spacing.ROWS_RULE, default=1)
-    basic_after_rows: int | None = setting(Nullable(Spacing.ROWS_RULE), default=0)
+    after: int = setting(Spacing.ROWS_RULE, default=1)
+    basic_after: int | None = setting(Nullable(Spacing.ROWS_RULE), default=0)
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,55 +23,36 @@ class TitleConfig(ElementConfig):
     APPLICATION_SEPARATOR: ClassVar[str] = " · "
     spacing: TitleSpacing = setting(Nested(TitleSpacing), factory=TitleSpacing)
     style: TextStyle = setting(Nested(TextStyle), factory=TextStyle, description="Foreground appearance.")
-    texts: TitleTexts = setting(
-        Nested(TitleTexts),
-        factory=TitleTexts,
-        description="Title prefix and audio connection message."
-    )
 
-    def application_caption(self, applications: tuple[str, ...]) -> str:
-        return self.texts.prefix + self.APPLICATION_SEPARATOR.join(applications) if applications else ""
+    def application_caption(self, applications: tuple[str, ...], locale=Locale()) -> str:
+        return locale.text(Message.NOW_PLAYING) + self.APPLICATION_SEPARATOR.join(applications) if applications else ""
 
-    def audio_error_caption(self, diagnostic: str) -> str:
+    def audio_error_caption(self, diagnostic: str, locale=Locale()) -> str:
         """Keep backend details separate from the user-facing title text."""
-        return self.texts.audio_error if diagnostic else ""
+        return locale.text(Message.AUDIO_FAILED) if diagnostic else ""
 
 
 @dataclass(frozen=True, slots=True)
 class ProgressConfig(ElementConfig):
-    style: MutedStyle = setting(Nested(MutedStyle), factory=MutedStyle, description="Foreground appearance.")
-    width_columns: int = setting(
+    style: SecondaryStyle = setting(Nested(SecondaryStyle), factory=SecondaryStyle,
+        description="Theme selector for time labels and remaining track. The played track and position marker use theme.roles.foreground.")
+    width: int = setting(
         Number(minimum=1, integer=True),
         default=48,
         description="Progress bar length in cells, excluding the time labels. Clamped to the available space."
     )
 
     def display_length(self, available: int) -> int:
-        return max(0, min(self.width_columns, available))
-
-
-class ButtonColor(HexColor):
-    def decode(self, value):
-        return "" if value is None or value == "" else super().decode(value)
-
-    def schema(self):
-        return {"anyOf": [{"enum": ["", None]}, super().schema()]}
+        return max(0, min(self.width, available))
 
 
 @dataclass(frozen=True, slots=True)
-class ButtonStyle(MutedStyle):
-    color: str = setting(ButtonColor(), default="",
-        description="Button foreground in #RRGGBB. An empty string, null or an omitted color uses the terminal's default text color.")
-
+class ButtonStyle(TextStyle):
     @classmethod
     def from_dict(cls, value):
-        if isinstance(value, MutedStyle):
+        if isinstance(value, TextStyle):
             value = value.to_dict()
         return super(ButtonStyle, cls).from_dict(value)
-
-    @property
-    def foreground(self) -> str:
-        return self.color or "fg:default"
 
 
 @dataclass(frozen=True, slots=True)
@@ -100,7 +66,8 @@ class TransportButton(Record):
         default="",
         description="Button icon or text. An empty string uses the default action symbol. Nerd Font glyphs require a compatible font."
     )
-    style: ButtonStyle = setting(Nested(ButtonStyle), factory=ButtonStyle, description="Foreground appearance.")
+    style: ButtonStyle = setting(Nested(ButtonStyle), factory=ButtonStyle,
+        description="Button text color. Unavailable controls are dimmed, including when using the terminal default.")
     key: KeySequence | None = setting(KeyRule(optional=True), default=None,
         description="Key sequence for this action while the dock is visible and the player supports it. For example [\"f6\"]. Use null to disable the key.")
 
@@ -110,8 +77,8 @@ class TransportButton(Record):
 
 @dataclass(frozen=True, slots=True)
 class TransportSpacing(Spacing):
-    after_rows: int = setting(Spacing.ROWS_RULE, default=2)
-    basic_after_rows: int | None = setting(Nullable(Spacing.ROWS_RULE), default=1)
+    after: int = setting(Spacing.ROWS_RULE, default=2)
+    basic_after: int | None = setting(Nullable(Spacing.ROWS_RULE), default=1)
 
 
 @dataclass(frozen=True, slots=True)

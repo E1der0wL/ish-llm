@@ -4,7 +4,7 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
 
 ## 설정 예시
 
-다음 예시의 `dock`, `clock`, `widgets`를 현재 형식의 설정에 반영한다. 기본 위치는 미설정(`null`), `clock.timezone` 기본값은 `null`로 시스템 시간대를 따른다. WSL에서는 dok가 실행되는 Linux 환경의 시간대를 사용한다. `"Asia/Seoul"` 같은 IANA 이름을 지정하면 해당 시간대를 사용한다. 예보를 조회하려면 `location`에 자신의 `latitude`, `longitude`, 선택적인 `label`을 지정한다. `location: null`이면 현재 시계 날짜부터 요일, `icons.unknown` 아이콘, `--° --°` 온도를 표시하며 네트워크 요청을 하지 않는다.
+다음 예시의 `dock`, `clock`, `widgets`를 현재 형식의 설정에 반영한다. 기본 위치는 미설정(`null`), `clock.timezone` 기본값은 `null`로 시스템 시간대를 따른다. WSL에서는 dok가 실행되는 Linux 환경의 시간대를 사용한다. `"Asia/Seoul"` 같은 IANA 이름을 지정하면 해당 시간대를 사용한다. 예보를 조회하려면 `location`에 자신의 `lat`, `lon`, 선택적인 `label`을 지정한다. `location: null`이면 현재 시계 날짜부터 요일, `icons.unknown` 아이콘, `--° --°` 온도를 표시하며 네트워크 요청을 하지 않는다.
 
 ```json
 {
@@ -19,41 +19,41 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
     "date": {
       "enabled": true,
       "spacing": {
-        "after_rows": 0
+        "after": 0
       },
       "format": "%d %B, %Y.",
       "style": {
         "bold": true,
-        "color": "#ffffff"
+        "color": "foreground"
       }
     },
     "time": {
       "enabled": true,
       "spacing": {
-        "after_rows": 2
+        "after": 2
       },
       "format": "-%H:%M-",
       "style": {
-        "color": "#ffffff"
+        "color": "foreground"
       }
     },
-    "weekday_art": {
+    "weekday": {
       "enabled": true,
       "spacing": {
-        "after_rows": 1
+        "after": 1
       },
       "font": "future",
       "style": {
-        "color": "#ffffff"
+        "color": "foreground"
       },
       "abbreviated": false
     },
     "weather": {
       "enabled": true,
       "spacing": {
-        "after_rows": 1
+        "after": 1
       },
-      "weekday_labels": [
+      "weekdays": [
         "ᴍᴏɴ",
         "ᴛᴜᴇ",
         "ᴡᴇᴅ",
@@ -63,18 +63,15 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
         "ꜱᴜɴ"
       ],
       "location": null,
-      "temperature_unit": "celsius",
+      "unit": "celsius",
       "days": 7,
-      "refresh_minutes": 30,
+      "refresh_min": 30,
       "style": {
-        "color": "#d1d5db",
-        "low_temperature_color": "#77818d"
+        "color": "foreground",
+        "low_color": "low_temp"
       },
       "width_ratio": 0.5,
-      "icon_offset_columns": -1,
-      "texts": {
-        "unavailable": "날씨 연결 실패"
-      },
+      "icon_offset": -1,
       "icons": {
         "clear": "☀",
         "partly_cloudy": "🌤",
@@ -107,12 +104,12 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
 
 요일 아트는 [pyfiglet](https://github.com/pwaller/pyfiglet)의 설치된 폰트를 사용한다. 기본은 선 문자 폰트 `future`이며 `slant`, `small` 등으로 바꿀 수 있다. 영문 전체 요일 또는 `abbreviated: true`로 약어를 표시한다. 폭이 부족하면 약어 아트, 그래도 부족하거나 렌더링이 불가능하면 일반 약어 한 줄로 대체한다. 아트와 여백을 합친 높이가 입력 영역에 들어갈 때 최대화한다. 아트 내부 공백은 유지하며 블록 전체를 중앙 정렬한다. 결과는 요일·폰트 설정·폭을 기준으로 한 개만 캐시하여 매 오디오 프레임 다시 생성하지 않는다.
 
-아트 타입은 `widgets.weekday_art.font`로 지정한다. 사용자 참고 이미지의 굵고 기하학적인 느낌에는 `ansi_regular`를 추천한다. 실제 설치된 pyfiglet에서 출력을 비교한 제안이며, 사진의 곡선이나 끊어진 획을 정확히 재현하는 폰트는 아니다. 기본값은 현재 사용자 설정을 반영한 `future`다. 다음 값을 기존 `widgets.weekday_art` 설정에 합치고 `ish_reload`로 반영한다.
+아트 타입은 `widgets.weekday.font`로 지정한다. 사용자 참고 이미지의 굵고 기하학적인 느낌에는 `ansi_regular`를 추천한다. 실제 설치된 pyfiglet에서 출력을 비교한 제안이며, 사진의 곡선이나 끊어진 획을 정확히 재현하는 폰트는 아니다. 기본값은 현재 사용자 설정을 반영한 `future`다. 다음 값을 기존 `widgets.weekday` 설정에 합치고 `ish_reload`로 반영한다.
 
 ```json
 {
   "widgets": {
-    "weekday_art": {
+    "weekday": {
       "enabled": true,
       "font": "ansi_regular",
       "abbreviated": false
@@ -121,23 +118,23 @@ Ctrl+W는 숨김 ↔ 펼침을 전환한다. 처음 펼칠 때 최대화를 요�
 }
 ```
 
-`widgets.weekday_art.enabled: false`는 요일 그룹을 숨긴다. 기본은 `true`이며 요일 아트를 유지한다. `widgets.date.format` 또는 `widgets.time.format`을 빈 문자열로 두면 해당 행을 숨긴다. 형식은 `%Y %y %m %d %A %a %B %b %H %I %M %S %p %z %Z %%`를 지원한다. 개행·제어 문자나 그 외 지시자는 거부한다. `%B`와 `%b`는 로케일에 관계없이 대문자 영문 월 전체 이름·약어를 표시하며, `%%B`는 그대로 `%B`를 표시한다. `widgets.date.style.bold`는 날짜 굵기이며 기본 `true`다. 시간에는 날짜 굵기를 적용하지 않는다. 날짜·시간은 지정 IANA 시간대 또는 `null`인 경우 시스템 현지 시간대를 사용한다. 영문 요일 아트는 시스템 로케일과 무관하고, 날짜 형식의 요일 이름은 Python 로케일을 따른다. 기본은 분 경계, `%S`를 사용할 때만 초 경계마다 시계 갱신을 요청한다.
+`widgets.weekday.enabled: false`는 요일 그룹을 숨긴다. 기본은 `true`이며 요일 아트를 유지한다. `widgets.date.format` 또는 `widgets.time.format`을 빈 문자열로 두면 해당 행을 숨긴다. 형식은 `%Y %y %m %d %A %a %B %b %H %I %M %S %p %z %Z %%`를 지원한다. 개행·제어 문자나 그 외 지시자는 거부한다. `%B`와 `%b`는 로케일에 관계없이 대문자 영문 월 전체 이름·약어를 표시하며, `%%B`는 그대로 `%B`를 표시한다. `widgets.date.style.bold`는 날짜 굵기이며 기본 `true`다. 시간에는 날짜 굵기를 적용하지 않는다. 날짜·시간은 지정 IANA 시간대 또는 `null`인 경우 시스템 현지 시간대를 사용한다. 영문 요일 아트는 시스템 로케일과 무관하고, 날짜 형식의 요일 이름은 Python 로케일을 따른다. 기본은 분 경계, `%S`를 사용할 때만 초 경계마다 시계 갱신을 요청한다.
 
 ## 날씨 조회와 캐시
 
 날씨는 [Open-Meteo Forecast API](https://open-meteo.com/en/docs)의 일별 예보를 사용한다. 위치 좌표를 해당 서비스에 전달하며 날짜 경계는 위치의 시간대로 자동 해석한다. 따라서 시계 시간대를 다른 지역으로 설정하면 날씨의 날짜와 다를 수 있다. API 사용 조건은 [Open-Meteo 이용약관](https://open-meteo.com/en/terms)을 따른다. 날씨 데이터 출처는 Open-Meteo이며 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)으로 제공된다. UI는 WMO 코드를 아이콘으로 변환하고 온도를 반올림한다. 지역·단위·출처를 나열하던 상단 행은 제거하고 출처를 이 문서에 명시한다.
 
 - 위도는 -90~90, 경도는 -180~180이다. `label`은 설정에서 식별하는 이름이며 화면 표시나 위치 검색에는 사용하지 않는다.
-- `temperature_unit`은 `celsius` 또는 `fahrenheit`다. 최고·최저 온도 각각에 `°`를 붙이고 `/` 없이 공백으로 구분한다. 예: `16° 4°`. 최저 온도는 `style.low_temperature_color`(기본 `#77818d`)로 표시한다. 최고 온도와 요일·아이콘은 `style.color`를 사용한다.
-- `weekday_labels`는 월요일부터 일요일 순서의 문구 7개다. 기본은 작은 대문자 모양의 `ᴍᴏɴ`~`ꜱᴜɴ`이며 일반 영문·한글 등으로 바꿀 수 있다. [설정 예시와 폰트 안내](layout.md#날씨-위의-요일-문구)를 참고한다.
-- `width_ratio`는 날씨 영역의 목표 폭 비율이며 0 초과 1 이하, 기본 0.5다. 기존 전체 폭의 절반을 목표로 간격을 줄이되 온도가 겹치지 않게 필요한 최소 열 폭은 확보한다. `icon_offset_columns`은 아이콘의 수평 이동 셀 수이며 기본 -1(왼쪽 한 칸)이다. 정수만 허용하고 열 밖으로 나가지 않도록 제한한다.
+- `unit`은 `celsius` 또는 `fahrenheit`다. 최고·최저 온도 각각에 `°`를 붙이고 `/` 없이 공백으로 구분한다. 예: `16° 4°`. 최저 온도는 `style.low_color`(기본 low_temp 역할 → comment, `#77818d`)로 표시한다. 최고 온도와 요일·아이콘은 `style.color`를 사용한다.
+- `weekdays`는 월요일부터 일요일 순서의 문구 7개다. 기본은 작은 대문자 모양의 `ᴍᴏɴ`~`ꜱᴜɴ`이며 일반 영문·한글 등으로 바꿀 수 있다. [설정 예시와 폰트 안내](layout.md#날씨-위의-요일-문구)를 참고한다.
+- `width_ratio`는 날씨 영역의 목표 폭 비율이며 0 초과 1 이하, 기본 0.5다. 기존 전체 폭의 절반을 목표로 간격을 줄이되 온도가 겹치지 않게 필요한 최소 열 폭은 확보한다. `icon_offset`은 아이콘의 수평 이동 셀 수이며 기본 -1(왼쪽 한 칸)이다. 정수만 허용하고 열 밖으로 나가지 않도록 제한한다.
 - `days`는 1일부터 예보 제공 범위인 16일까지이며 기본 7일이다. [Open-Meteo 예보 API](https://open-meteo.com/en/docs) 폭이 좁으면 각 열의 최소 폭을 위해 표시 일수를 줄이고, 창이 넓어지면 복원한다. 날짜는 가까운 순서이며 온도가 누락되면 `--°`를 표시한다.
-- `refresh_minutes`는 1 이상의 정수이며 기본 30분이다. 새 위치의 최대화 첫 표시 시 조회하고 이후 주기적으로 갱신한다. 정상 캐시가 남아 있으면 닫았다 열어도 즉시 재조회하지 않는다.
-- 정상 상태는 날씨 3줄만 표시한다. 실패 시 이전 예보가 있으면 그 아래 `texts.unavailable`와 성공 갱신 시각을 안내하는 한 줄을 추가한다. 다음 시도는 설정 주기 이후다. 상세 원인은 `dock.weather.error`에서 확인한다. 이전 예보가 없다면 날씨 영역에 실패 안내를 표시한다. 추가 안내로 높이가 부족해지면 기본 모드로 표시할 수 있다.
+- `refresh_min`는 1 이상의 정수이며 기본 30분이다. 새 위치의 최대화 첫 표시 시 조회하고 이후 주기적으로 갱신한다. 정상 캐시가 남아 있으면 닫았다 열어도 즉시 재조회하지 않는다.
+- 정상 상태는 날씨 3줄만 표시한다. 실패 시 이전 예보가 있으면 그 아래 언어팩의 `WEATHER_FAILED`와 성공 갱신 시각을 안내하는 한 줄을 추가한다. 열린 채로 두면 다음 시도는 설정 주기 이후다. 실패 상태에서 dock을 숨겼다가 다시 열면 주기를 기다리지 않고 한 번 재시도한다. 성공한 예보의 갱신 시각·주기는 그대로 유지하며 반복 렌더링, 기본/최대화 전환, 열린 dock에 대한 show() 호출은 재시도 계기가 아니다. 상세 원인은 `dock.weather.error`에서 확인한다. 이전 예보가 없다면 날씨 영역에 실패 안내를 표시한다. 추가 안내로 높이가 부족해지면 기본 모드로 표시할 수 있다.
 - 캐시는 현재 설정 한 개에 대한 메모리 캐시이며 재시작 시 사라진다. 위치·단위·예보 일수 변경 시 이전 데이터를 분리하여 다른 지역 예보를 잘못 표시하지 않는다.
-- 실제 최대화가 표시될 때만 조회와 시계 작업을 유지한다. 기본 모드·숨김·공간 부족·프롬프트 종료·해제 시 작업을 취소한다. HTTP 요청 제한은 10초이며 렌더링 스레드에서 네트워크를 기다리지 않는다.
+- 정기 날씨 조회는 실제 최대화 또는 날씨 상세 팝업이 표시될 때 유지한다. 실패 후 dock을 다시 연 경우에는 기본 크기에서도 해당 재시도 한 번을 완료한다. 숨김·프롬프트 종료·해제 시 불필요한 작업을 취소하며, 이전 요청의 취소 정리가 끝나기 전에 새 요청을 시작하지 않는다. 조회 중 빠른 토글은 중복 요청을 예약하지 않는다. HTTP 요청 제한은 10초이며 렌더링 스레드에서 네트워크를 기다리지 않는다.
 
-사운드 연결 실패의 “닫았다 다시 열 때만 재시도” 정책은 그대로다. 날씨 실패는 별도의 Owner와 갱신 주기를 사용한다.
+사운드 연결 실패의 “닫았다 다시 열 때만 재시도” 정책은 그대로다. 날씨 실패는 별도의 WeatherRuntime Owner가 갱신 주기와 명시적 재열기의 재시도 정책을 함께 관리한다.
 
 ## 공개 API와 책임
 

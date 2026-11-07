@@ -3,33 +3,49 @@
 dok는 기존 `prompt.bottom_toolbar`에 한 줄 상태 표시 함수를 등록한다. ish의 toolbar 위치를 사용하며 Float 높이·프롬프트·키 바인딩을 변경하지 않는다. `toolbar.enabled` 기본값은 `true`다. 기존 개인 파일에 새 항목이 없으면 Owner 기본값을 사용하고 파일 자체는 다시 쓰지 않는다.
 
 ```text
-2026-11-06(Fri)    Len:108    Lines:3            Ln:2      Col:21     Pos:48           Σ 600(200)                9% ⣀⣀⣀⣠⣤⣤⣠⣀⣀⣀⣠⣀    25% ━━━─────────  NET    ↓1.4M ↑82K/s
+2026-11-06(Fri)    Len:108    Lines:3        Ln:2      Col:21     Pos:48       Total:  600(200)                9% ▁▁▂▃▅▇▄▂▁▁▂▁    25% ━━━─────────  󰛳    ↓1.4M ↑82K/s
 ```
 
-CPU/MEM은 기본 설정에서 Nerd Font 아이콘이다. 배경은 터미널 기본색이며 테두리는 없다. 터미널 투명도는 터미널 설정을 따른다. CPU는 Braille 점 그래프, 메모리는 얇은 용량 막대이며 네트워크 그래프는 선택적으로 켠다. 픽셀 그래픽은 아니다.
+CPU/MEM은 기본 설정에서 Nerd Font 아이콘이다. 런타임 배경 기본값은 공통 테마 배경이며 그 기본값은 터미널 배경이다. 새로 생성하는 설정 파일에서는 하단 바에만 `#1D2035`를 지정한다. 테두리는 없으며 CPU는 8단계 블록 그래프, 메모리는 얇은 용량 막대이고 네트워크 Braille 그래프는 선택적으로 켠다. 픽셀 그래픽은 아니다.
+
+CPU 그래프는 `▁▂▃▄▅▆▇█` 8단계이며 12.5% 간격으로 높이가 바뀐다. 0–12.5% 미만은 `▁`, 12.5–25% 미만은 `▂`, 87.5–100%는 `█`다. 한 칸에 한 번의 측정을 표시하고, 수집 주기가 1초라면 12칸은 최근 12초에 해당한다. 시작부터 사용 가능한 전체 너비를 `▁▁▁▁…` 기준선으로 채우고 오른쪽부터 실제 측정값을 반영한다. 이력에 가짜 0%를 넣지 않으며, 수치가 아직 없으면 `—`를 유지한다. 측정이 시작된 뒤의 누락값은 빈칸으로 구분한다.
 
 ## 배치와 날짜
 
-오른쪽의 CPU·MEM·NET은 기본적으로 각각 **19칸**이다. `toolbar.regions.<항목>.width_columns`에는 라벨·수치·그래프가 모두 들어간다. 내부 수치 너비는 `toolbar.system.<항목>.value_width_columns`로 지정하며 실제로 남은 칸까지 사용한다. 기본 너비에서 긴 NET 속도는 `↓1.4M ↑82K/s`처럼 줄인다. K·M·G는 KiB·MiB·GiB이고 끝의 `/s`는 수신·송신 양쪽에 적용된다.
+`toolbar.pad_left`와 `toolbar.pad_right`로 전체 하단 바 양 끝의 빈칸을 각각 지정한다. 둘 다 런타임 기본값은 **0**, 새 설정 파일의 값은 **1**이다. 0 이상의 정수를 받으며 임의 상한은 없다. 여백을 제외한 공간에서 왼쪽 그룹과 오른쪽 시스템 정보를 정렬한다. 두 여백을 모두 넣을 수 없을 만큼 화면이 좁으면 왼쪽 여백부터 가용 너비에 맞추고 오른쪽은 남은 너비에 맞춘다. 내용 공간이 없으면 배경만 그린다.
+
+```jsonc
+{
+  "toolbar": {
+    "pad_left": 1,
+    "pad_right": 1,
+    "background": "#1D2035"
+  }
+}
+```
+
+`toolbar.background`는 기존 테마 역할·팔레트 이름과 하단 바 전용 `#RRGGBB`를 받는다. 양 끝 여백과 가운데 빈 공간, 배경을 상속하는 각 영역에 적용한다. 명시적인 영역 배경은 그대로 우선한다. `"background"`를 지정하면 공통 테마 배경을 다시 따른다. 기존 개인 파일은 다시 쓰지 않으므로 새 필드를 생략하면 런타임 기본값을 사용한다.
+
+오른쪽의 CPU·MEM·NET은 기본적으로 각각 **19칸**이다. `toolbar.regions.<항목>.width`에는 라벨·수치·그래프가 모두 들어간다. 내부 수치 너비는 `toolbar.system.<항목>.value_width`로 지정하며 실제로 남은 칸까지 사용한다. 기본 너비에서 긴 NET 속도는 `↓1.4M ↑82K/s`처럼 줄인다. K·M·G는 KiB·MiB·GiB이고 끝의 `/s`는 수신·송신 양쪽에 적용된다.
 
 날짜·입력 정보·합계는 왼쪽, 시스템 정보는 오른쪽 끝에 정렬한다. 고정 너비 영역은 그 안에 그래프를 맞춘다. 오른쪽 기본 배치는 구분 공백을 포함해 61칸을 사용한다. 터미널이 이보다 좁으면 `toolbar.system.order`의 뒤쪽 항목부터 생략한다. 왼쪽 공간이 부족하면 날짜와 뒤쪽 입력 항목을 생략하고 합계·평균을 우선 표시한다.
 
 날짜는 기본 `%Y-%m-%d(%a)`이며 `Mon`부터 `Sun`까지 영문 약어를 사용한다. `%a`, `%A`의 요일 문구는 `weekdays`에서 바꿀 수 있다. `clock.timezone`을 공유하며 `null`은 시스템 시간대다. dock이 그려지면 날짜와 해당 여백이 함께 숨겨진다.
 
-`toolbar.regions`에서 각 영역을 설정한다. 왼쪽은 `date` → `size`(Len·Lines) → `cursor`(Ln·Col·Pos 및 선택한 편집 정보) → `numbers`(Σ) 순서다. 새 설정 파일에는 `group_gap_columns: 8`과 `regions.date.padding_after_columns: 4`가 들어간다. 날짜 뒤는 4칸, 나머지 세 그룹 사이는 8칸이다. 기존 설정에서 그룹 간격을 생략하면 일반 기본값인 4칸을 사용한다.
+`toolbar.regions`에서 각 영역을 설정한다. 왼쪽은 `date` → `size`(Len·Lines) → `cursor`(Ln·Col·Pos 및 선택한 편집 정보) → `numbers`(Total) 순서다. 기본값과 새 설정 파일 모두 `gap: 4`이고, 세 숫자 그룹의 `gap`는 2다. 날짜 뒤에도 4칸을 둔다. 숫자 표시칸 안의 정렬용 공백은 이 간격에 포함하지 않는다. 네트워크 라벨은 기본 Nerd Font 아이콘 `󰛳`이며 `toolbar.system.network.label`로 바꿀 수 있다.
 
 | 영역 설정 | 의미 |
 | --- | --- |
-| `width_columns` | 라벨·값·내부 간격·그래프를 포함한 내용 너비. 1칸 이상, `null`은 자동. 고정 너비의 남는 칸은 영역 배경으로 채운다. |
-| `padding_before_columns`, `padding_after_columns` | 내용 바깥의 앞뒤 여백. 0칸 이상. 뒤 여백 `null`은 다음 영역이 있을 때 왼쪽은 그룹 간격, 오른쪽은 `toolbar.separator`를 사용한다. 직접 설정하면 마지막 영역에도 적용한다. |
-| `item_gap_columns` | 영역 내부 요소 사이 공백. 0칸 이상. 길이·위치 영역에서는 필드 사이, Σ에서는 라벨과 결과 사이, 시스템 영역에서는 아이콘·수치·그래프 사이에 적용한다. NET의 수신·송신 사이에도 적용한다. 날짜 문자열 내부 간격은 `date.format`으로 지정한다. |
-| `style.color`, `style.background` | `#RRGGBB` 색상. 영역의 앞뒤 여백과 내용 전체에 적용한다. `null`이면 개별 요소 전경색과 `toolbar.background`를 사용한다. toolbar 배경의 기본값 `null`은 터미널 기본 배경이다. |
+| `width` | 라벨·값·내부 간격·그래프를 포함한 내용 너비. 1칸 이상, `null`은 자동. 고정 너비의 남는 칸은 영역 배경으로 채운다. |
+| `pad_left`, `pad_right` | 내용 바깥의 앞뒤 여백. 0칸 이상. 뒤 여백 `null`은 다음 영역이 있을 때 왼쪽은 그룹 간격, 오른쪽은 `toolbar.separator`를 사용한다. 직접 설정하면 마지막 영역에도 적용한다. |
+| `gap` | 영역 내부 요소 사이 공백. 0칸 이상. 길이·위치 영역에서는 필드 사이, Total에서는 라벨과 결과 사이, 시스템 영역에서는 아이콘·수치·그래프 사이에 적용한다. NET의 수신·송신 사이에도 적용한다. 날짜 문자열 내부 간격은 `date.format`으로 지정한다. |
+| `style.color`, `style.background` | 테마 역할 또는 팔레트 이름. 영역의 앞뒤 여백과 내용 전체에 적용한다. `null`이면 개별 요소 전경색과 `toolbar.background`를 상속한다. toolbar 배경의 기본값 background는 공통 테마 배경을 따른다. |
 
-길이(`regions.size`), 커서(`regions.cursor`), 합계·평균(`regions.numbers`)에는 각각 숫자의 `alignment`와 `max_digits`가 있다. 런타임과 새 파일의 기본값은 `"left"`, `null`이다. `"right"`로 바꾸면 남는 칸이 숫자 앞에 온다. Σ는 합계와 괄호 안 평균을 묶어서 정렬한다.
+길이(`regions.size`), 커서(`regions.cursor`), 합계·평균(`regions.numbers`)에는 각각 숫자의 `align`와 `digits`가 있다. 런타임과 새 파일의 기본값은 `"left"`, `null`이다. `"right"`로 바꾸면 남는 칸이 숫자 앞에 온다. Total은 합계와 괄호 안 평균을 묶어서 정렬한다.
 
-`max_digits`에 양의 정수를 지정하면 각 숫자에 따로 적용한다. 부호·쉼표·소수점·단위는 자릿수에서 제외한다. 예를 들어 3자리에서 12345는 `12.3K`이며, 2자리에서 123456은 K 단위로 줄여도 정수부가 세 자리여서 `12...`가 된다. 음수의 부호를 보존한다. 합계와 평균은 원래 수로 먼저 계산한다.
+`digits`에 양의 정수를 지정하면 각 숫자에 따로 적용한다. 부호·쉼표·소수점·단위는 자릿수에서 제외한다. 예를 들어 3자리에서 12345는 `12.3K`이며, 2자리에서 123456은 K 단위로 줄여도 정수부가 세 자리여서 `12...`가 된다. 음수의 부호를 보존한다. 합계와 평균은 원래 수로 먼저 계산한다.
 
-기본 `value_width_columns: null`에서는 입력 값이 5칸, Σ 값이 15칸부터 필요한 만큼 늘어난다. 숫자를 명시하면 해당 값의 너비를 고정한다. 고정한 너비나 터미널 공간이 부족할 때도 단위 축약을 우선하며, 점 세 개와 숫자가 함께 들어가기 어려운 칸에서는 한 칸짜리 `…`를 쓴다.
+기본 `value_width: null`에서는 입력 값이 5칸, Total 값이 15칸부터 필요한 만큼 늘어난다. 숫자를 명시하면 해당 값의 너비를 고정한다. 고정한 너비나 터미널 공간이 부족할 때도 단위 축약을 우선하며, 점 세 개와 숫자가 함께 들어가기 어려운 칸에서는 한 칸짜리 `…`를 쓴다.
 
 ## 입력 정보와 숫자 계산
 
@@ -40,11 +56,11 @@ CPU/MEM은 기본 설정에서 Nerd Font 아이콘이다. 배경은 터미널 �
 - 줄·열·전체 위치는 1부터 시작한다. 입력 끝 위치는 길이 + 1이다.
 - 편집 모드는 Emacs 또는 Vi의 실제 입력·일반·교체 상태다. 인코딩은 파일 속성이 아닌 ish 셸 입출력 인코딩이다.
 
-숫자 계산의 기본 범위는 `input`이다. 프롬프트에 `10 20`을 입력하면 드래그 없이 `Σ 30(15)`를 표시한다. `selection`으로 바꾸면 prompt-toolkit의 선택 범위만 계산하며, 블록 선택은 행마다 따로 해석한다. 터미널 자체의 Shift+드래그 선택은 셸 선택 범위와 독립적이다.
+숫자 계산의 기본 범위는 `input`이다. 프롬프트에 `10 20`을 입력하면 드래그 없이 `Total:  30(15)`를 표시한다. `selection`으로 바꾸면 prompt-toolkit의 선택 범위만 계산하며, 블록 선택은 행마다 따로 해석한다. 터미널 자체의 Shift+드래그 선택은 셸 선택 범위와 독립적이다.
 
 ASCII 숫자, 부호, 소수, 천 단위 쉼표를 지원한다. `사과100`, `-20.5`, `1,200.50`, `.5`를 숫자로 읽으며 끝의 쉼표·마침표는 문장 부호로 처리한다. `12,34`, 여러 소수점, 지수 표기는 통째로 제외한다. 날짜·버전·코드의 의미를 판별하거나 수식을 실행하지 않는다. 평균은 인식한 숫자의 개수로 나눈다.
 
-Decimal로 합산하며 `numbers.decimal_places`의 기본값 `null`은 계산된 소수 자릿수를 사용한다. 순환소수는 계산 정밀도와 화면 너비 안에서 표시한다. 0 이상의 정수를 지정하면 표시할 때 해당 소수 자릿수로 반올림한다(half-up). 뒤쪽 소수 0은 제거한다. 계산 범위에 숫자가 없으면 `Σ —`다. 계산 한도는 100,000자, 10,000개 숫자, 숫자당 256자리다. 초과하면 `Σ …`를 표시한다. 마지막 계산 한 건만 캐시한다.
+Decimal로 합산하며 `numbers.decimals`의 기본값 `null`은 계산된 소수 자릿수를 사용한다. 순환소수는 계산 정밀도와 화면 너비 안에서 표시한다. 0 이상의 정수를 지정하면 표시할 때 해당 소수 자릿수로 반올림한다(half-up). 뒤쪽 소수 0은 제거한다. 계산 범위에 숫자가 없으면 `Total:  —`다. 계산 한도는 100,000자, 10,000개 숫자, 숫자당 256자리다. 초과하면 `Total:  …`를 표시한다. 마지막 계산 한 건만 캐시한다.
 
 ## 측정의 의미와 수명
 
@@ -72,29 +88,29 @@ WSL에서는 Linux에서 보이는 자원을 측정한다. Windows 전체 사용
 {
   "system": {
     "enabled": true,
-    "refresh_seconds": 1,
-    "history_samples": 120,
+    "refresh_s": 1,
+    "history": 120,
     "interfaces": null
   },
   "toolbar": {
     "enabled": true,
     "separator": "  ",
-    "group_gap_columns": 8,
-    "background": null,
+    "gap": 4,
+    "background": "background",
     "regions": {
-      "date": {"padding_after_columns": 4},
-      "size": {"alignment": "left", "max_digits": null},
-      "cursor": {"alignment": "left", "max_digits": null},
-      "numbers": {"alignment": "left", "max_digits": null},
-      "cpu": {"width_columns": 19},
-      "memory": {"width_columns": 19},
-      "network": {"width_columns": 19}
+      "date": {"pad_right": 4},
+      "size": {"align": "left", "digits": null, "gap": 2},
+      "cursor": {"align": "left", "digits": null, "gap": 2},
+      "numbers": {"align": "left", "digits": null, "gap": 2},
+      "cpu": {"width": 19},
+      "memory": {"width": 19},
+      "network": {"width": 19}
     },
     "date": {
       "format": "%Y-%m-%d(%a)",
       "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      "hide_when_dock_visible": true,
-      "style": {"color": "#d1d5db"}
+      "hide_with_dock": true,
+      "style": {"color": "foreground"}
     },
     "input": {
       "items": [
@@ -105,12 +121,12 @@ WSL에서는 Linux에서 보이는 자원을 측정한다. Windows 전체 사용
         {"field": "position", "label": "Pos:"}
       ]
     },
-    "numbers": {"scope": "input", "decimal_places": null, "label": "Σ ", "value_width_columns": null},
+    "numbers": {"scope": "input", "decimals": null, "label": "Total: ", "value_width": null},
     "system": {
       "order": ["cpu", "memory", "network"],
-      "cpu": {"label": "", "value_width_columns": 4, "graph": {"columns": 12}},
-      "memory": {"label": "", "value_width_columns": 4, "graph": {"columns": 12}},
-      "network": {"label": "NET", "value_width_columns": 27, "graph": {"enabled": false}},
+      "cpu": {"label": "", "value_width": 4, "graph": {"width": 12}},
+      "memory": {"label": "", "value_width": 4, "graph": {"width": 12}},
+      "network": {"label": "󰛳", "value_width": 27, "graph": {"enabled": false}},
       "download_label": "↓",
       "upload_label": "↑"
     }

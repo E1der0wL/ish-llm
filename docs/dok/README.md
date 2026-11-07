@@ -26,11 +26,31 @@ if dok_plugin is not None:
 
 설치·재로드 시 설정 파일이 없으면 `<ish home>/dok/config.jsonc`에 모든 설정값·바로가기 예시 10개와 항목별 영어 설명 주석을 저장한 뒤 읽어 적용한다. 기본 경로는 항상 `config.jsonc`이며 이전 `config.json`은 자동으로 읽지 않는다. [주석 있는 설정 파일](configuration-file.md)에 생성·편집·기존 파일 처리 규칙을 정리했다. Ctrl+W는 숨김과 펼침을 전환한다. 초기 dock은 숨김이며 처음 펼치면 최대화를 요청하고, 공간이 부족하면 기본 크기로 표시한다. 크기 전환용 단축키는 없다. 다른 파일은 `install(prompt, config_path="/absolute/path/config.jsonc")`로 지정한다.
 
-`dock.mouse.enabled`로 독 마우스를 켜거나 끈다(기본 `false`). `true`로 지정한 경우 독이 보일 때만 마우스를 활성화하고 숨김·해제 시 기존 호스트 설정으로 복원한다. 바로가기·음악 버튼·재생바만 조작하며 날씨 클릭 기능은 아직 없다. 터미널 텍스트 선택은 Shift+드래그를 사용한다. [MPRIS와 마우스 설정](media.md)을 참고한다.
+`dock.mouse.enabled`로 독과 작은 알림의 마우스를 켜거나 끈다(기본 `false`). 일반 팝업은 포커스를 가진 동안 설정과 관계없이 마우스를 활성화하고 닫으면 기존 상태로 복원한다. 바로가기·음악 버튼·재생바와 팝업의 버튼·스크롤을 조작하며 날씨 아이콘 클릭 기능은 아직 없다. 터미널 텍스트 선택은 Shift+드래그를 사용한다. [MPRIS와 마우스 설정](media.md)을 참고한다.
+
+## 팝업
+
+Alt+C로 월간 캘린더·일정 편집, Alt+W로 현재·시간별 날씨 상세를 연다. 캘린더는 방향키로 날짜를 선택하고 Enter로 편집, Tab으로 항목 이동, F2로 저장한다. Esc는 편집→달력→닫기 순서다. 날씨는 ←/→로 시간대, ↑/↓로 본문을 이동한다. 알림은 우측 하단에 표시하고 입력 포커스를 유지한다. 기본 자동 닫기는 표시된 시간 기준 6초이며 Alt+N은 상세 보기, Alt+X는 닫기다.
+
+키·고정/비율 크기·여백·색상은 `popups`에서 지정한다. 일반 팝업의 버튼과 휠 스크롤은 마우스 설정을 따로 켜지 않아도 지원한다. [팝업 설정과 호출 API](popups.md), [일정 저장·반복 알림](calendar.md)에 수명주기와 조작을 정리했다. 저장한 일정은 재시작 후 복원하며 알림은 ish 실행 중 확인한다. 외부 캘린더 동기화와 예약 명령 실행은 포함하지 않는다.
+
+## Hub 에이전트 등록
+
+같은 ish 프롬프트에 dok과 **live Hub**를 설치하면, 첫 프롬프트가 표시된 뒤 dok이 Hub에 `Dok` 전용 Project와 아래 에이전트를 비동기로 등록한다. dock을 펼치거나 Hub Home을 열 필요가 없다. 두 플러그인의 설치 순서는 자유롭다.
+
+| Hub 에이전트 ID | 용도 |
+|---|---|
+| `command-analysis` | 셸 명령·옵션 설명과 실패 원인 분석 |
+| `calendar` | dok에서 제공할 일정의 요약·안내 |
+| `shell-assistant` | 프롬프트·스크롤백을 참고한 셸 작업 지원 |
+
+Hub의 **`/agent → Edit`**에서 `Dok` 소속 항목의 모델과 지침을 설정한다. 최초 템플릿에는 역할별 지침과 빈 도구 목록이 들어간다. Hub는 같은 Project를 재사용하고 누락된 에이전트만 추가하며, 기존 에이전트에 저장한 설정은 보존한다. 이 단계의 연동은 등록까지다. [Hub 플러그인 API](../hub/plugin-api.md)
+
+`dock.hub_registration.state`는 같은 프롬프트에 사용 가능한 live Hub가 없으면 `unavailable`, 등록 중이면 `registering`, 완료되면 `registered`다. 실패하면 `failed`로 바뀌며 원인이 `dock.hub_registration.diagnostic`과 ish 로그에 남는다. 원인을 해결한 뒤 `dock.reload()` 또는 기존 설치 코드가 있는 `ish_reload`로 다시 시도한다.
 
 ## 사용자 설정
 
-설정은 `dock`, `audio`, `media`, `clock`, `widgets`, `system`, `toolbar`로 나눈다. [옵션 구조](options.md)와 [전체 JSONC 예시](config.example.jsonc)를 참고한다. 이전 설정 이름과 구조는 지원하지 않으며 기존 파일을 자동 변환하지 않는다.
+설정은 `theme`, `dock`, `audio`, `media`, `clock`, `widgets`, `system`, `toolbar`, `popups`로 나눈다. 최상위 `language`는 기본 `null`로 ish 언어를 따르고, `"en"` 또는 `"ko"`로 고정할 수 있다. 지원하지 않는 언어는 영어를 표시한다. [언어 설정과 사용자 문구](localization.md), [옵션 구조](options.md), [전체 JSONC 예시](config.example.jsonc)를 참고한다. 이전 설정 이름과 구조는 지원하지 않으며 기존 파일을 자동 변환하지 않는다.
 
 바로가기의 런타임 기본값은 빈 목록이며 `[1]`~`[0]`으로 표시한다. 새로 생성하는 파일에는 바로가기 예시 9개와 구분선이 명시된다. 기존 파일에서 항목을 생략하면 예시를 채우지 않는다. 나머지 [현재 기본 설정](defaults.md)에는 Nerd Font 버튼, 38칸 단색 비주얼라이저, `future` 요일 아트가 포함된다. 날씨 위치는 미설정이며 사용자가 직접 지정한다. `widgets.shortcuts.items: []`는 기본 바로가기를 사용하지 않고 빈 슬롯으로 표시한다.
 
@@ -57,7 +77,7 @@ if dok_plugin is not None:
   },
   "widgets": {
     "visualizer": {
-      "width_columns": 48,
+      "width": 48,
       "style": {
         "colors": [
           "#67e8f9",
@@ -68,47 +88,43 @@ if dok_plugin is not None:
     },
     "title": {
       "style": {
-        "color": "#facc15"
-      },
-      "texts": {
-        "prefix": "NOW: ",
-        "audio_error": "오디오 오프라인"
+        "color": "yellow"
       }
     },
     "progress": {
       "style": {
-        "color": "#22c55e"
+        "color": "green"
       },
-      "width_columns": 40
+      "width": 40
     },
-    "media_controls": {
+    "controls": {
       "buttons": [
         {
           "action": "previous",
           "text": "⏮",
           "style": {
-            "color": "#67e8f9"
+            "color": "cyan"
           }
         },
         {
           "action": "play_pause",
           "text": "⏯",
           "style": {
-            "color": "#a3e635"
+            "color": "green"
           }
         },
         {
           "action": "next",
           "text": "⏭",
           "style": {
-            "color": "#67e8f9"
+            "color": "cyan"
           }
         }
       ]
     },
     "shortcuts": {
       "spacing": {
-        "item_gap_columns": 2
+        "gap": 2
       },
       "items": [
         {
@@ -168,7 +184,7 @@ slot은 1부터 10까지며 빈 슬롯은 `[1]`부터 `[0]`까지 표시한다. 
 
 바로가기의 `style.color`는 아이콘·텍스트의 전경색이며 `#RRGGBB` 형식이다. 컬러 이모지는 터미널·폰트가 가진 고유 색으로 표시될 수 있다. 배경은 기존 투명 배치를 유지한다. 색을 생략하면 기본 청록색을 사용한다.
 
-`widgets.shortcuts.spacing.item_gap_columns`은 바로가기·빈 슬롯·구분선 사이의 공백 칸 수다. 0 이상 정수이며 기본 2칸이다. 큰 값은 화면 안에 10개 슬롯이 들어가도록 자동으로 줄고 넓어지면 복원한다. 명령어와 프롬프트 버퍼를 합칠 때의 공백에는 영향을 주지 않는다.
+`widgets.shortcuts.spacing.gap`은 바로가기·빈 슬롯·구분선 사이의 공백 칸 수다. 0 이상 정수이며 기본 2칸이다. 큰 값은 화면 안에 10개 슬롯이 들어가도록 자동으로 줄고 넓어지면 복원한다. 명령어와 프롬프트 버퍼를 합칠 때의 공백에는 영향을 주지 않는다.
 
 구분선은 같은 `widgets.shortcuts.items` 목록에 `{"slot": 2, "type": "separator"}`로 넣는다. 슬롯 하나를 차지하며 번호 대신 기본 문자 `│`를 표시한다. `text`로 `┃`·`─` 같은 다른 표시를, `style.color`로 색을 지정할 수 있다. `command`·`key`는 허용하지 않으며 클릭이나 `dock.execute(slot)`으로 실행되지 않는다. 구분선으로 바꾸면 그 슬롯에 있던 바로가기 키 등록도 해제된다. 다음 슬롯의 번호를 당기거나 전체 10개 슬롯 수를 늘리지 않는다.
 
@@ -178,17 +194,17 @@ slot은 1부터 10까지며 빈 슬롯은 `[1]`부터 `[0]`까지 표시한다. 
 
 `Float.transparent=True`를 사용하고 좌우 여백·바로가기 위 padding·하단 padding을 그리지 않는다. 따라서 그 부분의 입력·자동완성이 실제로 보이며 클릭도 기존 컨트롤로 전달된다. 각 줄의 내용 영역(문자 사이 공백 포함)만 뒤 내용을 덮고 클릭을 처리한다. 내용의 배경색은 터미널 기본 배경(`bg:default`)을 사용한다.
 
-비주얼라이저는 `widgets.visualizer.width_columns`에 1 이상 정수로 표시 길이를 지정하며 기본값은 38칸이다. 예를 들어 `"width_columns": 48`이면 48칸으로 표시한다. dock 본문보다 길면 실제 본문 너비까지만 표시하고 창이 넓어지면 설정 길이로 복원한다. 전체 주파수 범위를 짧은 길이에 모을 때는 구간별 최댓값을 사용하고, 길게 펼칠 때는 인접 대역을 보간한다. 분석 대역 수나 FFT 작업량은 바꾸지 않으며 그라데이션은 실제 표시 길이 전체에 적용한다. 각 줄은 가운데 정렬한다.
+비주얼라이저는 `widgets.visualizer.width`에 1 이상 정수로 표시 길이를 지정하며 기본값은 38칸이다. 예를 들어 `"width": 48`이면 48칸으로 표시한다. dock 본문보다 길면 실제 본문 너비까지만 표시하고 창이 넓어지면 설정 길이로 복원한다. 전체 주파수 범위를 짧은 길이에 모을 때는 구간별 최댓값을 사용하고, 길게 펼칠 때는 인접 대역을 보간한다. 분석 대역 수나 FFT 작업량은 바꾸지 않으며 그라데이션은 실제 표시 길이 전체에 적용한다. 각 줄은 가운데 정렬한다.
 
-`widgets.title.style.color`는 타이틀의 전경색이다. `widgets.title.texts.prefix`는 프로그램 이름 앞 문구이며 기본 `"Now playing: "`다. `"NOW: "`로 바꾸거나 `""`로 지정해 프로그램 이름만 표시할 수 있다. 문구의 공백은 지정한 그대로 사용한다. 플레이어 곡 제목이 연결되면 기존처럼 곡 정보를 우선하며, 오류 안내는 별도의 오류 색을 사용한다.
+`widgets.title.style.color`는 타이틀의 테마 역할/팔레트 이름이다. 프로그램 이름 앞 문구는 언어팩의 `NOW_PLAYING`을 사용한다. 영어는 `"Now playing: "`, 한국어는 `"재생 중 : "`다. 플레이어 곡 제목이 연결되면 기존처럼 곡 정보를 우선하며, 오류 안내는 별도의 오류 색을 사용한다.
 
-`widgets.title.texts.audio_error`는 사운드 연결 실패 시 타이틀에 표시할 문구이며 기본 `"Audio connection failed"`다. 한 줄 문자열을 지정하고, `""`로 비우면 오디오 오류 안내 대신 일반 타이틀을 표시한다. 상세 원인은 문구와 별개로 `dock.audio.message`에 유지된다. 설정 오류는 이 문구보다 우선한다. 실패 후 재시도는 기존처럼 dock을 닫았다 다시 열 때만 허용한다.
+사운드 연결 실패 문구는 언어팩의 `AUDIO_FAILED`를 사용한다. 영어는 `"Audio connection failed"`, 한국어는 `"사운드 연결 실패"`다. 이 상태 문구들은 JSONC 설정에 두지 않는다. 상세 원인은 문구와 별개로 `dock.audio.message`에 유지된다. 설정 오류는 이 문구보다 우선한다. 실패 후 재시도는 기존처럼 dock을 닫았다 다시 열 때만 허용한다.
 
 dock 높이를 더 늘릴 때의 공간 조건과 입력 가림은 [높이 확대 검토](dock-height-review.md)에 정리했다. 최대화도 Float이므로 여러 줄 입력과 자동완성을 가릴 수 있다. 공간이 부족하면 기본 크기로 표시하며 Ctrl+W로 숨길 수 있다.
 
-`widgets.progress.style.color`는 시간 표시와 재생바의 전경색이다. `widgets.progress.width_columns`는 시간 표시를 제외한 막대 칸 수이며 1 이상 정수, 기본 48이다. 실제 본문에서 양쪽 시간과 공백을 제외한 공간 안으로 제한한다.
+`widgets.progress.style.color`는 재생바의 양쪽 시간과 남은 구간의 테마 역할/팔레트 이름이다. 지나온 구간과 현재 위치 `●`는 theme.roles.foreground를 사용한다. `widgets.progress.width`는 핸들을 포함한 막대 칸 수이며 1 이상 정수, 기본 48이다. 화면이 좁으면 양쪽 시간과 공백을 제외한 공간에 맞춘다.
 
-`widgets.media_controls.buttons`에 원하는 음악 버튼을 표시 순서대로 넣는다. 지원하는 `action`은 `previous`, `play_pause`, `next`, `play`, `pause`, `stop`이다. 각각 한 번씩 넣을 수 있다. `text`는 아이콘·문자이며 생략하거나 비워 두면 해당 액션의 기본 기호를 사용한다. `style.color`는 버튼별 전경색이다. 생략하거나 빈 문자열 또는 `null`로 두면 터미널 기본 글자색을 사용한다. 목록에서 빼면 숨겨지고 `"buttons": []`는 음악 버튼 줄을 그리지 않는다. 긴 표시는 한 줄 안에 맞춰 말줄임한다. 이 설정은 표시 선택이며 플레이어 연결이나 실제 재생 제어를 추가하지 않는다.
+`widgets.controls.buttons`에 원하는 음악 버튼을 표시 순서대로 넣는다. 지원하는 `action`은 `previous`, `play_pause`, `next`, `play`, `pause`, `stop`이다. 각각 한 번씩 넣을 수 있다. `text`는 아이콘·문자이며 생략하거나 비워 두면 해당 액션의 기본 기호를 사용한다. `style.color`는 버튼별 테마 역할/팔레트 이름이다. 기본 foreground 역할은 터미널 글자색을 따르며 theme.roles에서 바꿀 수 있다. 목록에서 빼면 숨겨지고 `"buttons": []`는 음악 버튼 줄을 그리지 않는다. 긴 표시는 한 줄 안에 맞춰 말줄임한다. 이 설정은 표시 선택이며 플레이어 연결이나 실제 재생 제어를 추가하지 않는다.
 
 ## Linux 전체 출력 비주얼라이저
 
@@ -280,6 +296,8 @@ Linux Python 3.12.14 환경에서 실행한다. runner는 소스를 Linux 파일
 ```
 
 이 실행기는 dok 테스트만 실행하며 llm/hub 전체 회귀를 시작하지 않는다. 사용 중인 환경에 prompt-toolkit과 저장소 테스트 의존성이 설치되어 있어야 한다.
+
+Hub와 llm을 함께 사용할 수 있는 Linux 체크아웃에서는 `python -m unittest tests.dok.integration.test_hub_workspace`로 실제 등록과 두 번째 시작 후 사용자 설정 보존을 확인한다. 이 검사는 임시 Hub 워크스페이스를 사용한다.
 
 실제 터미널에서 독립 미리보기를 실행할 수 있다.
 

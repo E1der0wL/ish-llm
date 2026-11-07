@@ -14,6 +14,7 @@ from prompt_toolkit.layout.mouse_handlers import MouseHandlers
 from prompt_toolkit.layout.screen import Screen, WritePosition
 from prompt_toolkit.mouse_events import MouseButton, MouseEvent, MouseEventType
 from prompt_toolkit.output import DummyOutput
+from prompt_toolkit.styles import Style
 from prompt_toolkit.utils import _CHAR_SIZES_CACHE
 from dok import PlaybackAction, ProgressConfig, Separator, Shortcut, TitleConfig, TransportButton, TransportConfig, VisualizerConfig, Width
 from dok.features.audio.models import AudioSnapshot, AudioStatus
@@ -79,7 +80,7 @@ class RenderingTests(unittest.TestCase):
         self.assertTrue(self.row(screen, 0).startswith('EDITOR'))
         for y in range(2, 9):
             self.assertTrue(any((text in self.row(screen, y) for text in ('EDITOR', 'MENU'))))
-        self.assertIn('플레이어 연결 안 됨', self.row(screen, 4))
+        self.assertIn('Player disconnected', self.row(screen, 4))
         self.assertEqual(self.row(screen, 8).strip(), 'EDITOR')
 
     def test_animated_rows_do_not_accumulate_strings_in_terminal_width_cache(self):
@@ -173,15 +174,15 @@ class RenderingTests(unittest.TestCase):
         self.assertIn('16° -2°', text_rows[3])
         low_x = text_rows[3].index('-2°')
         self.assertIn(
-            self.owner.config.widgets.weather.style.low_temperature_color,
+            self.owner.config.theme.resolve(self.owner.config.widgets.weather.style.low_color),
             screen.data_buffer[3][low_x].style
         )
         high_x = text_rows[3].index('16°')
         self.assertNotIn(
-            self.owner.config.widgets.weather.style.low_temperature_color,
+            self.owner.config.theme.resolve(self.owner.config.widgets.weather.style.low_color),
             screen.data_buffer[3][high_x].style
         )
-        art = WeekdayRenderer().render(self.owner.config.widgets.weekday_art, now.weekday(), 80)
+        art = WeekdayRenderer().render(self.owner.config.widgets.weekday, now.weekday(), 80)
         self.assertEqual(text_rows[4], self.row(behind, 4))
         for index, line in enumerate(art):
             self.assertIn(line, text_rows[5 + index])
@@ -191,6 +192,11 @@ class RenderingTests(unittest.TestCase):
         self.assertIn('-06:29-', text_rows[date_y + 1])
         visualizer_y = next((y for y, text in enumerate(text_rows) if '▁' in text))
         title_y = next((y for y, text in enumerate(text_rows) if 'VLC' in text))
+        theme = Style.from_dict({"": "#223344"})
+        for y, x in ((3, high_x), (date_y, date_x),
+                     (date_y + 1, text_rows[date_y + 1].index('-06:29-')), (title_y, text_rows[title_y].index('VLC'))):
+            self.assertEqual(theme.get_attrs_for_style_str(screen.data_buffer[y][x].style).color, 'default')
+        self.assertEqual(theme.get_attrs_for_style_str(screen.data_buffer[3][low_x].style).color, '77818d')
         buttons_y = next((y for y, text in enumerate(text_rows) if PlaybackAction.PREVIOUS.symbol in text))
         shortcuts_y = next((y for y, text in enumerate(text_rows) if '[1]' in text))
         self.assertEqual(visualizer_y - (date_y + 1), 3)
@@ -211,15 +217,15 @@ class RenderingTests(unittest.TestCase):
 
     def test_disabled_elements_and_custom_gaps_render_at_calculated_height(self):
         self.owner.config = DockConfig.from_dict({'widgets': {
-            'shortcuts': {'items': [], 'spacing': {'after_rows': 2}},
+            'shortcuts': {'items': [], 'spacing': {'after': 2}},
             'visualizer': {'enabled': False},
             'progress': {'enabled': False},
-            'title': {'spacing': {'after_rows': 3, 'basic_after_rows': None}},
-            'media_controls': {'enabled': False}
+            'title': {'spacing': {'after': 3, 'basic_after': None}},
+            'controls': {'enabled': False}
         }})
         screen, mouse = self.draw(rows=12)
         self.assertEqual(self.overlay.display_mode, DockMode.BASIC)
-        self.assertIn('플레이어 연결 안 됨', self.row(screen, 5))
+        self.assertIn('Player disconnected', self.row(screen, 5))
         self.assertIn('[1]', self.row(screen, 9))
         text = '\n'.join((self.row(screen, y) for y in range(12)))
         self.assertNotIn('▁', text)
@@ -243,17 +249,13 @@ class RenderingTests(unittest.TestCase):
     def test_audio_failure_uses_title_and_keeps_visualizer(self):
         self.owner.audio = AudioSnapshot(status=AudioStatus.UNAVAILABLE, message='Audio unavailable')
         self.owner.playback = PlaybackSnapshot(title='Track')
-        self.owner.config = DockConfig(widgets={'title': TitleConfig(texts={'audio_error': '오디오 오프라인'})})
+        self.owner.config = DockConfig()
         screen, _ = self.draw()
-        self.assertIn('오디오 오프라인', self.row(screen, 4))
+        self.assertIn('Audio connection failed', self.row(screen, 4))
         self.assertNotIn('Audio unavailable', self.row(screen, 4))
         self.assertNotIn('Audio unavailable', self.row(screen, 2))
-        self.assertIn('▁' * self.owner.config.widgets.visualizer.width_columns, self.row(screen, 2))
+        self.assertIn('▁' * self.owner.config.widgets.visualizer.width, self.row(screen, 2))
         self.assertEqual(self.owner.audio.diagnostic, 'Audio unavailable')
-        self.owner.config = DockConfig(widgets={'title': TitleConfig(texts={'audio_error': ''})})
-        screen, _ = self.draw()
-        self.assertIn('Track', self.row(screen, 4))
-        self.owner.config = DockConfig(widgets={'title': TitleConfig(texts={'audio_error': '오디오 오프라인'})})
         self.owner.diagnostic = 'Settings error'
         screen, _ = self.draw()
         self.assertIn('Settings error', self.row(screen, 4))
@@ -264,7 +266,7 @@ class RenderingTests(unittest.TestCase):
             self.assertFalse(any(('플레이어' in self.row(screen, y) for y in range(rows))))
             self.assertTrue(all((y >= 0 for y in screen.data_buffer)))
         screen, _ = self.draw(rows=8)
-        self.assertIn('플레이어', self.row(screen, 3))
+        self.assertIn('Player', self.row(screen, 3))
 
     def test_shortcuts_center_and_clicks_never_pass_through(self):
         self.owner.config = DockConfig(widgets={'shortcuts': {'items': (
@@ -309,7 +311,7 @@ class RenderingTests(unittest.TestCase):
                 self.owner.audio = AudioSnapshot(levels=(1.0,) * len(self.owner.audio.levels))
                 screen, _ = self.draw()
                 cells = [cell for _, cell in sorted(screen.data_buffer[2].items()) if cell.char == '█']
-                self.assertEqual(len(cells), self.owner.config.widgets.visualizer.width_columns)
+                self.assertEqual(len(cells), self.owner.config.widgets.visualizer.width)
                 expected = self.owner.config.widgets.visualizer.style.palette(len(cells))
                 for cell, color in zip(cells, expected):
                     self.assertIn(color, cell.style)
@@ -327,7 +329,7 @@ class RenderingTests(unittest.TestCase):
         ):
             with self.subTest(length=length, columns=columns):
                 self.owner.config = DockConfig(widgets={'visualizer': VisualizerConfig(
-                    width_columns=length,
+                    width=length,
                     style={'colors': ('#ff0000', '#0000ff')}
                 )})
                 screen, _ = self.draw(columns=columns)
@@ -419,16 +421,12 @@ class RenderingTests(unittest.TestCase):
         self.assertNotIn('Firefox', self.row(screen, 4))
 
     def test_title_prefix_color_and_diagnostic_override(self):
-        self.owner.config = DockConfig(widgets={'title': TitleConfig(texts={'prefix': 'NOW: '}, style={'color': '#abcdef'})})
+        self.owner.config = DockConfig(theme={'colors': {'cyan': '#abcdef'}}, widgets={'title': TitleConfig(style={'color': 'cyan'})})
         self.owner.audio = AudioSnapshot(applications=('VLC',))
         screen, _ = self.draw()
-        self.assertIn('NOW: VLC', self.row(screen, 4))
-        cell = screen.data_buffer[4][self.row(screen, 4).index('NOW: VLC')]
+        self.assertIn('Now playing: VLC', self.row(screen, 4))
+        cell = screen.data_buffer[4][self.row(screen, 4).index('Now playing: VLC')]
         self.assertIn('#abcdef', cell.style)
-        self.owner.config = DockConfig(widgets={'title': TitleConfig(texts={'prefix': ''})})
-        screen, _ = self.draw()
-        self.assertIn('VLC', self.row(screen, 4))
-        self.assertNotIn('재생 중', self.row(screen, 4))
         self.owner.diagnostic = 'diagnostic'
         screen, _ = self.draw()
         self.assertIn('diagnostic', self.row(screen, 4))
@@ -437,12 +435,24 @@ class RenderingTests(unittest.TestCase):
         self.owner.playback = PlaybackSnapshot(position=5, duration=10)
         for length, columns, expected in ((20, 120, 20), (100, 39, 27), (100, 120, 68)):
             with self.subTest(length=length, columns=columns):
-                self.owner.config = DockConfig(widgets={'progress': ProgressConfig(width_columns=length, style={'color': '#abcdef'})})
+                self.owner.config = DockConfig(theme={'colors': {'cyan': '#abcdef'}}, widgets={'progress': ProgressConfig(width=length, style={'color': 'cyan'})})
                 screen, _ = self.draw(columns=columns)
-                cells = [cell for cell in screen.data_buffer[3].values() if cell.char in ('━', '─')]
-                self.assertEqual(len(cells), expected)
-                self.assertEqual(sum((cell.char == '━' for cell in cells)), expected // 2)
-                self.assertTrue(all(('#abcdef' in cell.style for cell in cells)))
+                cells = [cell for _, cell in sorted(screen.data_buffer[3].items()) if cell.char in ('━', '●', '─')]
+                self.assertEqual(''.join(cell.char for cell in cells),
+                                 '━' * (expected // 2) + '●' + '─' * ((expected - 1) // 2))
+                theme = Style.from_dict({"": "#223344"})
+                for cell in cells:
+                    self.assertEqual(theme.get_attrs_for_style_str(cell.style).color,
+                                     'abcdef' if cell.char == '─' else 'default')
+
+    def test_progress_handle_fits_at_start_end_and_in_one_cell(self):
+        for length, position, duration, expected in ((5, 0, None, "●────"), (5, 5, 5, "━━━━●"),
+                                                    (1, 5, 5, "●")):
+            with self.subTest(expected=expected):
+                self.owner.config = DockConfig(widgets={"progress": {"width": length}})
+                self.owner.playback = PlaybackSnapshot(position=position, duration=duration)
+                screen, _ = self.draw()
+                self.assertEqual("".join(c for c in self.row(screen, 3) if c in "━●─"), expected)
 
     def test_large_vertical_gaps_fit_or_fall_back_without_allocating_hidden_rows(self):
         self.owner.requested_mode = DockMode.MAXIMIZED
@@ -450,25 +460,27 @@ class RenderingTests(unittest.TestCase):
                                    ("visualizer", 10**100, DockMode.HIDDEN),
                                    ("visualizer", 21, DockMode.MAXIMIZED)):
             with self.subTest(widget=widget, rows=rows):
-                self.owner.config = DockConfig(widgets={widget: {"spacing": {"after_rows": rows}}})
+                self.owner.config = DockConfig(widgets={widget: {"spacing": {"after": rows}}})
                 self.draw(rows=70)
                 self.assertEqual(self.overlay.display_mode, mode)
 
     def test_unset_button_color_resolves_to_terminal_foreground_on_screen(self):
-        from prompt_toolkit.styles import Style
         terminal_style = Style.from_dict({"": "#abcdef"})
-        for button_style in ({}, {"color": ""}, {"color": None}, {"color": "#112233"}):
-            self.owner.config = DockConfig(widgets={"media_controls": {"buttons": [
+        for button_style in ({}, {"color": "foreground"}, {"color": "cyan"}):
+            self.owner.config = DockConfig(theme={"colors": {"cyan": "#112233"}}, widgets={"controls": {"buttons": [
                 {"action": "play", "text": "PLAY", "style": button_style}]}})
             screen, _ = self.draw()
             cell = next(cell for cell in screen.data_buffer[5].values() if cell.char == "P")
-            expected = "112233" if button_style.get("color") else "default"
-            self.assertEqual(terminal_style.get_attrs_for_style_str(cell.style).color, expected)
+            expected = "112233" if button_style.get("color") == "cyan" else "default"
+            attrs = terminal_style.get_attrs_for_style_str(cell.style)
+            self.assertEqual(attrs.color, expected)
+            if expected == "default":
+                self.assertFalse(attrs.dim)
 
     def test_transport_button_order_custom_text_color_and_hiding(self):
-        self.owner.config = DockConfig(widgets={'media_controls': TransportConfig(buttons=(
-            TransportButton('stop', text='STOP', style={'color': '#ff0000'}),
-            TransportButton('play', text='GO', style={'color': '#00ff00'})
+        self.owner.config = DockConfig(theme={'colors': {'red': '#ff0000', 'green': '#00ff00'}}, widgets={'controls': TransportConfig(buttons=(
+            TransportButton('stop', text='STOP', style={'color': 'red'}),
+            TransportButton('play', text='GO', style={'color': 'green'})
         ))})
         screen, mouse = self.draw()
         self.assertIn('STOP   GO', self.row(screen, 5))
@@ -483,7 +495,7 @@ class RenderingTests(unittest.TestCase):
             ))
         self.assertEqual(self.executed, [])
         self.assertEqual(self.behind_clicks, [])
-        self.owner.config = DockConfig(widgets={'media_controls': TransportConfig(buttons=())})
+        self.owner.config = DockConfig(widgets={'controls': TransportConfig(buttons=())})
         screen, _ = self.draw()
         self.assertNotIn('STOP', self.row(screen, 5))
         self.assertIn('EDITOR', self.row(screen, 5))
@@ -491,7 +503,7 @@ class RenderingTests(unittest.TestCase):
     def test_long_transport_labels_stay_inside_one_centered_row(self):
         self.owner.config = DockConfig(widgets={
             'shortcuts': {'items': ()},
-            'media_controls': TransportConfig(buttons=tuple((TransportButton(action, text='버튼' * 100) for action in PlaybackAction)))
+            'controls': TransportConfig(buttons=tuple((TransportButton(action, text='버튼' * 100) for action in PlaybackAction)))
         })
         screen, _ = self.draw(columns=39)
         self.assertEqual(self.row(screen, 5, 39).count('…'), len(PlaybackAction))
@@ -500,7 +512,7 @@ class RenderingTests(unittest.TestCase):
     def test_shortcut_padding_spacing_zero_and_narrow_width(self):
         for padding, columns, expected in ((3, 120, 3), (0, 120, 0), (10 ** 100, 39, 1)):
             with self.subTest(padding=padding, columns=columns):
-                self.owner.config = DockConfig(widgets={'shortcuts': ShortcutsConfig(items=(), spacing={'item_gap_columns': padding})})
+                self.owner.config = DockConfig(widgets={'shortcuts': ShortcutsConfig(items=(), spacing={'gap': padding})})
                 screen, _ = self.draw(columns=columns)
                 text = (' ' * expected).join((Shortcut.compact_label(slot) for slot in Shortcut.slots()))
                 self.assertIn(text, self.row(screen, 7, columns))

@@ -48,13 +48,13 @@ class SettingsTests(unittest.TestCase):
 
     def test_forecast_and_sampling_options_accept_extended_ranges_and_roundtrip(self):
         data = {
-            "widgets": {"weather": {"days": 12, "refresh_minutes": 2880}},
-            "media": {"refresh_seconds": 0.25, "timeout_seconds": 120},
-            "system": {"refresh_seconds": 300, "history_samples": 10**100},
+            "widgets": {"weather": {"days": 12, "refresh_min": 2880}},
+            "media": {"refresh_s": 0.25, "timeout_s": 120},
+            "system": {"refresh_s": 300, "history": 10**100},
         }
         config = DockConfig.from_dict(data)
         jsonschema.validate(data, DockConfig.schema())
-        self.assertEqual(config.widgets.weather.refresh_seconds, 2880 * 60)
+        self.assertEqual(config.widgets.weather.refresh_s, 2880 * 60)
         with tempfile.TemporaryDirectory() as directory:
             store = ConfigStore.for_home(directory)
             store.save(config)

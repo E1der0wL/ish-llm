@@ -14,7 +14,7 @@ class WidgetsConfig(Record):
         factory=WeatherConfig,
         description="Maximized daily forecast. Requests send configured coordinates to Open-Meteo."
     )
-    weekday_art: WeekdayConfig = setting(
+    weekday: WeekdayConfig = setting(
         Nested(WeekdayConfig),
         factory=WeekdayConfig,
         description="Maximized pyfiglet weekday art."
@@ -36,7 +36,7 @@ class WidgetsConfig(Record):
         factory=TitleConfig,
         description="Application title and audio connection messages."
     )
-    media_controls: TransportConfig = setting(
+    controls: TransportConfig = setting(
         Nested(TransportConfig),
         factory=TransportConfig,
         description="Music buttons. Unsupported player actions are dimmed and inactive."
@@ -49,7 +49,7 @@ class WidgetsConfig(Record):
 
     @property
     def needs_clock(self) -> bool:
-        return self.weather.needs_clock or self.weekday_art.enabled or self.date.needs_clock or self.time.needs_clock
+        return self.weather.needs_clock or self.weekday.enabled or self.date.needs_clock or self.time.needs_clock
 
     @property
     def needs_runtime(self) -> bool:

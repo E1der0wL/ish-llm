@@ -45,9 +45,10 @@ class MediaMouseTests(unittest.TestCase):
 
     def test_progress_drag_only_commits_on_release_and_can_cancel_outside(self):
         screen = self.draw()
-        cells = [x for x, cell in sorted(screen.data_buffer[3].items()) if cell.char in ('━', '─')]
-        self.assertEqual(len(cells), self.fixture.owner.config.widgets.progress.width_columns)
-        self.send(cells[0], 3, MouseEventType.MOUSE_DOWN)
+        cells = [x for x, cell in sorted(screen.data_buffer[3].items()) if cell.char in ('━', '●', '─')]
+        self.assertEqual(len(cells), self.fixture.owner.config.widgets.progress.width)
+        handle = next(x for x in cells if screen.data_buffer[3][x].char == '●')
+        self.send(handle, 3, MouseEventType.MOUSE_DOWN)
         self.send(cells[-1], 3, MouseEventType.MOUSE_MOVE)
         self.assertEqual(self.input.preview(player().playback).position, 100)
         self.assertEqual(self.calls, [])
@@ -67,12 +68,19 @@ class MediaMouseTests(unittest.TestCase):
         row = screen.data_buffer[5]
         previous = next(x for x, cell in row.items() if cell.char == PlaybackAction.PREVIOUS.symbol)
         toggle = next(x for x, cell in row.items() if cell.char == PlaybackAction.PLAY_PAUSE.symbol)
-        self.assertIn('dim', row[previous].style)
+        from prompt_toolkit.styles import Style
+        theme = Style.from_dict({"": "#abcdef"})
+        attrs = theme.get_attrs_for_style_str(row[previous].style)
+        self.assertEqual(attrs.color, 'default')
+        self.assertTrue(attrs.dim)
+        active = theme.get_attrs_for_style_str(row[toggle].style)
+        self.assertEqual(active.color, 'default')
+        self.assertFalse(active.dim)
         self.send(previous, 5, MouseEventType.MOUSE_UP)
         self.assertEqual(self.calls, [])
         self.send(toggle, 5, MouseEventType.MOUSE_UP)
         self.assertEqual(self.calls[-1][1]['action'], PlaybackAction.PLAY_PAUSE)
-        cells = [x for x, cell in sorted(screen.data_buffer[3].items()) if cell.char in ('━', '─')]
+        cells = [x for x, cell in sorted(screen.data_buffer[3].items()) if cell.char in ('━', '●', '─')]
         self.send(cells[0], 3, MouseEventType.MOUSE_DOWN)
         self.runtime.state = replace(player(), track='/track/new')
         self.input.preview(self.runtime.state.playback)
@@ -82,20 +90,48 @@ class MediaMouseTests(unittest.TestCase):
     def test_weather_title_and_prompt_are_inert_and_filter_restores_exactly(self):
         self.draw()
         original_filter = self.mouse._previous
+        original_renderer_filter = self.mouse._previous_renderer
         source = self.mouse._source
         for y in (0, 2, 4, 8):
             self.send(60, y, MouseEventType.MOUSE_UP)
         self.assertEqual(self.calls, [])
         self.assertEqual(self.fixture.behind_clicks, [])
         self.assertTrue(self.fixture.app.mouse_support())
+        self.assertTrue(self.fixture.app.renderer.mouse_support())
         self.mouse.close()
         self.assertIs(self.fixture.app.mouse_support, original_filter)
+        self.assertIs(self.fixture.app.renderer.mouse_support, original_renderer_filter)
         self.assertIs(self.fixture.app.renderer.mouse_handlers, source)
         # A later plugin's change remains owned by that plugin.
         replacement = Condition(lambda: True)
         self.fixture.app.mouse_support = replacement
+        self.fixture.app.renderer.mouse_support = replacement
         self.mouse.close()
         self.assertIs(self.fixture.app.mouse_support, replacement)
+        self.assertIs(self.fixture.app.renderer.mouse_support, replacement)
+
+    def test_distinct_host_filters_follow_activation_and_restore_independently(self):
+        self.fixture.draw()
+        app = self.fixture.app
+        application_filter = Condition(lambda: False)
+        renderer_filter = Condition(lambda: True)
+        app.mouse_support = application_filter
+        app.renderer.mouse_support = renderer_filter
+        active = False
+        mouse = DockMouse(app, lambda: active, lambda: (), lambda: None)
+        try:
+            self.assertFalse(app.mouse_support())
+            self.assertTrue(app.renderer.mouse_support())
+            active = True
+            self.assertTrue(app.mouse_support())
+            self.assertTrue(app.renderer.mouse_support())
+            active = False
+            self.assertFalse(app.mouse_support())
+            self.assertTrue(app.renderer.mouse_support())
+        finally:
+            mouse.close()
+        self.assertIs(app.mouse_support, application_filter)
+        self.assertIs(app.renderer.mouse_support, renderer_filter)
 
     def test_disabled_mouse_rejects_even_previously_rendered_handlers(self):
         enabled = True

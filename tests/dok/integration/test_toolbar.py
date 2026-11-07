@@ -66,7 +66,7 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
         # A float's actual visibility is known at the end of its paint pass.
         await render(self.prompt.app)
         lines = screen_lines(await render(self.prompt.app))
-        return next(line for line in lines if "NET" in line)
+        return next(line for line in lines if self.dock.config.toolbar.system.network.label in line)
 
     async def test_date_hides_for_actual_dock_but_system_keeps_sampling_when_hidden(self):
         await self.start("10 20")
@@ -104,14 +104,30 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.prompt.default_buffer.selection_state = SelectionState(original_cursor_position=3)
         original = self.prompt.default_buffer.document
         line = await self.toolbar_line()
-        self.assertIn(f"Len:{8:<5}  Lines:{2:<5}    Ln:{2:<5}  Col:{3:<5}  Pos:{9:<5}    Σ 30(15)", line)
-        self.assertIn("Σ 30(15)", line)
+        self.assertIn(f"Len:{8:<5}  Lines:{2:<5}    Ln:{2:<5}  Col:{3:<5}  Pos:{9:<5}    Total:  30(15)", line)
+        self.assertIn("Total:  30(15)", line)
         self.assertEqual(self.prompt.default_buffer.document, original)
         self.prompt.default_buffer.selection_state = None
         line = await self.toolbar_line()
-        self.assertIn("Σ 30(15)", line)
+        self.assertIn("Total:  30(15)", line)
         self.dock.configure(replace(self.dock.config, toolbar=replace(self.dock.config.toolbar, numbers={"scope": "selection"})))
-        self.assertIn("Σ —", await self.toolbar_line())
+        self.assertIn("Total:  —", await self.toolbar_line())
+
+    async def test_outer_padding_reload_and_resize_keep_prompt_and_toolbar_ownership(self):
+        await self.start('draft 123')
+        document = self.prompt.default_buffer.document
+        callback = self.prompt.bottom_toolbar
+        self.dock.configure(replace(self.dock.config, toolbar=replace(self.dock.config.toolbar,
+            pad_left=2, pad_right=3, background='#1D2035')))
+        for columns in (240,100):
+            self.output.columns = columns
+            line = await self.toolbar_line()
+            self.assertEqual(width(line), columns)
+            self.assertTrue(line.startswith('  '))
+            self.assertTrue(line.endswith('   '))
+            self.assertEqual(self.prompt.default_buffer.document, document)
+        self.assertIs(self.prompt.style, self.original_style)
+        self.assertIs(self.prompt.bottom_toolbar, callback)
 
     async def test_disable_uninstall_and_later_plugin_override_restore_only_owned_values(self):
         callback = self.prompt.bottom_toolbar

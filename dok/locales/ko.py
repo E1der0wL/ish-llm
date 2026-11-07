@@ -1,0 +1,43 @@
+"""Korean UI pack. User content is never looked up in this catalog."""
+from types import MappingProxyType
+from .messages import Message as M
+
+
+TEXT = MappingProxyType({
+    M.WEATHER: "날씨", M.CALENDAR: "달력", M.CLOSE: "닫기", M.DETAILS: "상세",
+    M.SAVE: "저장", M.CANCEL: "취소", M.DELETE: "삭제", M.DISCARD: "버리기", M.TODAY: "오늘", M.NOW: "지금",
+    M.PREVIOUS_DAY: "이전 날짜", M.NEXT_DAY: "다음 날짜", M.PREVIOUS_MONTH: "이전 달", M.NEXT_MONTH: "다음 달",
+    M.LOCATION_MISSING: "지역 미설정", M.SET_LOCATION: "widgets.weather.location에 지역을 설정해 주세요.",
+    M.WEATHER_DISABLED: "widgets.weather.enabled에서 날씨가 비활성화되어 있습니다.",
+    M.WEATHER_LOADING: "날씨 불러오는 중", M.WEATHER_FAILED: "날씨 연결 실패",
+    M.CACHED_WEATHER: "{message} (이전 조회 결과가 표시될 수 있습니다)",
+    M.HIGH: "최고", M.LOW: "최저", M.UNIT: "단위: {unit}", M.FEELS_LIKE: "체감온도",
+    M.WIND: "바람", M.HUMIDITY: "습도", M.RAIN: "비", M.RAINFALL: "강우량", M.UV_INDEX: "자외선 지수",
+    M.HOURS: "시간대", M.TEMPERATURE: "온도", M.RAIN_CHANCE: "강수확률",
+    M.UNKNOWN: "알 수 없음", M.CLEAR: "맑음", M.PARTLY_CLOUDY: "구름 조금", M.CLOUDY: "흐림",
+    M.FOG: "안개", M.DRIZZLE: "이슬비", M.SNOW: "눈", M.THUNDERSTORM: "뇌우",
+    M.TITLE: "제목", M.TIME: "시간", M.START_DATE: "시작 날짜", M.END_DATE: "종료 날짜",
+    M.START_TIME: "시작 시각", M.END_TIME: "종료 시각", M.LOCATION: "장소",
+    M.ALARM: "알림 올 시간 (공란: 없음)", M.INTERVAL: "반복 간격", M.REPEAT: "반복",
+    M.HOLIDAY: "휴일", M.NOTES: "메모", M.ALL_DAY: "하루 종일", M.NO_REPEAT: "반복 안함",
+    M.DAYS: "일마다", M.WEEKS: "주마다", M.MONTHS: "개월마다", M.YEARS: "년마다",
+    M.SAVE_CHANGES: "변경 사항을 저장할까요?", M.DELETE_SERIES: "이 일정 시리즈 전체를 삭제할까요?",
+    M.NO_EVENTS: "저장한 일정 없음", M.MORE_EVENTS: "+{count}개 더", M.SAVING: "저장 중…",
+    M.ESC_CLOSE: "Esc 닫기", M.ERROR_HINT: "{message} · Esc 돌아가기",
+    M.CONFIRM_HINT: "확인 · ←/→ 또는 Tab 선택 · Enter 실행 · Esc 취소",
+    M.MENU_HINT: "목록 · ↑/↓ 선택 · Enter/Space 확정 · Esc 닫기",
+    M.CALENDAR_HINT: "달력 · 방향키 날짜 · PgUp/PgDn 월 · Home 오늘 · Enter/Space/Tab 편집 · n 새 일정 · e 목록 · Esc 닫기",
+    M.MULTILINE_HINT: "Enter 줄바꿈 · 방향키 커서 · Ctrl+Z/Y 되돌리기/다시하기",
+    M.TEXT_HINT: "방향키 커서 · Ctrl+U 지우기", M.ACTION_HINT: "Enter/Space 실행",
+    M.EDITOR_HINT: "{field} · {action} · Tab/Shift+Tab 이동 · F2 저장 · Esc 달력",
+    M.WEATHER_BUTTON_HINT: "버튼 · ←/→ 선택 · Enter/Space 실행 · Tab 시간대 · Esc 닫기",
+    M.WEATHER_HOUR_HINT: "시간대{stamp} · ←/→ 선택 · PgUp/PgDn 이동 · ↑/↓ 스크롤 · Tab 버튼 · Esc 닫기",
+    M.POPUP_HINT: "Tab/←/→ 버튼 · Enter 실행 · ↑/↓ 스크롤 · Esc 닫기",
+    M.NOW_PLAYING: "재생 중 : ", M.AUDIO_FAILED: "사운드 연결 실패", M.PLAYER_DISCONNECTED: "플레이어 연결 안 됨",
+    M.INPUT_INVALID: "입력 검증 실패",
+    M.LENGTH: "길이:", M.LINES: "행수:", M.LINE: "행:", M.COLUMN: "열:", M.POSITION: "위치:",
+    M.MODE: "모드:", M.ENCODING: "인코딩:", M.TOTAL: "합계: ",
+    M.DATE: "{year}년 {month} {day}일 ({weekday})", M.AM: "오전", M.PM: "오후",
+})
+MONTHS = tuple(f"{month}월" for month in range(1, 13))
+WEEKDAYS = ("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")

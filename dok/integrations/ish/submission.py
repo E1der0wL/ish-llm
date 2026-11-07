@@ -4,12 +4,14 @@ from prompt_toolkit.buffer import ValidationState
 from prompt_toolkit.document import Document
 
 from ...features.shortcuts.config import Shortcut
+from ...locales import Locale, Message
 
 
 class ShortcutSubmission:
-    def __init__(self, prompt, state):
+    def __init__(self, prompt, state, *, locale=Locale):
         self._prompt = prompt
         self._state = state
+        self._locale = locale
 
     def execute(self, shortcut: Shortcut) -> bool:
         app = self._prompt.app
@@ -33,7 +35,7 @@ class ShortcutSubmission:
                 buffer.set_document(original)
                 buffer.complete_state = completion
                 buffer.suggestion = suggestion
-                self._state.finish_submission(accepted=False, error=error.message if error else "입력 검증 실패")
+                self._state.finish_submission(accepted=False, error=error.message if error else self._locale().text(Message.INPUT_INVALID))
                 return False
             # An accept handler may deliberately keep the editor open. Do not replay it.
             self._state.finish_submission(accepted=True)

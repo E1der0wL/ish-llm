@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
-from ..core.colors import DockPalette
+from ..core.theme import Theme, ThemeRole
 from .text import fit, width
+from ..locales import Locale
 
 if TYPE_CHECKING:
     from ..features.audio.models import AudioSnapshot
@@ -19,6 +20,8 @@ class RenderContext:
     audio: AudioSnapshot
     diagnostic: str
     width: int
+    theme: Theme = Theme()
+    locale: Locale = Locale()
 
 
 def swallow_mouse(event):
@@ -67,14 +70,14 @@ class TextRow:
 class DockStyle:
     # Use the terminal background, including its configured transparency.
     BASE = "bg:default"
-    BACKGROUND = f"{BASE} {DockPalette.TEXT}"
-    ACCENT = f"{BASE} {DockPalette.ACCENT}"
-    DIM = f"{BASE} {DockPalette.MUTED}"
-    ERROR = f"{BASE} {DockPalette.ERROR}"
+    BACKGROUND = Theme().paint()
+    ACCENT = Theme().paint(ThemeRole.TITLE)
+    DIM = Theme().paint(ThemeRole.DISABLED)
+    ERROR = Theme().paint(ThemeRole.WARNING)
 
     @classmethod
-    def foreground(cls, color: str, *, bold: bool = False) -> str:
-        return f"{cls.BASE} {color}" + (" bold" if bold else "")
+    def foreground(cls, color: str = ThemeRole.FOREGROUND, *, bold: bool = False, theme: Theme = Theme()) -> str:
+        return theme.span(color, bold=bold)
 
 
 @dataclass(frozen=True, slots=True)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import date
 
 from ..core.state import DockMode, DockState
 from ..dashboard.view import DockView
@@ -13,15 +14,23 @@ from ..features.media.runtime import MediaRuntime
 from ..features.media.input import MediaInput
 from ..features.system.runtime import SystemRuntime
 from ..features.system.models import SystemSnapshot
+from ..features.calendar.view import CalendarPage
+from ..features.calendar.runtime import CalendarRuntime
+from ..features.weather.popup import WeatherPage
+from ..popups.models import PopupPage
+from ..integrations.hub import HubAgents, RegistrationStatus
 from ..integrations.ish.toolbar import DockToolbar
 from ..integrations.ish.mouse import DockMouse
 from ..integrations.ish.host import HostAccess
 from ..integrations.ish.keys import KeyRegistration, OwnedBindings
 from ..integrations.ish.submission import ShortcutSubmission
-from ..rendering.overlay import DockOverlay
+from ..integrations.ish.popups import PopupHost
+from ..rendering.overlay import DockOverlay, OverlayLayers
 from ..settings.config import DockConfig
 from ..settings.store import ConfigStore
 from .lifecycle import DashboardRuntime
+from ..locales import Locale
+from ..integrations.ish.language import HostLanguage
 
 
 class DockController:
@@ -41,12 +50,20 @@ class DockController:
         self._media_input = MediaInput(self._media, prompt.app.create_background_task, prompt.app.invalidate,
                                       lambda: self._config.dock.mouse.enabled and self.visible)
         self._dashboard = DashboardRuntime(prompt.app.invalidate)
-        self._bindings = OwnedBindings(prompt)
-        self._submission = ShortcutSubmission(prompt, self._state)
+        self._hub = HubAgents(prompt)
+        self._popups = PopupHost(prompt, lambda: self._config.popups, lambda: self._config.theme, locale=lambda: self.locale)
+        self._calendar = CalendarRuntime(store.path.parent, prompt.app.invalidate, self._popups.notify)
+        self._bindings = OwnedBindings(prompt, suspended=lambda: self._popups.modal)
+        self._submission = ShortcutSubmission(prompt, self._state, locale=lambda: self.locale)
         self._view = DockView(self._mouse_execute, self._media_input)
-        self._overlay = DockOverlay(self, self._view)
+        self._overlay = DockOverlay(self, self._view, locale=lambda: self.locale)
+        self._surface = OverlayLayers(self._overlay, self._popups.layer)
         self._mouse = None
         self._float_handle = None
+
+    @property
+    def locale(self):
+        return Locale.resolve(self._config.language or HostLanguage.current())
 
     def _mouse_execute(self, slot):
         if self._config.dock.mouse.enabled and self.visible and not self._media_input.dragging:
@@ -55,8 +72,18 @@ class DockController:
 
     def _entries(self, config: DockConfig):
         entries = [KeyRegistration(config.dock.keys.toggle, lambda event: self.toggle(), self._toggle_enabled)]
-        if config.media.enabled and config.widgets.media_controls.enabled:
-            for button in config.widgets.media_controls.keyed_buttons():
+        for owner, handler in ((config.popups.calendar, self.open_calendar), (config.popups.weather, self.open_weather)):
+            if owner.enabled and owner.key is not None:
+                entries.append(KeyRegistration(owner.key, lambda event, handler=handler: handler(), self._toggle_enabled))
+        notifications = config.popups.notifications
+        if notifications.enabled:
+            for key, handler in ((notifications.dismiss_key, self._popups.dismiss_notification),
+                                 (notifications.details_key, self._popups.open_details)):
+                if key is not None:
+                    entries.append(KeyRegistration(key, lambda event, handler=handler: handler(),
+                                                   lambda: self._popups.notification_visible))
+        if config.media.enabled and config.widgets.controls.enabled:
+            for button in config.widgets.controls.keyed_buttons():
                 def control(event, action=button.action):
                     if self._media_input.available(action):
                         self._media.request(self._media.state, action=action,
@@ -83,10 +110,16 @@ class DockController:
     def _before_render(self, app):
         self._host.observe_loop()
         self._state.enter_prompt(app.future)
+        self._popups.prepare()
         self._toolbar.prepare()
 
     def _after_render(self, app):
+        self._popups.after_render()
         active = app.is_running and not app.is_done
+        if active:
+            self._hub.sync()
+            self._calendar.sync(self._config.popups.calendar, lambda: self._config.clock,
+                                lambda: self._config.popups.notifications.enabled)
         self._toolbar.sync(active=active, dock_visible=self.display_mode != DockMode.HIDDEN)
         self._system.sync(active=active and self._toolbar.owned and self._config.toolbar.needs_system,
                           config=self._config.system, start_task=app.create_background_task)
@@ -98,7 +131,19 @@ class DockController:
                          and (self._config.widgets.visualizer.enabled or self._config.widgets.title.enabled),
                          config=self._config.audio, start_task=app.create_background_task)
         self._dashboard.sync(active=self.visible and self.display_mode == DockMode.MAXIMIZED,
-                             config=self._config, app=app)
+                             config=self._config, app=app,
+                             dock_active=self.visible,
+                             weather_active=self._popups.modal and isinstance(self._popups.page, WeatherPage),
+                             clock_active=self._popups.modal and isinstance(self._popups.page, (WeatherPage, CalendarPage)))
+
+    def _mouse_active(self):
+        return self._popups.modal or (
+            self._config.dock.mouse.enabled and (
+                self._popups.visible or self.visible and self._overlay.has_room))
+
+    def _mouse_regions(self):
+        popup = self._popups.layer.mouse_regions
+        return popup if self._popups.modal else [*self._overlay.mouse_regions, *popup]
 
     def _change_mode(self, change):
         was_visible = self._state.requested_visible
@@ -109,6 +154,7 @@ class DockController:
                              start_task=self._prompt.app.create_background_task)
         if self._state.requested_visible and not was_visible:
             self._audio.begin_activation()
+            self._dashboard.begin_activation()
         self._prompt.app.invalidate()
 
     def _attach(self):
@@ -117,10 +163,9 @@ class DockController:
         if self._float_handle is not None:
             return
         self._mouse = DockMouse(self._prompt.app,
-            lambda: self._config.dock.mouse.enabled and self.visible and self._overlay.has_room,
-            lambda: self._overlay.mouse_regions, self._media_input.cancel)
+            self._mouse_active, self._mouse_regions, self._media_input.cancel)
         self._float_handle = self._prompt.set_float(
-            self._overlay, left=0, right=0, top=0, bottom=0,
+            self._surface, left=0, right=0, top=0, bottom=0,
             xcursor=False, ycursor=False, transparent=self._overlay.TRANSPARENT, hide_when_covering_content=False,
         )
         self._prompt.app.before_render += self._before_render
@@ -155,12 +200,16 @@ class DockController:
             self._prompt.app.invalidate()
             return False
         self._store = store
+        self._hub.retry_failed()
         return True
 
     def _close(self):
         if self._state.closed:
             return
         self._state.close()
+        self._popups.close()
+        self._calendar.close()
+        self._hub.close()
         self._audio.close()
         self._media.close()
         self._system.close()
@@ -181,6 +230,11 @@ class DockController:
     @property
     def config(self) -> DockConfig:
         return self._config
+
+    @property
+    def hub_registration(self) -> RegistrationStatus:
+        """Last observed Hub registration state and any registration failure."""
+        return self._hub.status
 
     @property
     def playback(self) -> PlaybackSnapshot:
@@ -232,7 +286,8 @@ class DockController:
     @property
     def visible(self) -> bool:
         app = self._prompt.app
-        return self._state.can_render(running=app.is_running, done=app.is_done) and self._host.editing_shell()
+        return (self._state.can_render(running=app.is_running, done=app.is_done)
+                and (self._host.editing_shell() or self._popups.modal))
 
     @property
     def config_path(self) -> Path:
@@ -283,6 +338,43 @@ class DockController:
                 self._playback = snapshot
                 self._prompt.app.invalidate()
         self._host.dispatch(update)
+
+    def open_popup(self, page: PopupPage) -> bool:
+        """Show one centered page; opening another replaces its contents."""
+        return self._host.dispatch(lambda: self._popups.open(page))
+
+    def close_popup(self) -> None:
+        self._host.dispatch(self._popups.dismiss)
+
+    def notify(self, title: str, text: str, *, details: PopupPage | None = None) -> bool:
+        """Queue a non-focusing notification for the next available prompt."""
+        return self._host.dispatch(lambda: self._popups.notify(title, text, details=details))
+
+    def dismiss_notification(self) -> None:
+        self._host.dispatch(self._popups.dismiss_notification)
+
+    @property
+    def pending_notifications(self) -> int:
+        return self._popups.notifications.pending
+
+    def open_calendar(self) -> bool:
+        def show():
+            config = lambda: self._config.popups.calendar
+            return config().enabled and self._popups.open(
+                CalendarPage(lambda: self._config.clock, config, self._calendar,
+                             self._prompt.app.invalidate, self._popups.dismiss, locale=lambda: self.locale),
+                panel=lambda: config().panel, enabled=lambda: config().enabled)
+        return self._host.dispatch(show)
+
+    def open_weather(self, day: date | None = None) -> bool:
+        """Show cached daily details, sharing the dashboard weather runtime."""
+        def show():
+            config = lambda: self._config.popups.weather
+            return config().enabled and self._popups.open(
+                WeatherPage(lambda: self.weather, lambda: self._config.widgets.weather,
+                            lambda: self._config.clock, day, config, self._prompt.app.invalidate, locale=lambda: self.locale),
+                panel=lambda: config().panel, enabled=lambda: config().enabled)
+        return self._host.dispatch(show)
 
     def uninstall(self) -> None:
         self._host.dispatch(self._close)

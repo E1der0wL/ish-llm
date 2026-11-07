@@ -7,19 +7,19 @@ from .state import DockMode
 @dataclass(frozen=True, slots=True)
 class Spacing(Record):
     ROWS_RULE: ClassVar[Number] = Number(minimum=0, integer=True)
-    after_rows: int = setting(
+    after: int = setting(
         ROWS_RULE,
         default=0,
         description="Nonnegative blank rows after this widget. If the dock cannot fit, it falls back to basic or hidden."
     )
-    basic_after_rows: int | None = setting(
+    basic_after: int | None = setting(
         Nullable(ROWS_RULE),
         default=None,
-        description="Basic-mode trailing rows. null uses after_rows."
+        description="Basic-mode trailing rows. null uses after."
     )
 
     def for_mode(self, mode: DockMode) -> int:
-        return self.basic_after_rows if mode == DockMode.BASIC and self.basic_after_rows is not None else self.after_rows
+        return self.basic_after if mode == DockMode.BASIC and self.basic_after is not None else self.after
 
 @dataclass(frozen=True, slots=True)
 class ElementConfig(Record):

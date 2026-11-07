@@ -88,9 +88,10 @@ class KeyRegistration:
 class HostBindingView(KeyBindingsBase):
     """Keep original handlers, suppressing only keys shadowed by an active dok key."""
 
-    def __init__(self, original, entries):
+    def __init__(self, original, entries, suspended=lambda: False):
         self._original = original
         self._entries = entries
+        self._suspended = suspended
         self._cached_version = None
         self._cache = KeyBindings()
 
@@ -99,7 +100,7 @@ class HostBindingView(KeyBindingsBase):
         return self._original._version
 
     def _blocked(self, keys):
-        return any(entry.enabled() and entry.sequence.overlaps(keys) for entry in self._entries())
+        return self._suspended() or any(entry.enabled() and entry.sequence.overlaps(keys) for entry in self._entries())
 
     def _update(self):
         if self._cached_version != self._version:
@@ -130,8 +131,9 @@ class HostBindingView(KeyBindingsBase):
 class OwnedBindings:
     """A conditional application layer with priority over preserved host bindings."""
 
-    def __init__(self, prompt):
+    def __init__(self, prompt, *, suspended=lambda: False):
         self._prompt = prompt
+        self._suspended = suspended
         self._bindings = KeyBindings()
         self._previous = None
         self._layer = None
@@ -145,7 +147,7 @@ class OwnedBindings:
             self._previous = self._prompt.app.key_bindings
             self._layer = merge_key_bindings([
                 HostBindingView(self._previous if self._previous is not None else KeyBindings(),
-                                lambda: self._entries),
+                                lambda: self._entries, self._suspended),
                 DynamicKeyBindings(lambda: self._bindings),
             ])
             self._prompt.app.key_bindings = self._layer

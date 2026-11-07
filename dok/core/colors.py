@@ -7,7 +7,7 @@ from .records import Rule, SettingsError
 
 
 class DockPalette:
-    TEXT = "#d1d5db"
+    TEXT = ""
     ACCENT = "#67e8f9"
     MUTED = "#6b7280"
     ERROR = "#fbbf24"
@@ -30,3 +30,18 @@ class HexColor(Rule):
         channels = (round(int(left[index:index + 2], 16) * (1 - fraction)
                           + int(right[index:index + 2], 16) * fraction) for index in (1, 3, 5))
         return "#" + "".join(f"{channel:02x}" for channel in channels)
+
+
+class ForegroundColor(HexColor):
+    """An optional RGB foreground, with the terminal default stored as blank."""
+    TERMINAL = "fg:default"
+
+    def decode(self, value):
+        return DockPalette.TEXT if value is None or value == "" else super().decode(value)
+
+    def schema(self):
+        return {"anyOf": [{"enum": [DockPalette.TEXT, None]}, super().schema()]}
+
+    @classmethod
+    def resolve(cls, color: str | None) -> str:
+        return color or cls.TERMINAL

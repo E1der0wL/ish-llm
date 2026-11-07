@@ -81,7 +81,7 @@ class SystemRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 raise OSError("temporary")
             return reading(len(calls), total=100 * len(calls), busy=20 * len(calls))
         runtime = SystemRuntime(lambda: None, SimpleNamespace(read=read))
-        config = SystemConfig(refresh_seconds=0.5, history_samples=2)
+        config = SystemConfig(refresh_s=0.5, history=2)
         runtime.sync(active=True, config=config, start_task=asyncio.create_task)
         try:
             await until(lambda: len(calls) == 2)

@@ -20,15 +20,15 @@ class ElementTests(unittest.TestCase):
 
     def test_settings_validate_and_roundtrip_through_the_same_owners(self):
         data = {'widgets': {
-            'visualizer': {'enabled': False, 'spacing': {'after_rows': 4}},
-            'progress': {'spacing': {'after_rows': 2}},
-            'title': {'spacing': {'after_rows': 3, 'basic_after_rows': None}},
-            'media_controls': {'enabled': False},
-            'shortcuts': {'spacing': {'after_rows': 0, 'item_gap_columns': 2}},
-            'weather': {'enabled': False, 'spacing': {'after_rows': 3}},
-            'weekday_art': {'spacing': {'after_rows': 0}},
+            'visualizer': {'enabled': False, 'spacing': {'after': 4}},
+            'progress': {'spacing': {'after': 2}},
+            'title': {'spacing': {'after': 3, 'basic_after': None}},
+            'controls': {'enabled': False},
+            'shortcuts': {'spacing': {'after': 0, 'gap': 2}},
+            'weather': {'enabled': False, 'spacing': {'after': 3}},
+            'weekday': {'spacing': {'after': 0}},
             'date': {'enabled': False},
-            'time': {'spacing': {'after_rows': 4}}
+            'time': {'spacing': {'after': 4}}
         }}
         config = DockConfig.from_dict(data)
         jsonschema.validate(config.to_dict(), DockConfig.schema())
@@ -43,16 +43,16 @@ class ElementTests(unittest.TestCase):
             type(config.widgets.visualizer),
             type(config.widgets.progress),
             type(config.widgets.title),
-            type(config.widgets.media_controls),
+            type(config.widgets.controls),
             type(config.widgets.shortcuts),
             type(config.widgets.weather),
-            type(config.widgets.weekday_art)
+            type(config.widgets.weekday)
         ):
             for data in (
                 {'enabled': 'false'},
-                {'spacing': {'after_rows': -1}},
-                {'spacing': {'after_rows': True}},
-                {'spacing': {'basic_after_rows': 0.5}}
+                {'spacing': {'after': -1}},
+                {'spacing': {'after': True}},
+                {'spacing': {'basic_after': 0.5}}
             ):
                 with self.subTest(owner=owner, data=data):
                     with self.assertRaises(SettingsError):
@@ -62,8 +62,8 @@ class ElementTests(unittest.TestCase):
 
     def test_disabled_body_elements_collapse_padding_and_allow_shorter_terminals(self):
         config = DockConfig.from_dict({'widgets': {
-            'visualizer': {'enabled': False, 'spacing': {'after_rows': 20}},
-            'title': {'enabled': False, 'spacing': {'basic_after_rows': 20}}
+            'visualizer': {'enabled': False, 'spacing': {'after': 20}},
+            'title': {'enabled': False, 'spacing': {'basic_after': 20}}
         }})
         self.assertEqual(
             DockGeometry.body_rows(DockMode.BASIC, config),
@@ -74,10 +74,10 @@ class ElementTests(unittest.TestCase):
 
     def test_date_time_and_dashboard_gaps_are_independent(self):
         config = DockConfig.from_dict({'widgets': {
-            'weather': {'enabled': False, 'spacing': {'after_rows': 20}},
-            'weekday_art': {'enabled': False, 'spacing': {'after_rows': 20}},
-            'date': {'spacing': {'after_rows': 2}},
-            'time': {'enabled': False, 'spacing': {'after_rows': 20}}
+            'weather': {'enabled': False, 'spacing': {'after': 20}},
+            'weekday': {'enabled': False, 'spacing': {'after': 20}},
+            'date': {'spacing': {'after': 2}},
+            'time': {'enabled': False, 'spacing': {'after': 20}}
         }})
         now = datetime(2026, 11, 3, 6, 29, tzinfo=timezone.utc)
         with patch.object(ClockConfig, 'now', return_value=now):
@@ -87,7 +87,7 @@ class ElementTests(unittest.TestCase):
             widgets = replace(
                 config.widgets,
                 date=DateConfig(enabled=False),
-                time=TimeConfig(spacing={'after_rows': 1})
+                time=TimeConfig(spacing={'after': 1})
             )
             rows = DashboardView().rows(replace(config, widgets=widgets), WeatherSnapshot(), 80)
             self.assertEqual(tuple((row.text for row in rows)), ('-06:29-', ''))
@@ -101,7 +101,7 @@ class ElementTests(unittest.TestCase):
             'visualizer',
             'progress',
             'title',
-            'media_controls',
+            'controls',
             'shortcuts'
         )}})
         self.assertEqual(DockGeometry.height(DockMode.BASIC, config=config), 0)
@@ -112,21 +112,23 @@ class ElementTests(unittest.TestCase):
     def test_weather_weekday_labels_default_to_small_capitals_and_follow_dates(self):
         config = WeatherConfig(location=WeatherLocation(0, 0))
         monday = date(2026, 11, 2)
-        self.assertEqual(config.weekday_labels, ('ᴍᴏɴ', 'ᴛᴜᴇ', 'ᴡᴇᴅ', 'ᴛʜᴜ', 'ꜰʀɪ', 'ꜱᴀᴛ', 'ꜱᴜɴ'))
-        self.assertTrue(all((width(label) == 3 for label in config.weekday_labels)))
+        self.assertIsNone(config.weekdays)
+        defaults = tuple(config.weekday_label(monday + timedelta(days=i)) for i in range(7))
+        self.assertEqual(defaults, ('ᴍᴏɴ', 'ᴛᴜᴇ', 'ᴡᴇᴅ', 'ᴛʜᴜ', 'ꜰʀɪ', 'ꜱᴀᴛ', 'ꜱᴜɴ'))
+        self.assertTrue(all((width(label) == 3 for label in defaults)))
         days = tuple((ForecastDay(monday + timedelta(days=index), WeatherKind.CLEAR, 18, 6) for index in range(7)))
         self.assertEqual(
             WeatherPresentation.rows(config, WeatherSnapshot(days), 80)[0].text.split(),
-            list(config.weekday_labels)
+            list(defaults)
         )
         labels = ('월', '화', '수', '목', '금', '토', '일')
-        config = replace(config, weekday_labels=labels)
+        config = replace(config, weekdays=labels)
         self.assertEqual(config.weekday_label(monday + timedelta(days=6)), '일')
         self.assertEqual(config.weekday_label(monday + timedelta(days=7)), '월')
         self.assertEqual(WeatherConfig.from_dict(config.to_dict()), config)
         for labels in (('MON',), ('MON',) * 8, ('MON',) * 6 + ('',), ('MON',) * 6 + ('bad\ntext',)):
             with self.subTest(labels=labels):
-                data = {'weekday_labels': list(labels)}
+                data = {'weekdays': list(labels)}
                 with self.assertRaises(SettingsError):
                     WeatherConfig.from_dict(data)
                 with self.assertRaises(jsonschema.ValidationError):

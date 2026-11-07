@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import ClassVar
 import math
-from ..core.records import Choice, Nested, Number, Record, setting
+from ..core.records import Choice, Nested, Nullable, Number, Record, setting
+from ..locales import Language
+from ..core.theme import Theme
 from ..dashboard.config import WidgetsConfig
 from ..features.audio.config import AudioConfig, VisualizerConfig, VisualizerStyle
 from ..features.clock.config import ClockConfig
@@ -15,6 +17,7 @@ from ..features.system.config import SystemConfig
 from ..features.toolbar.config import ToolbarConfig
 from ..integrations.ish.mouse import MouseConfig
 from ..integrations.ish.keys import KeyRule, KeySequence
+from .popups import PopupSettings
 
 class WidthMode(StrEnum):
     FIXED = "fixed"
@@ -109,16 +112,22 @@ class DockConfig(Record):
         description="Linux CPU, memory and network sampling. WSL metrics do not represent the entire Windows host.")
     toolbar: ToolbarConfig = setting(Nested(ToolbarConfig), factory=ToolbarConfig,
         description="Left-aligned date and prompt status, with system metrics at the right edge.")
+    popups: PopupSettings = setting(Nested(PopupSettings), factory=PopupSettings,
+        description="Centered calendar/weather popups and bottom-right notifications. Focused general popups always support mouse actions; notifications follow dock.mouse.enabled.")
+    theme: Theme = setting(Nested(Theme), factory=Theme,
+        description="Shared named colors and semantic roles. All themed style fields reference these names; shortcuts and the visualizer retain their own RGB colors.")
+    language: Language | None = setting(Nullable(Choice(Language)), default=None,
+        description='UI language: null follows ish\'s selected language with English fallback. "en" selects English; "ko" selects Korean. Custom text, event content and ASCII weekday art are preserved.')
 
     def _check(self):
-        music = (button.key for button in self.widgets.media_controls.keyed_buttons())
-        self.widgets.shortcuts.validate_keys((self.dock.keys.toggle, *music))
+        music = (button.key for button in self.widgets.controls.keyed_buttons())
+        self.widgets.shortcuts.validate_keys((self.dock.keys.toggle, *music, *self.popups.keys()))
 
     @classmethod
     def initial(cls) -> DockConfig:
         """Initial file examples, distinct from ordinary missing-field defaults."""
         return cls(toolbar=ToolbarConfig.initial(), widgets=WidgetsConfig(
-            media_controls=TransportConfig.initial(),
+            controls=TransportConfig.initial(),
             shortcuts=ShortcutsConfig.initial(),
             visualizer=VisualizerConfig(style=VisualizerStyle.initial()),
         ))

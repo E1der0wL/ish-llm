@@ -65,14 +65,14 @@ class MediaSettingsTests(unittest.TestCase):
     def test_settings_schema_save_load_and_partial_defaults(self):
         self.assertFalse(DockConfig().dock.mouse.enabled)
         self.assertFalse(DockConfig.initial().dock.mouse.enabled)
-        config = DockConfig(media={'player': 'org.mpris.MediaPlayer2.test', 'refresh_seconds': 0.5},
+        config = DockConfig(media={'player': 'org.mpris.MediaPlayer2.test', 'refresh_s': 0.5},
                             dock={'mouse': {'enabled': True}})
         jsonschema.validate(config.to_dict(), DockConfig.schema())
         with tempfile.TemporaryDirectory() as directory:
             store = ConfigStore.for_home(directory)
             store.save(config)
             self.assertEqual(store.load(), config)
-        for data in ({'refresh_seconds': 0}, {'timeout_seconds': False}, {'player': ''}, {'enabled': 1}):
+        for data in ({'refresh_s': 0}, {'timeout_s': False}, {'player': ''}, {'enabled': 1}):
             with self.subTest(data=data):
                 with self.assertRaises(ValueError):
                     MediaConfig.from_dict(data)
@@ -84,7 +84,7 @@ class MediaRuntimeTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.backend = Backend((player(),))
         self.runtime = MediaRuntime(lambda: None, lambda timeout: self.backend)
-        self.config = MediaConfig(refresh_seconds=0.5)
+        self.config = MediaConfig(refresh_s=0.5)
 
     async def asyncTearDown(self):
         self.runtime.close()

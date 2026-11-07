@@ -60,7 +60,7 @@ class VisualizerConfig(ElementConfig):
         factory=VisualizerStyle,
         description="Solid color or horizontal gradient stops."
     )
-    width_columns: int = setting(
+    width: int = setting(
         Number(minimum=1, integer=True),
         default=38,
         description="Visualizer length in terminal cells. Clamped to the dock width."
@@ -68,7 +68,7 @@ class VisualizerConfig(ElementConfig):
 
     def display_levels(self, levels: tuple[float, ...], available: int) -> tuple[float, ...]:
         """Fit the full frequency range to the requested visible cell count."""
-        cells = max(0, min(self.width_columns, available))
+        cells = max(0, min(self.width, available))
         count = len(levels)
         if not count:
             return (0.0,) * cells
