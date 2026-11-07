@@ -546,7 +546,7 @@
             // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
             "color": "foreground"
           },
-          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          // Fixed value width in cells, or null to fit the displayed value without extra padding. Use the region gap for spacing between items.
           "value_width": null
         },
         {
@@ -561,7 +561,7 @@
             // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
             "color": "foreground"
           },
-          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          // Fixed value width in cells, or null to fit the displayed value without extra padding. Use the region gap for spacing between items.
           "value_width": null
         },
         {
@@ -576,7 +576,7 @@
             // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
             "color": "foreground"
           },
-          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          // Fixed value width in cells, or null to fit the displayed value without extra padding. Use the region gap for spacing between items.
           "value_width": null
         },
         {
@@ -591,7 +591,7 @@
             // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
             "color": "foreground"
           },
-          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          // Fixed value width in cells, or null to fit the displayed value without extra padding. Use the region gap for spacing between items.
           "value_width": null
         },
         {
@@ -606,7 +606,7 @@
             // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
             "color": "foreground"
           },
-          // Fixed field width in cells, or null to reserve five cells and grow for longer values.
+          // Fixed value width in cells, or null to fit the displayed value without extra padding. Use the region gap for spacing between items.
           "value_width": null
         }
       ]
@@ -630,7 +630,7 @@
         // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
         "color": "foreground"
       },
-      // Fixed width for sum(mean), or null to reserve fifteen cells and grow for longer results.
+      // Fixed width for sum(mean), or null to fit the displayed result without extra padding. Use region gaps for spacing.
       "value_width": null
     },
     // Right-aligned CPU, memory and network display.

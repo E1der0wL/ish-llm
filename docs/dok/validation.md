@@ -404,3 +404,11 @@ ish 본체·llm·hub 코드는 수정하지 않았고 llm/hub 전체 회귀 테�
 첫 실행에서는 기존 계약 테스트가 이전 제목 `February 2024`를 기대해 1개 실패했다. [초기 로그](../../tests/dok/reports/dok-jbs97vdw/dok.txt)를 보존하고, 해당 검사를 고정 제목과 본문의 월·년도 표시로 갱신했다. 윤년 날짜·오늘 이동·연도 경계 이동 검사는 유지했다. UI 구현은 확정 이후 추가 변경하지 않았다.
 
 Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 테스트 276개 모두 통과**(80.726초). [최종 로그](../../tests/dok/reports/dok-mor9io8w/dok.txt), [소스 해시](../../tests/dok/reports/dok-mor9io8w/snapshot.json), [실행 결과](../../tests/dok/reports/dok-mor9io8w/results.json). 선택적 Hub/llm 의존성은 앞선 커밋 소스 복사본의 해시를 재확인한 뒤 사용했다. ESC 입력 파이프 검사는 114.4ms였다. ish 본체·llm·hub 수정, llm/hub 전체 회귀 테스트, WSL 설치본 배포, 커밋·업로드는 하지 않았다.
+
+## 하단 바 숫자 자동 너비 (2026-11-07)
+
+`value_width: null`은 입력 값·합계(평균)의 실제 표시 길이만 사용한다. `NumericRegionLayout.caption()`이 공통 규칙을 소유하며 기존 최소 5칸·15칸 상수와 인자를 제거했다. 값이 길어지면 늘어나고 짧아지면 줄어들며, 항목 간격은 해당 영역의 `gap`을 따른다. 명시적인 고정 값 너비·정렬·자릿수 제한·영역 너비·padding은 유지한다. Owner의 영어 설명으로 기본 JSONC 예시를 다시 생성했다.
+
+Linux Python 3.12.14의 해시 검증된 스냅샷에서 dok 전체 실행은 **275개 통과·선택적 Hub 연동 1개 건너뜀**(92.693초)이었다. 임시 의존성을 찾지 못한 해당 검사만 커밋 `d5377cb6`의 읽기 전용 의존성 복사본을 제공해 같은 스냅샷에서 재실행하여 **1개 통과**(8.663초)했다. 합쳐서 dok 276개 검사를 확인했다. [전체 로그](../../tests/dok/reports/dok-qxk25dgm/dok.txt), [소스 해시](../../tests/dok/reports/dok-qxk25dgm/snapshot.json), [선택적 연동 로그](../../tests/dok/reports/dok-qxk25dgm/optional-hub.txt), [의존성 해시](../../tests/dok/reports/dok-qxk25dgm/optional-dependencies.json).
+
+숫자 길이의 증가·감소, `gap` 0·1·4칸, 자동 너비의 좌우 정렬, 명시적 고정 너비와 단위 축약, 좁은 화면, 생성 폼·schema 및 실제 프롬프트 표시를 검증했다. ESC 입력 파이프 검사는 110.8ms였다. ish 본체·llm·hub 코드와 WSL 개인 설정·설치본은 변경하지 않았으며 llm/hub 전체 회귀, 커밋·업로드는 수행하지 않았다.

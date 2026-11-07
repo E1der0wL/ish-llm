@@ -104,7 +104,7 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.prompt.default_buffer.selection_state = SelectionState(original_cursor_position=3)
         original = self.prompt.default_buffer.document
         line = await self.toolbar_line()
-        self.assertIn(f"Len:{8:<5}  Lines:{2:<5}    Ln:{2:<5}  Col:{3:<5}  Pos:{9:<5}    Total:  30(15)", line)
+        self.assertIn("Len:8  Lines:2    Ln:2  Col:3  Pos:9    Total:  30(15)", line)
         self.assertIn("Total:  30(15)", line)
         self.assertEqual(self.prompt.default_buffer.document, original)
         self.prompt.default_buffer.selection_state = None

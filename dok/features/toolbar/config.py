@@ -80,8 +80,8 @@ class NumericRegionLayout(RegionLayout):
     digits: int | None = setting(Nullable(Number(minimum=1, integer=True)), default=None,
         description="Maximum displayed digits per number; null shows all digits. On overflow try K/M/B/T, then leading digits and three dots. Sum and mean are limited separately.")
 
-    def caption(self, label, value, field_width, minimum, available):
-        requested = field_width if field_width is not None else max(minimum, width(value))
+    def caption(self, label, value, field_width, available):
+        requested = field_width if field_width is not None else width(value)
         cells = _value_room(label, requested, available)
         return _caption(label, value, cells, available, align_left=self.align == NumberAlignment.LEFT)
 
@@ -160,13 +160,12 @@ class ToolbarDate(Record):
 
 @dataclass(frozen=True, slots=True)
 class InputItem(Record):
-    MIN_AUTO_WIDTH = 5
     field: InputField = setting(Choice(InputField), default=InputField.LINE, description="Prompt value to show. Length/columns/positions count Unicode code points, not terminal cells. Positions are one-based.")
     label: str | None = setting(Nullable(Text(single_line=True)), default=None, description="Text before the value. null uses the field's localized label (English: Len:, Lines:, Ln:, Col:, Pos:); strings are preserved verbatim.")
     enabled: bool = setting(Boolean(), default=True, description="Show this input status item.")
     style: TextStyle = setting(Nested(TextStyle), factory=TextStyle, description="Input status foreground color.")
     value_width: int | None = setting(Nullable(VALUE_WIDTH), default=None,
-        description="Fixed field width in cells, or null to reserve five cells and grow for longer values.")
+        description="Fixed value width in cells, or null to fit the displayed value without extra padding. Use the region gap for spacing between items.")
 
     def render(self, editor: EditorSnapshot, available: int, layout: NumericRegionLayout = NumericRegionLayout(), *, locale=Locale()) -> str:
         label = self.field.label(locale) if self.label is None else self.label
@@ -175,7 +174,7 @@ class InputItem(Record):
         if self.field not in (InputField.MODE, InputField.ENCODING):
             if layout.digits is not None or len(value) > cells:
                 value = NumberCalculator.compact(Decimal(value), value, cells, digits=layout.digits)
-        return layout.caption(label, value, self.value_width, self.MIN_AUTO_WIDTH, available)
+        return layout.caption(label, value, self.value_width, available)
 
 
 @dataclass(frozen=True, slots=True)
@@ -198,7 +197,6 @@ class InputConfig(Record):
 
 @dataclass(frozen=True, slots=True)
 class NumbersConfig(Record):
-    MIN_AUTO_WIDTH = 15
     enabled: bool = setting(Boolean(), default=True, description="Show the sum and mean of extracted numbers; never executes expressions.")
     scope: NumberScope = setting(Choice(NumberScope), default=NumberScope.INPUT,
         description="selection uses the prompt's selected ranges; input uses the entire prompt buffer. Terminal-native mouse selection is not visible to dok.")
@@ -211,7 +209,7 @@ class NumbersConfig(Record):
         f"{NumberCalculator.MAX_NUMBERS:,} numbers or {NumberCalculator.MAX_DIGITS} digits per number."))
     style: TextStyle = setting(Nested(TextStyle), factory=TextStyle, description="Sum and mean foreground color.")
     value_width: int | None = setting(Nullable(VALUE_WIDTH), default=None,
-        description="Fixed width for sum(mean), or null to reserve fifteen cells and grow for longer results.")
+        description="Fixed width for sum(mean), or null to fit the displayed result without extra padding. Use region gaps for spacing.")
 
     def render(self, summary: NumberSummary, available: int | None = None, gap: int | None = None,
                layout: NumericRegionLayout = NumericRegionLayout(), *, locale=Locale()) -> str:
@@ -227,7 +225,7 @@ class NumbersConfig(Record):
             value = NumberCalculator.format_pair(summary, self.decimals, cells, digits=layout.digits)
         if not (label or value):
             return ""
-        return layout.caption(label, value, self.value_width, self.MIN_AUTO_WIDTH, available)
+        return layout.caption(label, value, self.value_width, available)
 
 
 @dataclass(frozen=True, slots=True)

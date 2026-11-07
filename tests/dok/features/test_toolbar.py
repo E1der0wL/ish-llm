@@ -184,8 +184,8 @@ class ToolbarTests(unittest.TestCase):
                                                            sent_per_second=1023.9 * 1024**3)):
             fragments = view.render(config, EditorSnapshot(), snapshot, (snapshot,), NOW, False, 240)
             line = "".join(text for _, text in fragments)
-            self.assertTrue(line.startswith(f" 2026-11-06(Fri)    Len:{0:<5}  Lines:{1:<5}"
-                                            f"    Ln:{1:<5}  Col:{1:<5}  Pos:{1:<5}    Total:  —"))
+            self.assertTrue(line.startswith(" 2026-11-06(Fri)    Len:0  Lines:1"
+                                            "    Ln:1  Col:1  Pos:1    Total:  —"))
             starts = [width(line[:line.index(item.label)]) for _, item in config.system.items()]
             boundary = width(config.separator)
             self.assertEqual([starts[1] - starts[0] - boundary, starts[2] - starts[1] - boundary,
@@ -269,12 +269,29 @@ class ToolbarTests(unittest.TestCase):
             self.assertIn("Len:1234567  Lines:2", text)
             self.assertIn("Pos:234567", text)
             self.assertIn("Total:  12,345,678.987654(12,345,678.987654)", text)
+            for align in ("left", "right"):
+                for gap in (0, 1, 4):
+                    compact = replace(toolbar, date={"enabled": False}, system={"enabled": False},
+                        input={"items": [{"field": name} for name in ("line", "column", "position")]},
+                        regions={"cursor": {"align": align, "gap": gap}})
+                    view = ToolbarView()
+                    for count in (1, 1234567, 1):
+                        editor = EditorSnapshot(line=count, column=count, position=count)
+                        fragments = view.render(compact, editor, SAMPLE, (), NOW, False, 200)
+                        text = "".join(value for _, value in fragments).strip()
+                        expected = (" " * gap).join(f"{label}:{count}" for label in ("Ln", "Col", "Pos"))
+                        self.assertEqual(text, expected + "    Total:  —")
+                        summary = next(value for _, value in fragments if value.startswith("Total:"))
+                        self.assertEqual(summary, "Total:  —")
 
     def test_numeric_policy_is_independent_for_each_group(self):
         toolbar = ToolbarConfig(date={"enabled": False}, system={"enabled": False}, regions={
             "size": {"align": "right", "digits": 3},
             "cursor": {"align": "left", "digits": 2},
-            "numbers": {"align": "right", "digits": 3}})
+            "numbers": {"align": "right", "digits": 3}},
+            input={"items": [{"field": name, "value_width": 5}
+                              for name in ("length", "lines", "line", "column", "position")]},
+            numbers={"value_width": 15})
         editor = EditorSnapshot(text="-12345 -12345", length=12345, lines=2, line=4, column=5, position=123456)
         text = "".join(v for _, v in ToolbarView().render(toolbar, editor, SAMPLE, (), NOW, False, 150))
         self.assertIn("Len:12.3K  Lines:    2", text)
