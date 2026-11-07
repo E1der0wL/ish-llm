@@ -396,3 +396,11 @@ ish 본체·llm·hub 코드는 수정하지 않았고 llm/hub 전체 회귀 테�
 [검토 기록](contract-review-20261107.md)에 Owner·호스트·저장·작업 수명 경계를 정리했다. 연속 취소 중 캘린더 파일 작업의 잠금이 일찍 풀리는 문제를 재현한 뒤 `run_blocking()`으로 수정하고 시스템 수집도 같은 규칙을 사용하게 했다. 팝업 테마 역할은 공개 Enum을 참조하도록 정리했다.
 
 커밋된 hub/llm 의존성과 Linux Python 3.12.14를 사용해 **dok 276개 테스트 전부 통과**(87.607초). [로그](../../tests/dok/reports/dok-qknemr6e/dok.txt), [소스 해시](../../tests/dok/reports/dok-qknemr6e/snapshot.json), [의존성 해시](../../tests/dok/reports/dok-committed-deps-6sfnvcq9/dependencies.json). 실제 Hub 등록·사용자 설정 보존도 통과했으며 llm/hub 전체 회귀 테스트는 수행하지 않았다. ESC 입력 파이프 검사는 108.7ms였다.
+
+## 캘린더 제목·월 이동 버튼 UI 확정 (2026-11-07)
+
+사용자가 [캘린더 미리보기](../../tests/dok/reports/calendar-header-preview-20261107/calendar.png)를 확정한 뒤 검증했다. 제목은 월 이동과 무관하게 `Calendar`로 유지하고 `<`·`>` 버튼은 `ThemeColor.WHITE`를 사용한다. 월·년도는 달력 영역의 탐색 행에 계속 표시한다.
+
+첫 실행에서는 기존 계약 테스트가 이전 제목 `February 2024`를 기대해 1개 실패했다. [초기 로그](../../tests/dok/reports/dok-jbs97vdw/dok.txt)를 보존하고, 해당 검사를 고정 제목과 본문의 월·년도 표시로 갱신했다. 윤년 날짜·오늘 이동·연도 경계 이동 검사는 유지했다. UI 구현은 확정 이후 추가 변경하지 않았다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 테스트 276개 모두 통과**(80.726초). [최종 로그](../../tests/dok/reports/dok-mor9io8w/dok.txt), [소스 해시](../../tests/dok/reports/dok-mor9io8w/snapshot.json), [실행 결과](../../tests/dok/reports/dok-mor9io8w/results.json). 선택적 Hub/llm 의존성은 앞선 커밋 소스 복사본의 해시를 재확인한 뒤 사용했다. ESC 입력 파이프 검사는 114.4ms였다. ish 본체·llm·hub 수정, llm/hub 전체 회귀 테스트, WSL 설치본 배포, 커밋·업로드는 하지 않았다.

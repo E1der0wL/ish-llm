@@ -88,19 +88,28 @@ class PopupContractsTests(unittest.TestCase):
     def test_calendar_leap_month_navigation_and_clock_timezone_date(self):
         clock = SimpleNamespace(now=lambda: datetime(2024, 2, 29, 0, 1, tzinfo=timezone.utc))
         page = CalendarPage(lambda: clock, lambda: CalendarConfig(week_start=6))
+
+        def check_header(month):
+            self.assertEqual(page.content().title, "Calendar")
+            text = "\n".join("".join(p[1] for p in row) for row in page.draw_body(132, 42, Theme()))
+            self.assertIn(month, text)
+            return text
+
         content = page.content()
-        self.assertEqual(content.title, "February 2024")
-        text = "\n".join("".join(p[1] for p in row) for row in page.draw_body(132, 42, Theme()))
+        text = check_header("February 2024")
         self.assertIn("Sun", text)
         self.assertIn("29 •", text)
         content.actions[2].invoke()
-        self.assertEqual(page.content().title, "March 2024")
+        check_header("March 2024")
+        self.assertEqual(page.selected, date(2024, 3, 29))
         page.content().actions[1].invoke()
-        self.assertEqual(page.content().title, "February 2024")
+        check_header("February 2024")
+        self.assertEqual(page.selected, date(2024, 2, 29))
         clock.now = lambda: datetime(2025, 1, 1)
         page.content().actions[1].invoke()
         page.content().actions[0].invoke()
-        self.assertEqual(page.content().title, "December 2024")
+        check_header("December 2024")
+        self.assertEqual(page.selected, date(2024, 12, 1))
 
     def test_weather_uses_current_config_and_snapshot_with_gray_low_temperature(self):
         clock = SimpleNamespace(now=lambda: datetime(2026, 11, 7))

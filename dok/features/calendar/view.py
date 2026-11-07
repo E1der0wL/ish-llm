@@ -252,8 +252,7 @@ class CalendarPage(InteractivePopup):
 
     def content(self):
         locale = self._locale()
-        title = locale.month(self._month.month) + f" {self._month.year}"
-        return PopupContent(title, (TextRow.plain(locale.text(M.CALENDAR), ""),), (
+        return PopupContent(M.CALENDAR.value, (TextRow.plain(locale.text(M.CALENDAR), ""),), (
             PopupAction(locale.text(M.PREVIOUS_MONTH), lambda: self._move(-1)), PopupAction(locale.text(M.TODAY), self._today),
             PopupAction(locale.text(M.NEXT_MONTH), lambda: self._move(1))))
 
@@ -279,9 +278,9 @@ class CalendarPage(InteractivePopup):
         p = lambda text, role=ThemeRole.FOREGROUND, **kw: part(theme, text, role, **kw)
         month = calendar.Calendar(self._config().week_start)
         weekdays = tuple(month.iterweekdays())
-        nav = [p(" < ", ThemeRole.TITLE, background=ThemeRole.BUTTON_BG, action=lambda: self._move(-1)),
+        nav = [p(" < ", ThemeColor.WHITE, background=ThemeRole.BUTTON_BG, action=lambda: self._move(-1)),
                p(" " + locale.month(self._month.month) + f" {self._month.year} ", bold=True),
-               p(" > ", ThemeRole.TITLE, background=ThemeRole.BUTTON_BG, action=lambda: self._move(1))]
+               p(" > ", ThemeColor.WHITE, background=ThemeRole.BUTTON_BG, action=lambda: self._move(1))]
         today = self._clock().now().date()
         tail = locale.text(M.TODAY) + f" {today.day:02}"
         nav += [p(" " * max(0, cells - sum(width(item[1]) for item in nav) - width(tail))), p(tail, ThemeRole.MUTED, action=self._today)]

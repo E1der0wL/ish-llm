@@ -110,9 +110,11 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.send(b"\x1bc")
         self.assertTrue(self.dock._popups.modal)
         self.assertTrue(self.prompt.app.mouse_support())
-        before = self.dock._popups.page.content().title
+        before = self.dock._popups.page.selected.replace(day=1)
+        self.assertEqual(self.dock._popups.page.content().title, "Calendar")
         await self.send(b"\x1b[6~")
-        self.assertNotEqual(self.dock._popups.page.content().title, before)
+        self.assertNotEqual(self.dock._popups.page.selected.replace(day=1), before)
+        self.assertEqual(self.dock._popups.page.content().title, "Calendar")
         await self.send(b"\x1b")
         await until(lambda: not self.dock._popups.modal)
         await self.send(b"\x1bw")
