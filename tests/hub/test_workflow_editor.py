@@ -317,6 +317,8 @@ class WorkflowEditorTests(IsolatedAsyncioTestCase):
         self.install(value)
         field = self.editor.inspector.form.fields[('pause_before',)]
         field.text = '{ invalid'
+        self.assertTrue(self.editor.select('finish'))
+        self.assertIs(self.editor.inspector.form.fields[('pause_before',)], field)
         self.assertFalse(self.editor.select('other'))
         self.assertEqual(self.editor.selected, 'finish')
         self.assertEqual(field.text, '{ invalid')

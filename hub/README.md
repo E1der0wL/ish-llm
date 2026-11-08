@@ -680,12 +680,12 @@ if hub_plugin is not None:
             background="default",  # 터미널 배경 유지
             foreground="default",  # 터미널 글자색 유지
             green="#98C379",
-            blue="#528BFF",
+            blue="#61AFEF",
             orange="#D19A66",
-            white="#A8B2BF",
-            bright_black="#1D2035",
-            bright_gray="#8595a5",
-            gray="#3A3A3A",
+            white="#ABB2BF",
+            bright_black="#282C34",
+            bright_gray="#828997",
+            gray="#5C6370",
         ),
     )
     # 표시 중에도 입력이나 선택을 잃지 않고 적용할 수 있습니다.

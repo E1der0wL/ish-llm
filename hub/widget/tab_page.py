@@ -174,6 +174,9 @@ class TabPage(HSplit):
         )
         if index is self.NO_INDEX:
             raise ValueError(self.UNKNOWN_TAB)
+        if key == self.selected:
+            self.focus_tabs()
+            return
         if self.on_leave and self.content_focused:
             self.on_leave()
         self.selected = key

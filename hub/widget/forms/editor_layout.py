@@ -171,6 +171,8 @@ class SettingsEditorLayout:
 
     def select(self, key):
         self.finish_edit()
+        if key == self.selected:
+            return
         self.selected = key
         self.refresh(reset=True)
 

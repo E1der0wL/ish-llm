@@ -29,7 +29,7 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
                 value = await settings.execute('preset_export', project.id)
                 completion = value['project']['agents']['assistant'].get('completion', {})
                 self.assertFalse(completion)
-                self.assertEqual(value['global']['appearance']['gray'], '#3A3A3A')
+                self.assertEqual(value['global']['appearance']['gray'], '#5C6370')
                 value['project']['agents']['assistant']['completion'] = {
                     'model': 'test/chosen', 'api_key': 'test-secret', 'api_base': 'https://example.invalid'}
                 value['project']['agents']['reviewer'] = {'engine': 'loop', 'tools': [],
@@ -201,9 +201,9 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
         saved['foreground'] = '#123456'
         exported = PresetGlobals.snapshot(None, lambda: {'appearance': saved})
         self.assertEqual(exported['appearance']['foreground'], '#123456')
-        self.assertEqual(exported['appearance']['gray'], '#3A3A3A')
-        self.assertEqual(exported['appearance']['white'], '#A8B2BF')
-        self.assertEqual(exported['appearance']['bright_black'], '#1D2035')
+        self.assertEqual(exported['appearance']['gray'], '#5C6370')
+        self.assertEqual(exported['appearance']['white'], '#ABB2BF')
+        self.assertEqual(exported['appearance']['bright_black'], '#282C34')
         self.assertNotIn('gray', saved)
 
     def test_palette_preferences_require_current_fields_without_legacy_migration(self):
@@ -212,8 +212,8 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
         saved['green'] = '#123456'
         validated = PreferencesStore.validate_section('appearance', saved)
         self.assertEqual(validated['green'], '#123456')
-        self.assertEqual(validated['white'], '#A8B2BF')
-        self.assertEqual(validated['bright_black'], '#1D2035')
+        self.assertEqual(validated['white'], '#ABB2BF')
+        self.assertEqual(validated['bright_black'], '#282C34')
         incomplete = saved.copy()
         incomplete.pop('bright_black')
         with self.assertRaises(TypeError):

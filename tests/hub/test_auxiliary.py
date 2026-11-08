@@ -286,7 +286,7 @@ class PaletteTests(unittest.TestCase):
         from hub.config.theme_style import ThemeSelector
         theme = HubTheme()
         self.assertEqual([theme.green, theme.blue, theme.orange, theme.white, theme.bright_black],
-                         ['#98C379', '#528BFF', '#D19A66', '#A8B2BF', '#1D2035'])
+                         ['#98C379', '#61AFEF', '#D19A66', '#ABB2BF', '#282C34'])
         self.assertNotIn('mode', asdict(theme))
         self.assertEqual(HubTheme(**asdict(theme)), theme)
         for background in ('default', '#123456', '#ffffff'):

@@ -186,6 +186,11 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(editor.workspace.action_title(), view.t('agent_current', name='Coder'))
                     self.assertFalse(editor.dirty)
                     self.assertNotIn('*', editor.buttons[0].text)
+                    editor.workspace.pane.vertical_scroll = 7
+                    body = editor.workspace.body
+                    editor.workspace.select(editor.workspace.selected)
+                    self.assertIs(editor.workspace.body, body)
+                    self.assertEqual(editor.workspace.pane.vertical_scroll, 7)
                     editor.display_name.text = 'Changed'
                     self.assertTrue(editor.dirty)
                     self.assertIn('*', editor.buttons[0].text)

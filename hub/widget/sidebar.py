@@ -32,7 +32,7 @@ class SidebarHeading(HSplit):
         if actions is not None:
             actions.width = actions.minimum_width
         super().__init__(
-            [section(self.title, actions=actions, drag_handler=drag_handler)],
+            [section(self.title, actions=actions, drag_handler=drag_handler, hover_rule=True)],
             style=ThemeSelector.SIDEBAR_HEADING.style,
         )
 

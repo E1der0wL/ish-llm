@@ -59,7 +59,6 @@ class SettingsScreen:
     MAIN_INSET = 1
     MINIMUM_MAIN_HEIGHT = 3
     FLEX_WEIGHT = 1
-    SIDEBAR_GAP_HEIGHT = 1
     SCROLL_TOP = 0
     QUERY_HEIGHT = 1
     QUERY_MULTILINE = False
@@ -268,10 +267,8 @@ class SettingsScreen:
                             lambda: self.view.icons.settings
                             + self.ICON_GAP
                             + self.t(MessageKey.SETTINGS_GLOBAL),
-                            drag_handler=lambda point: self._left.drag_handler(point),
                         ),
                         Window(self.global_list, height=Dimension(min=1, preferred=len(self.global_keys))),
-                        Window(height=self.SIDEBAR_GAP_HEIGHT),
                     ]
                 ),
                 HSplit(
@@ -301,7 +298,7 @@ class SettingsScreen:
         self.navigation.left_key = key
         if self.busy:
             self._pending_selection = key
-        else:
+        elif key != self.selected or self.page is self.NO_PAGE:
             self.choose(key)
         get_app().invalidate()
 

@@ -567,6 +567,11 @@ class MouseController:
                 )  # The terminal may have lost a release outside its window.
         window, rect = self._hit(event.position)
         pressed_control = self.app.layout.current_control
+        if (event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT
+                and (window is self.ABSENT or window.content is not pressed_control)):
+            leave = MouseBinding.click_away(pressed_control)
+            if leave is not self.ABSENT:
+                leave()
         modal = self._scope()
         if event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT:
             for region, area in reversed(self.regions):
@@ -596,11 +601,6 @@ class MouseController:
         if window not in modal and pane_bar is self.ABSENT:
             self._hover(self.ABSENT)
             return MouseResult.HANDLED
-        if (event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT
-                and (window is self.ABSENT or window.content is not pressed_control)):
-            leave = MouseBinding.click_away(pressed_control)
-            if leave is not self.ABSENT:
-                leave()
         pane_hit = next(
             (
                 MouseHit(pane, area)

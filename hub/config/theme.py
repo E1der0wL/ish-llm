@@ -36,26 +36,28 @@ class HubTheme:
     progress_refresh_interval: float = 0.1
     foreground: str = DEFAULT_COLOR
     background: str = DEFAULT_COLOR
-    black: str = "#101218"
+    # One Dark-inspired named defaults; bright variants extend its syntax palette.
+    # Terminal foreground/background remain transparent/user-controlled.
+    black: str = "#21252B"
     red: str = "#E06C75"
     orange: str = "#D19A66"
     green: str = "#98C379"
     yellow: str = "#E5C07B"
-    blue: str = "#528BFF"
+    blue: str = "#61AFEF"
     purple: str = "#C678DD"
     cyan: str = "#56B6C2"
-    white: str = "#A8B2BF"
-    gray: str = "#3A3A3A"
-    bright_black: str = "#1D2035"
-    bright_red: str = "#F08B94"
-    bright_orange: str = "#EAAF83"
-    bright_green: str = "#B3DC95"
-    bright_yellow: str = "#F3D99A"
-    bright_blue: str = "#82AAFF"
-    bright_purple: str = "#DBA0EE"
-    bright_cyan: str = "#7ED4DF"
-    bright_white: str = "#E6EDF3"
-    bright_gray: str = "#8595a5"
+    white: str = "#ABB2BF"
+    gray: str = "#5C6370"
+    bright_black: str = "#282C34"
+    bright_red: str = "#E9969D"
+    bright_orange: str = "#DFB28D"
+    bright_green: str = "#B3D596"
+    bright_yellow: str = "#ECD29F"
+    bright_blue: str = "#8FC6F4"
+    bright_purple: str = "#D7A1E7"
+    bright_cyan: str = "#85CCD5"
+    bright_white: str = "#E6E6E6"
+    bright_gray: str = "#828997"
 
     # Roles reference configured colors verbatim. Only inactive FocusRegion
     # rendering computes grayscale; active colors never blend or auto-contrast.

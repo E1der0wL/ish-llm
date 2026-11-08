@@ -329,14 +329,16 @@ remain short; the extra explanation lives in the help reader.
 ## Shared UI surfaces
 
 HeaderBar owns its restart/minimize HeaderButtons; their backgrounds match the
-header in both pages. `appearance.gray` defaults to `#3A3A3A` and colors the
+header in both pages. `appearance.gray` defaults to `#5C6370` and colors the
 progress rail; the handle uses green. The named palette is declared by `HubTheme`;
 saved appearance records require its current fields. Removed accent/comment keys
 are rejected without compatibility aliases or automatic conversion.
 
 Dropdown menus reuse Prompt-Toolkit completion selectors for the background and
 current row, with no frame or radio marks. Enter/Space, Escape, keyboard navigation
-and click-to-commit retain the existing dropdown semantics.
+and click-to-commit retain the existing dropdown semantics. Click-away closes
+without committing. The shared screen layer places menus after popup/pane geometry
+is available and prefers space below the button, beyond a scroll pane when needed.
 
 Validation: `tests/hub/test_application_defaults.py`, `test_presets_widgets.py`,
 `test_header_actions.py`, `test_input_contract.py`, and `test_creation_contracts.py`.

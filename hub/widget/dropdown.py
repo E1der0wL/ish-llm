@@ -1,16 +1,20 @@
 """A single-selection dropdown with explicit commit and cancel semantics."""
 
+from functools import partial
+
 from hub.ui.input.registry import ShortcutRegistry
 from hub.ui.input.keys import KeyName, ShortcutLabel, ShortcutAction
 
 
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import ConditionalContainer, Float, FloatContainer
+from prompt_toolkit.layout import ConditionalContainer, Float, FloatContainer, Window
+from prompt_toolkit.layout.screen import WritePosition
 from prompt_toolkit.formatted_text import to_formatted_text, fragment_list_width, fragment_list_to_text
 from prompt_toolkit.mouse_events import MouseEventType
 
 from .controls import Button, RadioList, ScrollbarMargin, ScrollablePane
+from .mouse_contract import MouseBinding
 from ..asset.icon import NERD
 from ..config.theme_style import ThemeSelector
 
@@ -116,11 +120,12 @@ class DropdownBox(FloatContainer):
             lambda e: self.ABSENT,
         )
         self.choices._handle_enter = self.commit
+        MouseBinding.set_click_away(self.choices.control, self.close)
         super().__init__(
             self.button,
             floats=[
                 Float(
-                    ConditionalContainer(self.choices, Condition(self.is_open)),
+                    ConditionalContainer(self.choices, Condition(self.local_menu)),
                     # Position/height are assigned from the current visible area,
                     # rather than this one-row container's own dimensions.
                     top=0,
@@ -154,6 +159,35 @@ class DropdownBox(FloatContainer):
         info = self.button.window.render_info
         return info.window_width if info else self.width
 
+    def local_menu(self):
+        if not self.is_open():
+            return self.CLOSED
+        layout = get_app().layout
+        parent = layout.get_parent(self)
+        while parent is not self.ABSENT:
+            if isinstance(parent, DropdownLayer):
+                return self.CLOSED
+            parent = layout.get_parent(parent)
+        return self.EXPANDED
+
+    @classmethod
+    def focused(cls):
+        layout = get_app().layout
+        parent = layout.current_window
+        while parent is not cls.ABSENT:
+            if isinstance(parent, cls):
+                return parent
+            parent = layout.get_parent(parent)
+        return cls.ABSENT
+
+    def menu_geometry(self, anchor, top, bottom):
+        above = max(0, anchor.ypos - top)
+        below = max(0, bottom - anchor.ypos - anchor.height)
+        preferred = min(self.CHOICE_ROWS, len(self.choices.values))
+        opens_below = below >= preferred or (above < preferred and below >= above)
+        height = min(preferred, below if opens_below else above)
+        return (anchor.height if opens_below else -height), height
+
     def visible_bounds(self):
         """A pane renders in virtual coordinates; ordinary layouts use screen rows."""
         layout = get_app().layout
@@ -165,16 +199,10 @@ class DropdownBox(FloatContainer):
         return 0, get_app().output.get_size().rows
 
     def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
-        if self.is_open():
+        if self.local_menu():
             top, bottom = self.visible_bounds()
-            above = max(0, write_position.ypos - top)
-            below = max(0, bottom - write_position.ypos - write_position.height)
-            preferred = min(self.CHOICE_ROWS, len(self.choices.values))
-            opens_below = below >= preferred or (above < preferred and below >= above)
-            height = min(preferred, below if opens_below else above)
             menu = self.floats[0]
-            menu.top = write_position.height if opens_below else -height
-            menu.height = height
+            menu.top, menu.height = self.menu_geometry(write_position, top, bottom)
         super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
 
     def caption(self):
@@ -220,3 +248,51 @@ class DropdownBox(FloatContainer):
             self.on_change(value)
         else:
             self.value = value
+
+
+class DropdownMenu(Window):
+    """Paint after panes/dialogs, using the button's final screen coordinates."""
+
+    def _draw(self, screen, mouse_handlers, write_position, erase_bg):
+        dropdown = DropdownBox.focused()
+        if dropdown is None or not dropdown.is_open():
+            return
+        anchor = screen.visible_windows_to_write_positions.get(dropdown.button.window)
+        if anchor is None:
+            return
+        clip = MouseBinding.clip(dropdown.button.window)
+        if clip is not None and not clip.ypos <= anchor.ypos < clip.ypos + clip.height:
+            return
+        top, height = dropdown.menu_geometry(
+            anchor, write_position.ypos, write_position.ypos + write_position.height,
+        )
+        if not height:
+            return
+        # The menu is a screen overlay, not scrollable-pane content. The local
+        # container retains its control/keys so modal scope and focus stay intact.
+        MouseBinding.set_clip(dropdown.choices.window, None)
+        MouseBinding.set_pane(dropdown.choices.window, None)
+        dropdown.choices.__pt_container__().write_to_screen(
+            screen, mouse_handlers,
+            WritePosition(anchor.xpos, anchor.ypos + top, anchor.width, height),
+            ThemeSelector.DROPDOWN.style, erase_bg, None,
+        )
+
+    def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
+        draw = partial(self._draw, screen, mouse_handlers, write_position, erase_bg)
+        if z_index is None or z_index <= DropdownBox.BASE_LAYER:
+            draw()
+        else:
+            screen.draw_with_z_index(z_index, draw)
+
+
+class DropdownLayer(FloatContainer):
+    """One shared menu surface for all page and popup dropdowns beneath it."""
+
+    EDGE = 0
+
+    def __init__(self, content):
+        super().__init__(content, floats=[Float(
+            DropdownMenu(), top=self.EDGE, bottom=self.EDGE, left=self.EDGE, right=self.EDGE,
+            z_index=DropdownBox.MENU_LAYER,
+        )])

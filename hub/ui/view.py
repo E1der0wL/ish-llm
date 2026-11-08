@@ -310,7 +310,6 @@ class HubView:
         self.project_heading = SidebarHeading(
             lambda: self.icons.project + HubView.HEADING_SEPARATOR
             + self.t(MessageKey.SETTINGS_PROJECTS), actions=self.project_actions,
-            drag_handler=lambda point: self._sidebar.content.drag_handler(point),
         )
         self.session_heading = SidebarHeading(
             lambda: self.t(MessageKey.SESSIONS), actions=self.session_buttons,
@@ -511,7 +510,9 @@ class HubView:
 
         self.bindings = HubBindings(self)
         self.navigation_keys = self.bindings.keys
-        modal = HSplit([root], modal=HubView.MODAL, key_bindings=self.navigation_keys)
+        from ..widget.dropdown import DropdownLayer
+
+        modal = HSplit([DropdownLayer(root)], modal=HubView.MODAL, key_bindings=self.navigation_keys)
         self.container = ConditionalContainer(modal, Condition(lambda: self.visible))
 
     @staticmethod
@@ -599,6 +600,8 @@ class HubView:
 
     def _select_sidebar_session(self, key):
         self._session_focus = HubView.SIDEBAR_FOCUS
+        if key == self._draft_key(self.selected):
+            return
         self.select(
             next(i for i in range(len(self.sessions)) if self._draft_key(i) == key)
         )

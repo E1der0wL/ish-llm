@@ -162,6 +162,10 @@ class MCPSelectionUITests(unittest.IsolatedAsyncioTestCase):
                 popup = MCPToolSelection(manager, record)
                 view.dialogs.show(popup, popup.agent.button)
                 popup.tools.current_values = ['read_notes']
+                rows = popup.tools.values
+                popup.select_agent('a')
+                self.assertIs(popup.tools.values, rows)
+                self.assertEqual(popup.tools.current_values, ['read_notes'])
                 popup.select_agent('b')
                 popup.tools.current_values = []
                 popup.select_agent('a')

@@ -19,14 +19,17 @@ class SidebarPanel(HSplit):
         self, sections, profile, *, width, fraction, resize, controls=()
     ):
         self.bodies = sections
+        self.controls = tuple(
+            control if isinstance(control, tuple) else (control,)
+            for control in controls
+        )
         self.sections = (
             [
                 FocusRegion(
                     section,
-                    active=lambda control=control: get_app().layout.current_control
-                    in (control if isinstance(control, tuple) else (control,)),
+                    active=lambda index=index: self._focused(index),
                 )
-                for section, control in zip(sections, controls)
+                for index, section in enumerate(sections)
             ]
             if controls
             else sections
@@ -35,6 +38,9 @@ class SidebarPanel(HSplit):
         self.fraction, self.resize = fraction, resize
         self.geometry = self.ABSENT
         super().__init__([*self.sections, profile], width=width)
+
+    def _focused(self, index):
+        return get_app().layout.current_control in self.controls[index]
 
     def preferred_height(self, width, max_available_height):
         # Child heights are the last frame's allocation, not intrinsic minima.
@@ -47,7 +53,8 @@ class SidebarPanel(HSplit):
     def drag_handler(self, point):
         initial_ratio = self.fraction()
         geometry = self.geometry
-        if geometry is self.ABSENT:
+        if (geometry is self.ABSENT
+                or (self.controls and not self._focused(self.SECOND))):
             return lambda position, finished=MouseCapture.DRAGGING: None
         initial, total, minimum, maximum = geometry
         origin = point.y

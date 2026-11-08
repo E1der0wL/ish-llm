@@ -9,7 +9,7 @@
     "incomplete_contracts": 0,
     "unreviewed_dynamic_paths": 0,
     "unreadable_files": 0,
-    "candidates": 22430,
+    "candidates": 22440,
     "issues": 0
   },
   "issues": [],
@@ -18,7 +18,7 @@
       "path": "hub/README.md",
       "status": "reviewed",
       "candidates": [],
-      "sha256": "d90b32edf07c1404d1926809df95ef07decebcbe61a785e709f80aee6e06f1f1"
+      "sha256": "11c0f9fae2a924d4e76871402fadc8f2e523fe59b09b43be987e198899ab379a"
     },
     {
       "path": "hub/__init__.py",
@@ -31360,40 +31360,22 @@
           "id": "dbf5d3abb93696d6e101b0bceb2e8c3aec51416ebfb20295a8d703cdd9db7931"
         },
         {
-          "line": 39,
+          "line": 41,
           "column": 17,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#101218')",
-          "id": "6ef45dc3aad8553ad8952f3ae4f6b6c70c4bf8cf818a88dfbde8c3d8602e0bc5"
+          "literal": "Constant(value='#21252B')",
+          "id": "8adace1b1903d3c14b251278ce84a792acaa3d45e15bde50ee3e3389d07ebf0e"
         },
         {
-          "line": 40,
+          "line": 42,
           "column": 15,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
           "literal": "Constant(value='#E06C75')",
-          "id": "23f1c3f1f7a5d191a3bf756d8e9ffce3a9b3c0c4787511458f32eb3949702308"
-        },
-        {
-          "line": 41,
-          "column": 18,
-          "symbol": "HubTheme",
-          "role": "AnnAssign",
-          "area": "declaration",
-          "literal": "Constant(value='#D19A66')",
-          "id": "a374aca1d9174c8a14f1dc9c645d495255ae8fc2fdd5a84dbe20c6a0e0a68c25"
-        },
-        {
-          "line": 42,
-          "column": 17,
-          "symbol": "HubTheme",
-          "role": "AnnAssign",
-          "area": "declaration",
-          "literal": "Constant(value='#98C379')",
-          "id": "64c9e24c16a6285c874ed9946e46b85459abd630b5130adbbeb760297e9cd09a"
+          "id": "72596d4a8abc2f15f6357a52bb247fac8132cbd0f9becdb5dbdc1b8fd643c58f"
         },
         {
           "line": 43,
@@ -31401,17 +31383,17 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#E5C07B')",
-          "id": "b698e2ae654308f87b940fb3bc70393a35c730426c12e033c2648cfb4fa0c46f"
+          "literal": "Constant(value='#D19A66')",
+          "id": "74da6afd32dbae467e6bc9d07356a141567d28132a2a75693a90eab89f206d7d"
         },
         {
           "line": 44,
-          "column": 16,
+          "column": 17,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#528BFF')",
-          "id": "d7cd84b63910c34d6a69bc4d48eafe87d35f72ac248962dae332571641f9413a"
+          "literal": "Constant(value='#98C379')",
+          "id": "d29127514a759e07389e4d3f97d6c97bd1fda47a9f91e29526a81edfd3d0b916"
         },
         {
           "line": 45,
@@ -31419,8 +31401,8 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#C678DD')",
-          "id": "be9ad50e9274d19cfdf90b7df1c273cc9ffe4b7a9d801386950052b7162013ed"
+          "literal": "Constant(value='#E5C07B')",
+          "id": "fedf4bc023b6be8af0a96e9c4f8ca3b8089c9f650aa47dd071d1edd2264a1c48"
         },
         {
           "line": 46,
@@ -31428,17 +31410,17 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#56B6C2')",
-          "id": "6bfa39ad77956f5ab9d5d2425a0fbafb80a5035c47b2d8b800ad937ee2fc6417"
+          "literal": "Constant(value='#61AFEF')",
+          "id": "8b766cd043eac6dd1fd405edf7031d330135754e1f213afabf1c437df3c086cc"
         },
         {
           "line": 47,
-          "column": 17,
+          "column": 18,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#A8B2BF')",
-          "id": "384c7640eda939b3d557c48e24840cb77aea6e9883c828ab7bbfd6e8a40ee436"
+          "literal": "Constant(value='#C678DD')",
+          "id": "0a5a31f0f324903b8b78aae4acaea48ccf27403cc803f1957c4339a156ff8850"
         },
         {
           "line": 48,
@@ -31446,44 +31428,44 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#3A3A3A')",
-          "id": "0f080694c0056df8af2553b4d6f0ad8a5df4da8a643f2e1a317bb0ab3e658af3"
+          "literal": "Constant(value='#56B6C2')",
+          "id": "bad674b6e28993d009439b82f76bbb0d29112cb5e060cfbe348f8739ac4cc0bf"
         },
         {
           "line": 49,
+          "column": 17,
+          "symbol": "HubTheme",
+          "role": "AnnAssign",
+          "area": "declaration",
+          "literal": "Constant(value='#ABB2BF')",
+          "id": "d31c7c55d9963adfd790b654c5f223a7ae4a4ece4924e7638a877e1b163c741b"
+        },
+        {
+          "line": 50,
+          "column": 16,
+          "symbol": "HubTheme",
+          "role": "AnnAssign",
+          "area": "declaration",
+          "literal": "Constant(value='#5C6370')",
+          "id": "d4510e03232c3b456a1543b2cb7a035b748f7c29fb86b4ca454f78adfd7d1d02"
+        },
+        {
+          "line": 51,
           "column": 24,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#1D2035')",
-          "id": "c776fe3f7cf181759e96d30609d49f5728ddbd728e1a6dadbc0a2d7c4fcdc967"
+          "literal": "Constant(value='#282C34')",
+          "id": "adad63c65b6b0f276c544baf743dd71bd1acceac1ccd6ec63e3a187ead355070"
         },
         {
-          "line": 50,
+          "line": 52,
           "column": 22,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#F08B94')",
-          "id": "05323ca7746ca643ff189ed606218c1b66ebd8931255867c006bcd8833829f80"
-        },
-        {
-          "line": 51,
-          "column": 25,
-          "symbol": "HubTheme",
-          "role": "AnnAssign",
-          "area": "declaration",
-          "literal": "Constant(value='#EAAF83')",
-          "id": "7a9f5d0822f4d2e78179414ac7985dd51b97c746a6329626a8e8c56fb35be38c"
-        },
-        {
-          "line": 52,
-          "column": 24,
-          "symbol": "HubTheme",
-          "role": "AnnAssign",
-          "area": "declaration",
-          "literal": "Constant(value='#B3DC95')",
-          "id": "0dff682da624a1a3ea1dfa931e87162f2c1010898ade655f0e8eb1c0f4cf2053"
+          "literal": "Constant(value='#E9969D')",
+          "id": "70a7446c1a37372a2bb1e7b9d2b5390f4198f445952f0c5e5c6866cf5b6558d9"
         },
         {
           "line": 53,
@@ -31491,17 +31473,17 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#F3D99A')",
-          "id": "b933a7f23a4f8f4851ecc3d9025978f927f073a226acc1a5ef1d9d39aa91fa8e"
+          "literal": "Constant(value='#DFB28D')",
+          "id": "c2a8cf3371d43a2e0b7cfa70310a07d9e9e6993b76e9da87b042a61a9feb6808"
         },
         {
           "line": 54,
-          "column": 23,
+          "column": 24,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#82AAFF')",
-          "id": "410923928b2df698404ca44b471776dc9f1e51d7ac9197e526319f044741694f"
+          "literal": "Constant(value='#B3D596')",
+          "id": "e8670efcb407fea375e96fcc6c758766a7fe9d72875ee47bb15a86d482767372"
         },
         {
           "line": 55,
@@ -31509,8 +31491,8 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#DBA0EE')",
-          "id": "272a8b01ef53ef0a5a6a1b0caed1797660445f768a55c36d117c4c15b171d2ad"
+          "literal": "Constant(value='#ECD29F')",
+          "id": "085280df92248bdff56209e0c28b1f7097e2836968f9d9b8dc6597a3fc4e47a9"
         },
         {
           "line": 56,
@@ -31518,17 +31500,17 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#7ED4DF')",
-          "id": "f4ef109f7e32ab2b4ca33955d0ae5f56113c475a6302d8b729089f6fe8988dbc"
+          "literal": "Constant(value='#8FC6F4')",
+          "id": "6ce9dcdaab3dce86600c2cab8b840f70b69dfba683398df56478f0586647c20d"
         },
         {
           "line": 57,
-          "column": 24,
+          "column": 25,
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#E6EDF3')",
-          "id": "3adfc1f525e136e253d4f0f437d0b474fc6cd457b7b4182f91ad283cb9501184"
+          "literal": "Constant(value='#D7A1E7')",
+          "id": "45ee1c1aedb966c1dbf1eeea7b36781568b9a5d17a7d85d7dcf35e8b09273f47"
         },
         {
           "line": 58,
@@ -31536,20 +31518,38 @@
           "symbol": "HubTheme",
           "role": "AnnAssign",
           "area": "declaration",
-          "literal": "Constant(value='#8595a5')",
-          "id": "76e235ca9482dd4cec00d75a14a8340e9cec9958399bf8772ab952d76d077680"
+          "literal": "Constant(value='#85CCD5')",
+          "id": "011203deb99823f99a8f82f6f4e3d98ef2964d26c3eb877bb220907f6a5831d2"
         },
         {
-          "line": 95,
+          "line": 59,
+          "column": 24,
+          "symbol": "HubTheme",
+          "role": "AnnAssign",
+          "area": "declaration",
+          "literal": "Constant(value='#E6E6E6')",
+          "id": "eb1b0647b19258fb93fb3a1cbb900d7f9f206be06ab16de1954702e0e4060b0b"
+        },
+        {
+          "line": 60,
+          "column": 23,
+          "symbol": "HubTheme",
+          "role": "AnnAssign",
+          "area": "declaration",
+          "literal": "Constant(value='#828997')",
+          "id": "b550c0e941055113fcc04d5094f686dd88c053ffea936869ff99f63097695b5f"
+        },
+        {
+          "line": 97,
           "column": 31,
           "symbol": "HubTheme.__post_init__",
           "role": "FunctionDef",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "ccd46a000261ab52a50a5a05c957aa69d0eb982c29ef25e93a437c12ac205111"
+          "id": "5b995e3b9354b91a1728ab81182d4c22905dda21f862d2c211c878b29feac0d1"
         }
       ],
-      "sha256": "6f6e69c7f41f8d9ff32b60ad283b386384cd61c142e72566c0b5b3980b101dad"
+      "sha256": "d80131f2fada09148d8f1f1b39f888e387b58bb724dab05314ea4df16057ff56"
     },
     {
       "path": "hub/config/theme_style.py",
@@ -74414,240 +74414,231 @@
         },
         {
           "line": 62,
-          "column": 25,
-          "symbol": "SettingsScreen",
-          "role": "Assign",
-          "area": "declaration",
-          "literal": "Constant(value=1)",
-          "id": "e90e58bf6ba271488653d27044be4a840782c8409eaf4d5ad2a15ff0b6c45261"
-        },
-        {
-          "line": 63,
           "column": 17,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=0)",
-          "id": "b9ac6c5d3e0788118c6395d874d4fe4c2c4f6e952e99ff95d5c065a615037b77"
+          "id": "224778421d6f640e890f30a8c921f528ac7e88339267b422cb2843fa7ddf5761"
         },
         {
-          "line": 64,
+          "line": 63,
           "column": 19,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=1)",
-          "id": "de037a2bfa5b6a54fb9f4b56c5fc2da3186ee95c5573540613c810c2cf8cf978"
+          "id": "15680483069fa93455ada602ec466d72fc493b03123c9bb0792effd41de2967f"
         },
         {
-          "line": 65,
+          "line": 64,
           "column": 22,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=False)",
-          "id": "c527e586d392beee07938478ec314ce2c4b4ee27cefb456ac75c542868f2537d"
+          "id": "3c9942e656f9c17e161233e42eec37582f2de6319c54339f8f4f4f3c13263456"
         },
         {
-          "line": 66,
+          "line": 65,
           "column": 19,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=True)",
-          "id": "d3be2df701a32c500d2429515fbb8b7a1ad9ec0f8fa3b7bae2ded6cc84d5faf9"
+          "id": "d5cf8c3588b1264675e51f6bcdfb9a997dadc6a58fd527d2242a7b0f9118b1e8"
         },
         {
-          "line": 67,
+          "line": 66,
           "column": 21,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=True)",
-          "id": "394f950023eacd95f70afceb1c14f7ac22df1bdd6d4d56d65247c58831edd317"
+          "id": "cc5e67cf3f7366cb5d0676d70e0c87b283d2f64c8affb2de0cc31398623f61c4"
         },
         {
-          "line": 68,
+          "line": 67,
           "column": 20,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=True)",
-          "id": "371e44154d9022e6240ad1df528596685d68beedee4faa60e96e337f5bab66e4"
+          "id": "d8feb1852123cb520759c2f6c01a89a58c39b20125cd091c12190b6b370c07ad"
         },
         {
-          "line": 69,
+          "line": 68,
           "column": 28,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=2)",
-          "id": "030b74925f87d19af986b5cf361dae49d9d4cb796a69d92f064e3f4d60348c91"
+          "id": "fef59387044863dca37ae4eed238a7fd0026608449058873044482b0013b7724"
         },
         {
-          "line": 70,
+          "line": 69,
           "column": 20,
           "symbol": "SettingsScreen",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=False)",
-          "id": "b9659aceb9da05e74b6793620ea27380a95ccdf6ae72f0d491497736fdd66b48"
+          "id": "29f9f3349d42e248db182f9e09023dba0d0608b3a7e344d5a681747f4c2ba019"
         },
         {
-          "line": 86,
+          "line": 85,
           "column": 32,
           "symbol": "SettingsScreen.__init__",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "952548af87cddda9cd8d681f772dd5822e2a46135ba828c35fe35df5fd5d073f"
+          "id": "125bd9d85c85ecd7e8a22f6e6d4248186206b529f682040ef0f02c4f11fd2f17"
         },
         {
-          "line": 87,
+          "line": 86,
           "column": 31,
           "symbol": "SettingsScreen.__init__",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "ea58d6342a6a93d403ee133cf49919d2031da71df359ab363c96f7fabab2d67f"
+          "id": "170963e1b6cddb6e7165d3bfa535038ebcca22225015780e2fee3e0ab69bb02d"
         },
         {
-          "line": 88,
+          "line": 87,
           "column": 28,
           "symbol": "SettingsScreen.__init__",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "4c529ba5ac8e0cf8b68047ca58b284d25d19849144b9ae6ab25ec1f8dd82b579"
+          "id": "696cce27ecb5ca4942f9e0073a06a1cd0ff805c786669b7afe9ee50a0eb1a05d"
         },
         {
-          "line": 213,
+          "line": 212,
           "column": 31,
           "symbol": "SettingsScreen.reset_draft_page",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "4831071e844aa1c2c6d7ecb4dabe1f612ccf8ba630b6111cfd0026e3f4ea5d32"
+          "id": "9fcd7ae984ff8f26ff983b5134f351ffe32af76e3974987538280d71a81482df"
         },
         {
-          "line": 273,
+          "line": 271,
           "column": 70,
           "symbol": "SettingsScreen._sidebar",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "f706fed9fecb7913523553f7270711381a406106b67b1d609f9cd20049344c48"
+          "id": "34172da33aa5f453196018eb554e4c9335982e57bcbd3e93c1adc88a92762338"
         },
         {
-          "line": 396,
+          "line": 393,
           "column": 35,
           "symbol": "SettingsScreen.open_project",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "6169afb13134ddfc1f18d44c1ef93ceb831bba4e92e95fa236776fb102f4f0a5"
+          "id": "39ada735322540b40832ce2d582929308e3ce2b54862de8292bec9b4c3b3d7de"
         },
         {
-          "line": 462,
+          "line": 459,
           "column": 71,
           "symbol": "SettingsScreen.call",
           "role": "arguments",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "78eaa043a5dea059ea7a52356d2449a52c90bbc24def41f41289a98fbf67d53a"
+          "id": "dabe52937c8fc4d388cb1b2f726b49801241bbdc198b94030e9dec6c351a1bfc"
         },
         {
-          "line": 504,
+          "line": 501,
           "column": 29,
           "symbol": "SettingsScreen.reset_usage",
           "role": "AugAssign",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "d8e169dc8af7f8277ca36438fd2c3d87c8c11d2afde2c6878ab936a47da18838"
+          "id": "3a04fcb5e9a353846f1a04c12ee3eda20eb59f9c4c497f9e92310b9f2d4c5ea0"
         },
         {
-          "line": 505,
+          "line": 502,
           "column": 32,
           "symbol": "SettingsScreen.reset_usage",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "05718d6f4859443fd6fed246c2e2f0e11261a6f3608af481618ecb6a02724e96"
+          "id": "798799b8c0f4515c90cb966b63c7ead2c688a353e6619b11ed9a10e6d3e7a146"
         },
         {
-          "line": 508,
+          "line": 505,
           "column": 66,
           "symbol": "SettingsScreen.load_usage",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "da5549f1f6db2965ec913def2f4897640887ada1c989b104f00b483ccedac649"
+          "id": "1c90221d4e923a402c7a4aeaf5efde232c7ea2d507fef0f38fc33de9435e22a6"
         },
         {
-          "line": 508,
+          "line": 505,
           "column": 89,
           "symbol": "SettingsScreen.load_usage",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "9038c989ac8eddf4bb4a1e7e3e293e955488b2198fd25b25b8e7654e38351587"
+          "id": "82829116a4d350c7d8f94cc04bf4e23164a814a9c706dc6f26257de41d2b9a43"
         },
         {
-          "line": 511,
+          "line": 508,
           "column": 32,
           "symbol": "SettingsScreen.load_usage",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "1c56fbd72744f49bf74aabc9404e94f0f1d49752618a3840e72c402632f67f03"
+          "id": "4bc3d4f7f88a59d38b4f912cfa5fa1540de3090b09a982b02e90db60927832d2"
         },
         {
-          "line": 515,
+          "line": 512,
           "column": 24,
           "symbol": "SettingsScreen.load_usage.loaded",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "d5c96e9e39ab6d5808ac8e7d87cf3129691f0b07375cc19a8e430054596964d1"
+          "id": "b139cd01d66623b7524666bcd9bd3c002c83bb0c314462c275bf02b5b181313a"
         },
         {
-          "line": 519,
+          "line": 516,
           "column": 27,
           "symbol": "SettingsScreen.load_usage.loaded",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "b5fce477074071bf6bf88613fe2614bcd1268c16c3591f6c4724251e98f53a09"
+          "id": "bb7e57d9baf63023ff1b733cadf098cf57d26834573f398364ef32eac31ef6c9"
         },
         {
-          "line": 522,
+          "line": 519,
           "column": 70,
           "symbol": "SettingsScreen.load_usage",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "d7491fa44e97f87a68e6ccdfa3b2b4d60bc3c8c26e117df18864a83229909272"
+          "id": "a1c2fe075c3907e3888f220468700cc2b767abd44e724fff465b799c8e5981cc"
         },
         {
-          "line": 547,
+          "line": 544,
           "column": 65,
           "symbol": "SettingsScreen.loaded_catalog",
           "role": "Tuple",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "c942d5d04d24c857851ae77a0e5c82c3f8e5269d2d1d5810f8cb3516a4cbcbc4"
+          "id": "111c33c3801c756a6453fcfb89bb5d922204d8a9fc79e9803a784b5562735ca7"
         },
         {
-          "line": 615,
+          "line": 612,
           "column": 29,
           "symbol": "SettingsScreen.show_page",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "39cd734decabe1bcd4e7bf30374582cae4d0f3f9b68367c5ad165a2c9818ef58"
+          "id": "14b5b17ee34faf8a8e70c0a232d5caab9f8fe1630627f41606a24c1d651bd10c"
         }
       ],
-      "sha256": "ccb7a676f18367e7933eeff776f626722ec68d0c4209ce9e6a1d5e68fdd65afc"
+      "sha256": "b19ecbcb57018851c08b6624ce11c2a52ecb1e7f3df0139f99331b7175db3f6f"
     },
     {
       "path": "hub/ui/settings/sections.py",
@@ -76993,25 +76984,25 @@
           "id": "b61f0528cd7e32a7006f040a06edeb37657bb04e779583c11cba7253af594f6e"
         },
         {
-          "line": 609,
+          "line": 612,
           "column": 50,
           "symbol": "HubView.set_output",
           "role": "FunctionDef",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "b0a57bfb4e102e2e36abbced1dae7efdfdad0212dc62362a4968565bc71e5bf0"
+          "id": "e0588639693b490fa199703a7968f46d9cdf9a18ffe2638867c9001ae2d37942"
         },
         {
-          "line": 632,
+          "line": 635,
           "column": 23,
           "symbol": "HubView.close",
           "role": "FunctionDef",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "9b72e7efceb9ce046e3ca845db13c4d675188019016d7bc10a63edea87f74acb"
+          "id": "fe617136d65d6ed518e70390db103c2a2e9cd712f0684c9a8d574ede3af1612d"
         }
       ],
-      "sha256": "e1d4462e6751b9cba55c6a5f855af007a8ba7c96a21966c5cd2c034b537944eb"
+      "sha256": "c0f7d313fa7abf0cdcda8d72c101c6af516742891389f09400044f5457ccfb5c"
     },
     {
       "path": "hub/widget/__init__.py",
@@ -80870,166 +80861,130 @@
       "status": "reviewed",
       "candidates": [
         {
-          "line": 20,
+          "line": 24,
           "column": 11,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value='class:completion-menu')",
-          "id": "c94fcb44a05c5e010ec0c7e70dbc2131d678acd50dd76bf5d33fd50684a8d435"
+          "id": "b6a6924e6ea39621dcf8abbb93a91a3399087f32df63822509b804a14ac40263"
         },
         {
-          "line": 21,
+          "line": 25,
           "column": 13,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value='class:completion-menu.completion')",
-          "id": "846ff197c0d8e177d6e9b124f0c19d8004bcb723b2ad9064cfe7a66646680563"
+          "id": "8fed405226063bee6f47a67b9e26294e15765aa66c8e843b0cfe0739e8ed6f05"
         },
         {
-          "line": 22,
+          "line": 26,
           "column": 14,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value='class:completion-menu.completion.current')",
-          "id": "3aa0cbfd0675fb2b185f1cb2192a985b9a61e7dc8d9f144748b190dde1b652b0"
+          "id": "03ad9d0bf124041a859d29d87937c9cc7b6495eb31563754feac64dcd1a4df7f"
         },
         {
-          "line": 23,
+          "line": 27,
           "column": 16,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=1)",
-          "id": "b34c25b761d5579b41bc0fb9699248ed30296f7d2212635ef11ff7818b71eb8f"
+          "id": "b0aa20a6571d08b7facd274d3c477cffec4b0f4561035f0bf3bf3d5f92bb9cea"
         },
         {
-          "line": 24,
+          "line": 28,
           "column": 22,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=1)",
-          "id": "f662e0c60d93f576a3c727455b554250ff16b77ca99214a53ad66309777ead14"
+          "id": "f71cfe1af70b8b9d64b3d29852f861f7868fceb9aa42d38808387a37ecb0bb16"
         },
         {
-          "line": 25,
+          "line": 29,
           "column": 20,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=1)",
-          "id": "d8598879585d84e33a69245ddac92eea879185d8338a38f9490436813e4b7b0f"
+          "id": "72e1f360ee4cb489f5fc5769e8258e49802d20c3d855b36148fb29d838365013"
         },
         {
-          "line": 26,
+          "line": 30,
           "column": 20,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=1)",
-          "id": "537a0617fc9b7a8f272ddd9bd0e73a04c20d649a1d035caaf3cba3b0c52aa18f"
+          "id": "91c8daa5539870a8e0879c4863a6144fcadd45cab04fa8d9aa03372f68ba31eb"
         },
         {
-          "line": 27,
+          "line": 31,
           "column": 12,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=' ')",
-          "id": "2fbb64daa07bf6712caa1b2f789f04dc347ec480205ce31ca1f409b9d5f372e5"
+          "id": "5eeddb93ab2ca5d99e59269076b5882858acd452e6c0ab8ec595586a07dfab3e"
         },
         {
-          "line": 28,
+          "line": 32,
           "column": 14,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value='\\n')",
-          "id": "8dadd57b6856631902b11c263a9694ad13d28b05e445c55a42a14b8eb3ec22dc"
+          "id": "3eb0fc8c1dbb7522f89a13f97a3073a089edfe0c50100ecb15b520fd9c6d2e69"
         },
         {
-          "line": 29,
+          "line": 33,
           "column": 17,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value='')",
-          "id": "472e6d367cf5dedcaf16f14266ef503698f85e8df8300942844dc68952f0cd56"
+          "id": "f234b7f00734e817f5e921660f157ef7e617aa5331fe6423da5f37426b7da747"
         },
         {
-          "line": 30,
+          "line": 34,
           "column": 22,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value='[SetCursorPosition]')",
-          "id": "59badf43a06e77b1c2258f18f412c329d841f50b8286b9cdd300758dce13c0bf"
+          "id": "c0a925ced8c8b8dc8c28e9438191bebb545a158249ba7c08f8b1809c1881d063"
         },
         {
-          "line": 31,
+          "line": 35,
           "column": 18,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=False)",
-          "id": "8b58ab5c261295fd180391fb41a7c3f6f4960774fbb91b29718e9d5a0af661ba"
+          "id": "3c220fdee4cf1eef204b32a24e9f8577a23de1bcaf0c539180f0f67c933644ad"
         },
         {
-          "line": 32,
+          "line": 36,
           "column": 18,
           "symbol": "CompletionChoices",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=False)",
-          "id": "71a6b409984ff90fdfee087b9660c26cfce2b6e05e4608e84a0ddb786a829e4b"
+          "id": "894861b2007dd05f88e47d94a78d51b5d48b885a0417b53e7976bc8b91db2fd1"
         },
         {
-          "line": 68,
+          "line": 72,
           "column": 13,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=None)",
-          "id": "951877b4b2cb78e39ce8a70c56733ac26486ebd1c4b562d1532618c7995687af"
-        },
-        {
-          "line": 69,
-          "column": 18,
-          "symbol": "DropdownBox",
-          "role": "Assign",
-          "area": "declaration",
-          "literal": "Constant(value='')",
-          "id": "6d5ee01cfe34b99b55064b629f20fd2f30b88669f53bc2d1a551911706476181"
-        },
-        {
-          "line": 70,
-          "column": 13,
-          "symbol": "DropdownBox",
-          "role": "Assign",
-          "area": "declaration",
-          "literal": "Constant(value=False)",
-          "id": "dcc90f22b1d378959c9526425ba8cad39544b45f750467c4bc03eea2c692b59e"
-        },
-        {
-          "line": 71,
-          "column": 15,
-          "symbol": "DropdownBox",
-          "role": "Assign",
-          "area": "declaration",
-          "literal": "Constant(value=True)",
-          "id": "89867b7dbfc30b9c1fbe8fc350f1634b645ad5ae805748ba74a83719e271cf2c"
-        },
-        {
-          "line": 72,
-          "column": 20,
-          "symbol": "DropdownBox",
-          "role": "Assign",
-          "area": "declaration",
-          "literal": "Constant(value=16)",
-          "id": "29209279361ec00d1190196a2419490a4b807cfcd4ad9c2cfc37a960b5ff88c4"
+          "id": "7b30c4d12ddb08074c8c52e28e3d4ffb2201b196232fc88921e8a935d36e6ef1"
         },
         {
           "line": 73,
@@ -81037,146 +80992,254 @@
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
-          "literal": "Constant(value=8)",
-          "id": "c9a5d454d10b160d882f75831bc2e0f00e18acec1f96bb0451d0a5b51ddc62c2"
+          "literal": "Constant(value='')",
+          "id": "910bd017fd8bf21cfd972989761c7c7ad8669c6701545eaf7153fd80bd422a42"
         },
         {
           "line": 74,
+          "column": 13,
+          "symbol": "DropdownBox",
+          "role": "Assign",
+          "area": "declaration",
+          "literal": "Constant(value=False)",
+          "id": "dbae66d6bc2a053e6ed54395eb7c179f590605af6988f5c61c37d559e0f262c9"
+        },
+        {
+          "line": 75,
+          "column": 15,
+          "symbol": "DropdownBox",
+          "role": "Assign",
+          "area": "declaration",
+          "literal": "Constant(value=True)",
+          "id": "7cf5a8f4c29132159a53214f6687720eb33c469da6d586e00e80229f09ffaa07"
+        },
+        {
+          "line": 76,
+          "column": 20,
+          "symbol": "DropdownBox",
+          "role": "Assign",
+          "area": "declaration",
+          "literal": "Constant(value=16)",
+          "id": "469579fa7aaee91609bad6a963e5e174290ce170b09b338f6c9ad11e523de257"
+        },
+        {
+          "line": 77,
+          "column": 18,
+          "symbol": "DropdownBox",
+          "role": "Assign",
+          "area": "declaration",
+          "literal": "Constant(value=8)",
+          "id": "b152b8f81c62f3f7b93765ac8483be63f26b8d57e1538e6d351f11a08a25e635"
+        },
+        {
+          "line": 78,
           "column": 16,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=0)",
-          "id": "a7fd3ba8c74295ef4bba3dee7583a4e68456338ed2c0f99ec96237676026adef"
+          "id": "c588e90e313b2a9e3552d688e76355496213bc2fe8ee93dd77a680f4e27beddc"
         },
         {
-          "line": 75,
+          "line": 79,
           "column": 17,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=400)",
-          "id": "337a97d1cd470f8a3e897e559364f7c3939059296942ec450d74bf1919f65579"
+          "id": "365778ad70541f88a6a83863736c6df26ca78c95f2bddb5854f8bcf296613080"
         },
         {
-          "line": 76,
+          "line": 80,
           "column": 17,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=0)",
-          "id": "79319654d8e66d1229fb4b76b177e61048c77d0cd919257d0fd1abb0dc539e22"
+          "id": "fdff7ca7c41c7eaaacefb7fa3713637b78cb0776f7d11757693753492ac7cefc"
         },
         {
-          "line": 77,
+          "line": 81,
           "column": 24,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=1)",
-          "id": "ceb02dc712eedd6beb4d6e19b8d126756d86cd66410f0db2359f1344166a665f"
+          "id": "1cd666d953af8b7bc68a5a6e7077139c75b920133c58601d490dbd5b92af2eda"
         },
         {
-          "line": 78,
+          "line": 82,
           "column": 29,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=4)",
-          "id": "1fe81f713aba8d4cfc766664efe0a007a08f3e4c322347001541e4f1d596a74e"
+          "id": "cff9b5f673176272768dd0716e90e05513afd85077b51c183fbed8df2b45b69a"
         },
         {
-          "line": 79,
+          "line": 83,
           "column": 24,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=' ')",
-          "id": "dda26261f9e2799e0b2b9a60977d12a75b7c465045e239a105b581a63b2a1965"
+          "id": "50e971054ab395def2f37117a93e2ff160dd8f7db19455cb84926531200b67bd"
         },
         {
-          "line": 80,
+          "line": 84,
           "column": 19,
           "symbol": "DropdownBox",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=0)",
-          "id": "1a057731644cfe48bb5f4a481497b4a15ac1de3003bfdce4f7b7714a35225a1d"
+          "id": "66a8fb5bfcfbc8764187775f32c47bc10b7849354afad6d910818a0b9795bcdb"
         },
         {
-          "line": 126,
+          "line": 131,
           "column": 24,
           "symbol": "DropdownBox.__init__",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "781044e355dc40c8d02056022f29af451e9006a21173b0a8bc8618df076ac763"
+          "id": "a51767b3cf87727e0ab42335a6dd175fe1a5cf950c2e2cd3d9b80947828d2d3c"
         },
         {
-          "line": 129,
+          "line": 134,
           "column": 27,
           "symbol": "DropdownBox.__init__",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "db3f1d8e74c1076e7f315ee24c7faf0f2aaa36de2a83f846d09db18865185fc2"
+          "id": "a406c7dc7c647c6a2a03dc264c7b6b6d8fc9ae6c245a3c5f0ddc7031a88dbc4d"
         },
         {
-          "line": 161,
+          "line": 184,
+          "column": 20,
+          "symbol": "DropdownBox.menu_geometry",
+          "role": "Call",
+          "area": "implementation",
+          "literal": "Constant(value=0)",
+          "id": "ba1fe97378763b87416d5182ee5cc88b52eadda3bfd7d4cf1fa7a4e07ba4c84f"
+        },
+        {
+          "line": 185,
+          "column": 20,
+          "symbol": "DropdownBox.menu_geometry",
+          "role": "Call",
+          "area": "implementation",
+          "literal": "Constant(value=0)",
+          "id": "4ace981ae4d93e402ab7d088723a83ee694d168262f1c16dca70f36b23138464"
+        },
+        {
+          "line": 195,
           "column": 28,
           "symbol": "DropdownBox.visible_bounds",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "44682b66d2026e5c55a2d178491a8a11cde3791958a8de8b97195ce1746f75d9"
+          "id": "7547a7dbf3ff30d3b55559e37fcb6d0736da959e331cd4f6b7664e4998c5f312"
         },
         {
-          "line": 165,
+          "line": 199,
           "column": 15,
           "symbol": "DropdownBox.visible_bounds",
           "role": "Tuple",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "509128f2e702d04ebb64dd6a5205104de7af584638fcfacb1ff7bad0998f2934"
+          "id": "40541b5ff3f212b248c3d00a7973494b461f4c62791ed8ec16d6156db78e6dff"
         },
         {
-          "line": 170,
-          "column": 24,
-          "symbol": "DropdownBox.write_to_screen",
-          "role": "Call",
-          "area": "implementation",
-          "literal": "Constant(value=0)",
-          "id": "a053e4967cb1953d41d4a9c5d54fd9b892d58f6c6c39688da41b1577eb523e3f"
-        },
-        {
-          "line": 171,
-          "column": 24,
-          "symbol": "DropdownBox.write_to_screen",
-          "role": "Call",
-          "area": "implementation",
-          "literal": "Constant(value=0)",
-          "id": "32d8c5a334d3a125f90027ce3444ceba52ef5b82b7cf21fadd56d2ca98b249c3"
-        },
-        {
-          "line": 175,
+          "line": 204,
           "column": 31,
           "symbol": "DropdownBox.write_to_screen",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "54b9ada764cb1d97dd37a6fc7e280e89161fc69eca6b2462c5e22a06c6fa2c5d"
+          "id": "eedd5d5590819ee5b0fed5f6168fd88a3833e12030693fba4c036d4892ecb65f"
         },
         {
-          "line": 217,
+          "line": 245,
           "column": 66,
           "symbol": "DropdownBox.commit",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "4aaa12bd9f0e308e937b6021e6e3609ea17f4c4975d64681b00ee98933e89711"
+          "id": "cb1cf3fe3ffd367dddca31b6383880c2b0540e5f75dee6636a701d1cc34c8df8"
+        },
+        {
+          "line": 258,
+          "column": 23,
+          "symbol": "DropdownMenu._draw",
+          "role": "Compare",
+          "area": "implementation",
+          "literal": "Constant(value=None)",
+          "id": "faa4cdabd6c8bef5a321c09673c5429f31231089a378e6086b73508c466e058f"
+        },
+        {
+          "line": 261,
+          "column": 21,
+          "symbol": "DropdownMenu._draw",
+          "role": "Compare",
+          "area": "implementation",
+          "literal": "Constant(value=None)",
+          "id": "2eec5f093ab5d183b3e1b59f04ac2455d16fcf079b62e9f156a35d846571e4b6"
+        },
+        {
+          "line": 264,
+          "column": 23,
+          "symbol": "DropdownMenu._draw",
+          "role": "Compare",
+          "area": "implementation",
+          "literal": "Constant(value=None)",
+          "id": "de9b1bc7ec0127b22108a47f207389e3dc7511c2f56769457aafcfd45776a73e"
+        },
+        {
+          "line": 273,
+          "column": 55,
+          "symbol": "DropdownMenu._draw",
+          "role": "Call",
+          "area": "implementation",
+          "literal": "Constant(value=None)",
+          "id": "630e380921e8b8267f160b4fb7ae7ab4b9f61666943fa4fbcc6fe105de2fdca4"
+        },
+        {
+          "line": 274,
+          "column": 55,
+          "symbol": "DropdownMenu._draw",
+          "role": "Call",
+          "area": "implementation",
+          "literal": "Constant(value=None)",
+          "id": "95ba776d49a0cbdee642bb24fb9791efccd3c46f5ba1d3663d329ccf259a14f0"
+        },
+        {
+          "line": 278,
+          "column": 52,
+          "symbol": "DropdownMenu._draw",
+          "role": "Call",
+          "area": "implementation",
+          "literal": "Constant(value=None)",
+          "id": "dde88b8f0798e93c6ded3d860e694929171d2a28316e12d4b5587e3c5abedc90"
+        },
+        {
+          "line": 283,
+          "column": 22,
+          "symbol": "DropdownMenu.write_to_screen",
+          "role": "Compare",
+          "area": "implementation",
+          "literal": "Constant(value=None)",
+          "id": "f892be31214ddcd70d108c6c31c937f05372dda19d7fc4ad7df4be41b6f97ce0"
+        },
+        {
+          "line": 292,
+          "column": 11,
+          "symbol": "DropdownLayer",
+          "role": "Assign",
+          "area": "declaration",
+          "literal": "Constant(value=0)",
+          "id": "86dc13cd2a5c14c68363fb2d00f1b9edc479846a3c2e1e090a8f8185681eb38b"
         }
       ],
-      "sha256": "7df500ccff4bcae097e47546b1747d78950ba407d41c632d6aa6e358182879e7"
+      "sha256": "0be3c64e7ac14b87f1c0eb18dffff869986a88e42df0f2e375d8cb6baad44ef7"
     },
     {
       "path": "hub/widget/feedback/__init__.py",
@@ -84676,58 +84739,49 @@
           "id": "fbee7a2c91ce404d8d0af3b81418e0a027092a49c5e29209be6318f25f3deaf3"
         },
         {
-          "line": 175,
+          "line": 177,
           "column": 27,
           "symbol": "SettingsEditorLayout.select",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "488ff491e074dc145e6da48515e5eb405dbc2c77adf72f870485e0bb78518cd0"
+          "id": "8e9b1eae02c04cead561dd484f80d8928ab1cceb1bea37b88de8182cb6f31cda"
         },
         {
-          "line": 177,
+          "line": 179,
           "column": 31,
           "symbol": "SettingsEditorLayout.refresh",
           "role": "arguments",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "846db12565752ecf1536af4ab274e0c01206d54681e169833306e56c4fbbbb71"
+          "id": "a3dd644422a82aa1d9109fe88be03f68f6833a50c8fa1417640ec75c4510c33e"
         },
         {
-          "line": 181,
+          "line": 183,
           "column": 37,
           "symbol": "SettingsEditorLayout.refresh",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "e9d5e64f1f7c0b93494f88bcbcb0d2a261afbd76f7b92becd7804686503c63ca"
+          "id": "5da1b9618e2c2d1428c3439bd23aa87ef8c530b8a38b3c38de9b17dc4e1ca9d5"
         },
         {
-          "line": 182,
+          "line": 184,
           "column": 38,
           "symbol": "SettingsEditorLayout.refresh",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "931af7ca112b33e3f150b4958631348fb1010dd5e4502a34fc1c9732630331a1"
+          "id": "d5ffacd6baf9d7088254231da4d16b67bbe9666eae9a6f45e257990dcab0cdf3"
         },
         {
-          "line": 182,
+          "line": 184,
           "column": 53,
           "symbol": "SettingsEditorLayout.refresh",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "7f0cd2c97b566d5637e01f53903fde68afd1e6b529c6a85c1e62fe3f6d5a8c37"
-        },
-        {
-          "line": 183,
-          "column": 40,
-          "symbol": "SettingsEditorLayout.refresh",
-          "role": "Subscript",
-          "area": "implementation",
-          "literal": "Constant(value=1)",
-          "id": "cec75f2af2726e95c11e002e217a5d2142edc8cf0e09ee48d689d1338634ae73"
+          "id": "dfe64d6df3f3de98174f578edcb44fea1523164e63e5c8a6349c690b39a79073"
         },
         {
           "line": 185,
@@ -84735,155 +84789,164 @@
           "symbol": "SettingsEditorLayout.refresh",
           "role": "Subscript",
           "area": "implementation",
-          "literal": "Constant(value=0)",
-          "id": "b1f8b8ce7a920f1c2e82dae71db6d1833b9544e20bc09e330782cc2a48f83bd0"
+          "literal": "Constant(value=1)",
+          "id": "8db13f22f85ef5031428cdc125fd5743d11fcb43cb90f607340869e318e67466"
         },
         {
-          "line": 186,
+          "line": 187,
+          "column": 40,
+          "symbol": "SettingsEditorLayout.refresh",
+          "role": "Subscript",
+          "area": "implementation",
+          "literal": "Constant(value=0)",
+          "id": "6b5d434cbf82baa9de2275b823b757008f1721214d3676166c1e0cf8f2c088e8"
+        },
+        {
+          "line": 188,
           "column": 51,
           "symbol": "SettingsEditorLayout.refresh",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "848c8131e9a186c19fc1b8cad8a84a2803122bb2e00de07e15772f2d8954b87f"
+          "id": "0d37499402c9294ad4e9bc15e33be3685e8d1833872d94b4ebb82c2e201f340d"
         },
         {
-          "line": 192,
+          "line": 194,
           "column": 20,
           "symbol": "SettingsEditorLayout.refresh",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "041f5e800d32b8a32d81ad9268df209c7f2c0d7782b44278d03693f5d56a957c"
+          "id": "6113ca6fea409662f48418c86c0bad9bfefd31cf031bbce9ea68a25d305208bc"
         },
         {
-          "line": 212,
+          "line": 214,
           "column": 36,
           "symbol": "SettingsEditorLayout.refresh",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "4f061415c9af685a2b77cfd70f74e8fba334c2555064e111e237cbed66eb1820"
+          "id": "1bf36c1afb9ad9244d455c3e21e923d6c6538390a924c297baa107706fcf95eb"
         },
         {
-          "line": 227,
+          "line": 229,
           "column": 88,
           "symbol": "SettingsEditorLayout.move",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "106bd5c77828c74a027a8bf8a12d179bd7a10a1de01a49a521c8a3f5d575aeaf"
+          "id": "a06ca340aa63d0db605f760d040d1b94ece010eb7ae9e843426d58d91976eb26"
         },
         {
-          "line": 228,
+          "line": 230,
           "column": 18,
           "symbol": "SettingsEditorLayout.move",
           "role": "UnaryOp",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "f7666972673327011871aad9a8fb83f8ae34418121576f1b2b1b7b05e691db0a"
+          "id": "632808b58feebe817bbb5dc6f92e40eb33ca757c5a2e0e97782b74e50b3012bb"
         },
         {
-          "line": 228,
+          "line": 230,
           "column": 43,
           "symbol": "SettingsEditorLayout.move",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "b69ae77773059b6e3ce001e3971733776785d325db343f76365c01cfe32d1acd"
+          "id": "13ea14a5ea9d30d1ade2a9553c4eaf140744d5a38840ffe9ef5e5d301a1b9368"
         },
         {
-          "line": 228,
+          "line": 230,
           "column": 69,
           "symbol": "SettingsEditorLayout.move",
           "role": "IfExp",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "8aeaf750ff3fcd7c77b4032f937bbfea2e725eec35af5ef7006336678fbeca9a"
+          "id": "8c3131e7de630898263b883372871fcac5ee94a26c4c1a51a9ed96043a12cff4"
         },
         {
-          "line": 230,
+          "line": 232,
           "column": 48,
           "symbol": "SettingsEditorLayout.move",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "420db2996f78f5b9423500af9e5132c08c1f6fc8f3f79dc2ecb046fc03ea581f"
+          "id": "471b21ed4dd51c9b0dc5fd668c7d02c760340f08aa7594aa71a449afd78249df"
         },
         {
-          "line": 230,
+          "line": 232,
           "column": 76,
           "symbol": "SettingsEditorLayout.move",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "e69f08d40d0f52147da63c341f1863f82a63fbe93a0524a1c5004eef683ef0e1"
+          "id": "303f0f714e6f8fdf921d9fb16415d3b03f6ad556f7fe2eae3b346bafa1f42b87"
         },
         {
-          "line": 234,
+          "line": 236,
           "column": 40,
           "symbol": "SettingsEditorLayout.focus_fields",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "92e4137266d7652844520bab660cdc2ae95bdeb4770d6a47c6b96f01c8a26f55"
+          "id": "cb89de4dc4fc3259f591f19be3d667be64dd7b0746ce5b1e7795bc038261136e"
         },
         {
-          "line": 234,
+          "line": 236,
           "column": 80,
           "symbol": "SettingsEditorLayout.focus_fields",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "6cc9fbc7669d4a1bb50932957144cff33d1c84efd75210ca2701a10b43f65ffc"
+          "id": "688b472f37ecabf19c2e62b12886cd51263150f8b61ee6eb2d8485e41d91e271"
         },
         {
-          "line": 247,
+          "line": 249,
           "column": 88,
           "symbol": "SettingsEditorLayout.escape",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "b992fd0d5a9dd059c07a68a381586328b091526f2ec75b3d6773d5ba4707d4cc"
+          "id": "7d987ee2a9073b088ce14ea1d21092b00af67e0b3a9d59163337dcbdf03a3f36"
         },
         {
-          "line": 248,
+          "line": 250,
           "column": 25,
           "symbol": "SettingsEditorLayout.escape",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "e9a16f1685b8c304669c11cdb723fe1bd220d065ddda22916002a3aa7043b4c4"
+          "id": "13082c3886b2a46531ffd5b72ffab01a13a1e4511179d2ce5e043eaf9e55a648"
         },
         {
-          "line": 263,
+          "line": 265,
           "column": 28,
           "symbol": "SettingsEditorLayout.cycle",
           "role": "arguments",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "c1e35038d62af63732b7c7455628d52ef9dd602802836580e8e093bbf9f55a43"
+          "id": "9ad81ea349f90ac97eeb6681b1c61a12fd282979ee29a2caaf830e28bd3cde8c"
         },
         {
-          "line": 273,
+          "line": 275,
           "column": 56,
           "symbol": "SettingsEditorLayout.cycle",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "aed73dd71d072a8bf5fa2110c8ba33fec780b95af94529c4cdd3e31d95f7e64c"
+          "id": "82d4c7ee43e752e6332b8aa4dfb2983e79bc44d1b9dd2b36ca02aed370904de5"
         },
         {
-          "line": 273,
+          "line": 275,
           "column": 74,
           "symbol": "SettingsEditorLayout.cycle",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "43617c37a10510951531a2e4bf3cf4590faa28ff8299e2ca9bdc841c0f108273"
+          "id": "cd030daa3033270c2587bed9437038023a1cb18014f265d9cbb2cd181c1a1e76"
         }
       ],
-      "sha256": "7e7db0883a3e048d9695962bc7921aa5a8bbbc6c6429501a085e98848f777912"
+      "sha256": "4c990493f9da2f654783e170f12e1961860e63aa91ba29995be27be2d1a453fe"
     },
     {
       "path": "hub/widget/forms/field_layout.py",
@@ -86041,133 +86104,133 @@
           "id": "a4794e4c484e39814fc1840e833c4ccb92edea300d5f15d145fa2b9e51e513a8"
         },
         {
-          "line": 86,
+          "line": 88,
           "column": 37,
           "symbol": "MCPToolSelection.select_agent",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "821b099c8ce5265b987507f80ac445f7263342b1fcbf3991630a39dc17e31600"
+          "id": "163fdb1e7f8c72fdf25ef07c0897f4cd7e8acf076a5ca0c555528dfcc644fbe1"
         },
         {
-          "line": 93,
+          "line": 95,
           "column": 13,
           "symbol": "MCPToolSelection.select_agent",
           "role": "Tuple",
           "area": "implementation",
           "literal": "Constant(value='')",
-          "id": "6a2eb9fcbb805a8190d2d3f43735931f6bf333d41feb42564b58dbef8be66063"
+          "id": "493ce1313d3e42fb814724d2c411447348994a0650cbd5509d2a280f2c6f153b"
         },
         {
-          "line": 96,
+          "line": 98,
           "column": 26,
           "symbol": "MCPToolSelection.select_agent",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "b8b0b47b251d030c72e0973648fc147df3d9cc8730238db6477b710f5fccb945"
+          "id": "b4a02b573fabaa902a6e8ed59c47654504ade5b786c17caa58a447ea9fd49923"
         },
         {
-          "line": 98,
+          "line": 100,
           "column": 96,
           "symbol": "MCPToolSelection.select_agent",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "a07c87ac373930bd6f15e29923dd83416e52e112338fa4f0d6a21403dd34a485"
+          "id": "0b5d251c0b69ce87792be5a0944361d59798c3b36c871e6b8f90bb37ecfcdfd4"
         },
         {
-          "line": 99,
+          "line": 101,
           "column": 38,
           "symbol": "MCPToolSelection.select_agent",
           "role": "Tuple",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "7cf71a7a0d2e522f0729ae5e5664fb79244c867a7f4cbdf7c65189d39d64a802"
+          "id": "a7371d2fa474498dcb13230033745e5849b8597b9759edbc498f1ce22f439ed8"
         },
         {
-          "line": 100,
+          "line": 102,
           "column": 77,
           "symbol": "MCPToolSelection.select_agent",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "82ffc48707cf52ccee8bf007aa42eda052696396f4629e11e04f458ce8d835bc"
+          "id": "0f45eea9aa424b3394f7f770ca64dab283438a20bebbc21540ac73832442fbd3"
         },
         {
-          "line": 101,
+          "line": 103,
           "column": 37,
           "symbol": "MCPToolSelection.select_agent",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "ec5573a3c0adc5eb6b551be4434c6bb8bc9c8a8b3a315f38d0afc3a5241d2940"
+          "id": "973f74991f4a41887deeb75882a5b11a0d1620308cbc6db9c5483d12d430cd41"
         },
         {
-          "line": 109,
+          "line": 111,
           "column": 46,
           "symbol": "MCPToolSelection.apply",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "118982a1a3b6b9866b15a9f6fdcfefb88feb9a04d776d7968ad2a2eae50c8e8d"
+          "id": "81ea2da27a748fe7108af065f5b98e9b2ef998069e94bb137d49ac79850afde2"
         },
         {
-          "line": 112,
+          "line": 114,
           "column": 93,
           "symbol": "MCPToolSelection.apply",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "b13b3b162042cea037effa6098416085b3c2e62cc31d0b93ff6b94d0ff57d2d0"
+          "id": "c14b83caf435fe39235253d6f9b121a0e85b822b9af1b63aebdb4d2a71696472"
         },
         {
-          "line": 113,
+          "line": 115,
           "column": 20,
           "symbol": "MCPToolSelection.apply",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "8eb0e138512ccb70f7d8e647a06dda9699673d970ea7fee8e4f4bfc1ccc0cd59"
+          "id": "c1aaf75c9785eb498dd5c60096c42de4442d230e772139a1ee07150d3f382e42"
         },
         {
-          "line": 118,
+          "line": 120,
           "column": 24,
           "symbol": "MCPToolSelection.apply.ready",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "80cff5de4c4cffade7d07a95ccc3e7620e12ba7f31251c1010d33831b29bf28b"
+          "id": "79d3860ef403ebf65d0bda5848aaa3e148d98fc44bdda6695cf7f927d3576a04"
         },
         {
-          "line": 119,
+          "line": 121,
           "column": 25,
           "symbol": "MCPToolSelection.apply.ready",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "a2b19fafb7d438d10264f7ce100248b26b7af4335d821ee47ec2421037a5e1e5"
+          "id": "8ed91923ed39631f65d60f5ec0d34234efa4bb868cbd93483425e6ba4ef93ef1"
         },
         {
-          "line": 129,
+          "line": 131,
           "column": 61,
           "symbol": "MCPToolSelection.apply",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "7c00f46c386046a97e21b028e8099d26fb3b960ecbb86bf3d363394036b693f4"
+          "id": "797ebe44822811edc538ae8d90dfd5d3b7dbd403db16c9cd1663903147f30b45"
         },
         {
-          "line": 133,
+          "line": 135,
           "column": 24,
           "symbol": "MCPToolSelection.apply",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "8941f1201cf447fbf837c56528148221b4a96391142a4f5d5aeb462eee9a6dc2"
+          "id": "dbb978c5ec693a4a67064bf79e4f5262e89639ed75ca53b218c7ae0f40982699"
         }
       ],
-      "sha256": "bfaa58f2bedb5968564b0608814158bf09a467e9f490cb24d14c80b745cf7228"
+      "sha256": "4e3c2edcf814fb05951585455ac4f640eaa1ced56f3841ee07e966af4a7424a6"
     },
     {
       "path": "hub/widget/forms/participant_manager.py",
@@ -90743,403 +90806,412 @@
           "id": "c1b9e7ac101966ed4d5c964eabe5fb32f08684120798db1f8171a76d617bd5fc"
         },
         {
-          "line": 246,
+          "line": 243,
+          "column": 23,
+          "symbol": "WorkflowEditor.select",
+          "role": "Return",
+          "area": "implementation",
+          "literal": "Constant(value=False)",
+          "id": "8108023fd9cfc4da31f7c8c6673763823c12ccc256502963377f1467a4112a78"
+        },
+        {
+          "line": 248,
           "column": 15,
           "symbol": "WorkflowEditor.select",
           "role": "Return",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "d99a3974e8c0adec4bd43b1f7aec5ebc1de3f0c06fca6bc61b66a67f06296e65"
+          "id": "af6be89de1c42151ba2760579abeea498d462483a089701018925a65f71f42e6"
         },
         {
-          "line": 280,
+          "line": 282,
           "column": 75,
           "symbol": "WorkflowEditor.help",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "c425b2bb70388810536828322a0f573b1947879373c5b4d59313b2c01ca202be"
+          "id": "a63aa08b2f79ccf79b5d73c9441e808caeb88c1eebad6672a0c67562fa95da33"
         },
         {
-          "line": 280,
+          "line": 282,
           "column": 91,
           "symbol": "WorkflowEditor.help",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "2e5cf7add89b1c01ecb17c8cef6261c977c4efd25f31c241b847ed10093746c6"
+          "id": "e55905cc5f2eabfd6821c4015f183b2e79e2ffb0c61cf259eb5440a6c0ff027f"
         },
         {
-          "line": 291,
+          "line": 293,
           "column": 33,
           "symbol": "WorkflowEditor.arrange",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "0d3d8ea427477d155e9c2a77b0b35ddf49bc470552364f545d0234b13508ebf5"
+          "id": "60fe780c315a52a90dacd0fa6e117e0b6bfe0a62cc398127f6f859430752132a"
         },
         {
-          "line": 303,
+          "line": 305,
           "column": 24,
           "symbol": "WorkflowEditor.undo",
           "role": "arguments",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "6bda7c91ef447592f7b0e0cb901f4eb09bf45396bd9c01969094edc08085622f"
+          "id": "c9449f157a21b5f1794617571a66173f6dd37ff1af0cfbdca7ffd36591f23a46"
         },
         {
-          "line": 307,
+          "line": 309,
           "column": 33,
           "symbol": "WorkflowEditor.undo",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "7e6820d031c6ad89515694ad509156a01cd4ede0d3455cb84fdfafe0aa8eba71"
+          "id": "c879b82d56f442dde4b5a5915b6df37e44ed26bb3b2dedea7ec808f2da243979"
         },
         {
-          "line": 311,
+          "line": 313,
           "column": 32,
           "symbol": "WorkflowEditor.set_entry",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "87d25efa0f7fc2c318f699e0e80b07114c73fcc82a54dbf2c48e8f0ad9f9af59"
+          "id": "c06a392a783c16c6198cfa51971a8ec94d50f446294a25c536a98613c560d644"
         },
         {
-          "line": 316,
+          "line": 318,
           "column": 28,
           "symbol": "WorkflowEditor.enter_body",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "c6d7e4b72f5b596ee89e2df8b810cf89f4c84a929821347da85b1e0557aeb06e"
+          "id": "4e50eb4bfc6404b93dac7701f37c34a2e7dde8a48365307ae458f4c5be1bae1a"
         },
         {
-          "line": 329,
+          "line": 331,
           "column": 24,
           "symbol": "WorkflowEditor.enter_body",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "2b098a8080de60661a4fe83ca64ca8b5bf1f98354da157a0c4212999102d55db"
+          "id": "b69c4567dd214141d0f7f564e44a4b4f6c5b2171f621986b486d489b84d34f28"
         },
         {
-          "line": 330,
+          "line": 332,
           "column": 29,
           "symbol": "WorkflowEditor.enter_body",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "0920c9530877730427f28a86ae27bb95380985effb39936199863af55957fdca"
+          "id": "1def10bc1c1b833e08322feea34cd9d083e210c8d33902e3ed78c2ea8aac99e7"
         },
         {
-          "line": 335,
+          "line": 337,
           "column": 48,
           "symbol": "WorkflowEditor.leave_body",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "a0b8d1d8334c7a77ce95b89e6e34dea8558243ef7a55714fd25a1477143bbf8e"
+          "id": "28b462cef4e7dcb8773e06ff2bdeda0654d05c8bf83bcf9d198fc2daf507a165"
         },
         {
-          "line": 337,
+          "line": 339,
           "column": 33,
           "symbol": "WorkflowEditor.leave_body",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "8a11d73cd262b1e81adacc524784f67a5a4efc0308d0f52b8aff797202e110ca"
+          "id": "88bea46b04fd10896f688457f90cbb7d7462064cf6b46138ac4ced300b895220"
         },
         {
-          "line": 346,
+          "line": 348,
           "column": 27,
           "symbol": "WorkflowEditor.choose_engine.choose",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "e5f8826fa74f16519bd2db6058c37a9c163527c7a1df11b1359d9200e935d57b"
+          "id": "8b2e63213b72ef693b5bf67e6bf972fb3287fdb0cce46f0db73cece8befc7f54"
         },
         {
-          "line": 351,
+          "line": 353,
           "column": 76,
           "symbol": "WorkflowEditor.inspect",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "278fc48845d1d23cc75285a0c758953b9769f9edf6c1826b66517a3781565caa"
+          "id": "46675149357ea136df1d56a13ba24870f114d44927cec122d2588f5467ecaa28"
         },
         {
-          "line": 353,
+          "line": 355,
           "column": 28,
           "symbol": "WorkflowEditor.inspect",
           "role": "AugAssign",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "63647c4c6346901d642432005fea10bcd4816a1aa1d6513a4cb5398606b6ae03"
+          "id": "08ee828631a2c03b3569d47738fb631888c381e3dd4ad59188abae3dcce321f4"
         },
         {
-          "line": 355,
+          "line": 357,
           "column": 20,
           "symbol": "WorkflowEditor.inspect",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "a62e2a380d2628756baf6095afdd4c85a18c81ad9ad4dc9932d85dfcd9c33522"
+          "id": "288f68cfecd6d4642f88b8e8b650bc5a9102aec9bfbf41279913e46e7148949a"
         },
         {
-          "line": 358,
+          "line": 360,
           "column": 24,
           "symbol": "WorkflowEditor.inspect.result",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=False)",
-          "id": "0b3c07acff3260d29d9d77d468161416cc4432fcae90b4f13c8aaff35d6db668"
+          "id": "655ff6f40c97863eb8c31e85cb2c9e98c346e76ad449ddf4d8fab37b9cd3d7ff"
         },
         {
-          "line": 362,
+          "line": 364,
           "column": 29,
           "symbol": "WorkflowEditor.inspect.result",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "3b55ed17703e6147db9c6414a83e19b6a86d5e3d907a2123331e49e2893f6aa8"
+          "id": "d6312b355f12b172b9c0a309dd7c020e080f725e145485922fb6419cd8cd4f03"
         },
         {
-          "line": 371,
+          "line": 373,
           "column": 95,
           "symbol": "WorkflowEditor.inspect",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "4a2461bfbd6081dda61445290bcaa4790a33d7e0865547f445a7a1b1ee7cd5a8"
+          "id": "c6bb401637d4985264bbb444e2b8819c73b06b2a7e09bd47bcbda97939d582f0"
         },
         {
-          "line": 382,
+          "line": 384,
           "column": 38,
           "symbol": "WorkflowEditor.highlight_report",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "13e9b48f222f7114f8f767c0d21500ea42b8467248d2f20a9c8faaf802dfb2e5"
+          "id": "23fc70fd1408be149a61282844296449b4bce5a50955175fe9b69a3a82dd9df2"
         },
         {
-          "line": 387,
+          "line": 389,
           "column": 32,
           "symbol": "WorkflowEditor.highlight_report",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=2)",
-          "id": "941ee408dc6ec42cac98da23f502e9283322e4548bfa5e054ea05122ea7a4e5e"
+          "id": "bf52b4d74310dcb03898cc231a98182fa61f6bdc90b016e099e2158e019d3b58"
         },
         {
-          "line": 387,
+          "line": 389,
           "column": 43,
           "symbol": "WorkflowEditor.highlight_report",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "f91bc40e2c2ed5afa06902d09991cbf24ab22271e86538831e52904843940e1f"
+          "id": "538b714a409dc5130433f8f31769251979c6cd8111164d02b0321332a26a12fe"
         },
         {
-          "line": 388,
+          "line": 390,
           "column": 36,
           "symbol": "WorkflowEditor.highlight_report",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "792c86df2037ca17214b092e615826ab8976ffc47f1f035cb5ddd4afd1fec15e"
+          "id": "5058fa38237c879e30208e0a7c53a51497d5fed55435e410da1ae0c272f25636"
         },
         {
-          "line": 389,
+          "line": 391,
           "column": 34,
           "symbol": "WorkflowEditor.highlight_report",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=2)",
-          "id": "91964dc7ff259955d874315a141dbc31b933fcd11cafdc8af42083155a144db3"
+          "id": "085c31988b8ca02b414437fca429350b1fdcd917a1a1b4c234c56bb48afe14aa"
         },
         {
-          "line": 389,
+          "line": 391,
           "column": 45,
           "symbol": "WorkflowEditor.highlight_report",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "965029bb868f84da421771e9159bebc5f5413932b184b8e4ab85573b016c89d8"
+          "id": "2d8df6ab27cb9e82a3a1f644c20e7cb1c6327510af33f6110684d5db7a414f41"
         },
         {
-          "line": 391,
+          "line": 393,
           "column": 86,
           "symbol": "WorkflowEditor.highlight_report",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "997427cc98e170cfcd49f932f66d248527c4031d04ed665de9d46dd6d1e2e2bd"
+          "id": "a9b9b71888645012e3637f5a47e3612453012819e4360d94766f9d3e2064b833"
         },
         {
-          "line": 404,
+          "line": 406,
           "column": 47,
           "symbol": "WorkflowEditor.locate",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "0f86825c0b65c034578c55aad49868b9f29247e977773c8408d34e9a75319743"
+          "id": "4a25e6db1b8e924b76c065735a512033973b59b47ec717e4e4c08b88477b7f35"
         },
         {
-          "line": 413,
+          "line": 415,
           "column": 69,
           "symbol": "WorkflowEditor.locate",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "6e8a338efb3f511d8e9f6c7275d3e196f96cbf7bd4d30fa59afa775670841e82"
+          "id": "8e042725177941369b099cfda156737fee69c024af4d1a429a03b00fd2208517"
         },
         {
-          "line": 413,
+          "line": 415,
           "column": 85,
           "symbol": "WorkflowEditor.locate",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "67291b476817fb5e83ded520826088fa1e403307110b42a0c5130ab68c3a3d60"
+          "id": "3f182d7ba07432d6d46d8df96afa29788f96cf5e31882593d6cd6e9f812153f8"
         },
         {
-          "line": 424,
+          "line": 426,
           "column": 28,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "3854b840953f75e24af78f58f50f5daa974a2aea13ecc71f29a8cb6bed6ec799"
+          "id": "ab8ff853c337330b5cf56a75b208057f896d04502db12b268da9a741cde25f2b"
         },
         {
-          "line": 425,
+          "line": 427,
           "column": 32,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=2)",
-          "id": "d557f6d7284ffc9e4d45e85a88846fa0a9f58ab15043db632ed7b30a50809be3"
+          "id": "60d1a5a98cd2f42e1150fffbcbb51e1c94590efc3e5ca576714757788c9b81bf"
         },
         {
-          "line": 425,
+          "line": 427,
           "column": 44,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "4871cf095217d3fb7105a65632b73361f396fd482743b1ef8b3fa3696c8f0965"
+          "id": "fb360e3b32d8c4ab641d6f93d97cdf17429ff7768d09ecac2fb15408140d9c5f"
         },
         {
-          "line": 425,
+          "line": 427,
           "column": 83,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "ad40d4d3283dd2905a9d783088844822acc889490e1735c24733fbefa55f656d"
+          "id": "b1ee7f77d2173860ed804a3f2449fe36d204797df8c42fbc4f4585f03fc27e06"
         },
         {
-          "line": 426,
+          "line": 428,
           "column": 38,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "42c764ded73d41c80ecc377d75078c12f1c7ee8344c2777e5d0779b534429c97"
+          "id": "c32ad915a6d6eb4f0c3a459d83520dc6157df7d230c23430147c0ab9b5b879b7"
         },
         {
-          "line": 427,
+          "line": 429,
           "column": 30,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=2)",
-          "id": "79b84ddc5433927bc04d12b74af11cca3d30d6b82055c27693173941bbbc76cf"
+          "id": "2a790cdeae1e4d2194810f6421d6b42d000486d351cb27a0b2fc5862335dee71"
         },
         {
-          "line": 428,
+          "line": 430,
           "column": 35,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "275a56118d9f765df50a927325f72289b412626125f5b4ef5c59ec758ce4488e"
+          "id": "ef9d1ba68c1b24ad35a01d8cad80d1803a11c75428b583aa770f92b368a87347"
         },
         {
-          "line": 433,
+          "line": 435,
           "column": 34,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "108dc7f4f2ea51612351364f31899bde0534559fca819e22adeb05403e99f34b"
+          "id": "f7a8033f9fc8b70447f72611278920a159f0139819ceac0ced4333db9cb4ac19"
         },
         {
-          "line": 439,
+          "line": 441,
           "column": 29,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=2)",
-          "id": "6438a16c6cee1c20dcd0e572a5ebda997e965270fe0f9123e9a018971960f60a"
+          "id": "3dd956202596cc286902803a3193621edee8d50b3ee7dccd610624c4ac19da85"
         },
         {
-          "line": 439,
+          "line": 441,
           "column": 41,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=0)",
-          "id": "297ce036b0b0733a3fe8506e6705372ecdee9a42ecf9d6ea2513c6fa8a148ffd"
+          "id": "2e5adec72dd1ed5fc605daccf51f3a8dc1ad5481ea7e2a96026a4d3eae0aff87"
         },
         {
-          "line": 441,
+          "line": 443,
           "column": 38,
           "symbol": "WorkflowEditor.locate.selected",
           "role": "Subscript",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "4138271f0011e34997919c5fba940e688eb69a582cc387e31bb1b83d4675774d"
+          "id": "26cb9af84b33085ff6b431c8bd90f8f20c18000dc5eeac0402e952446d32a02b"
         },
         {
-          "line": 459,
+          "line": 461,
           "column": 27,
           "symbol": "WorkflowEditor.close",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "0c97b554b8f28d99d1925c07a1eddf94fef4a22d83dfe0363103e9ca7ceda3e8"
+          "id": "b623b4c62b2683b182a8e9d8e331e8010bb11b4e7e05d273e5b96c3713299747"
         },
         {
-          "line": 464,
+          "line": 466,
           "column": 23,
           "symbol": "WorkflowEditor.dispose",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=True)",
-          "id": "e66211ac56e924e9e7a5e2add09bd2e6a7ad7cd7ddbbf31356682b5fca16f0d4"
+          "id": "535977464463535e463c05bf9c618967cb3504b62547f8237e948003ba0b098b"
         },
         {
-          "line": 469,
+          "line": 471,
           "column": 59,
           "symbol": "WorkflowEditor.dispose",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "69a75197559da09709a86c883162de45416ee85edda3ed99169a0f4f604de490"
+          "id": "4e90b685f1207e2a5a48cf2cc415f6c841a1028ea1cbb7f712ad32b1e4e2f241"
         },
         {
-          "line": 470,
+          "line": 472,
           "column": 37,
           "symbol": "WorkflowEditor.dispose",
           "role": "Assign",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "ccb2f19f540b83b39538631fc341de06c844d4bcd96481de66a460edbcbe81ec"
+          "id": "7fb89acfedf1e960d9977f143df04a004b283bbd36c0c19d29e11eb4351e98ed"
         }
       ],
-      "sha256": "49a5b1d867c921aeb5a902b47892a94b02720be650faede1b02b6a12cd60ea10"
+      "sha256": "ea3afe6ac2aac13c69a832a10b3edca8a622e29403a1570a31f460de564d9849"
     },
     {
       "path": "hub/widget/header.py",
@@ -92144,13 +92216,13 @@
           "id": "85816e5b7b963e08f2093dcba6bb2d3d4e2ea5ea458accbc074224b67ef84e84"
         },
         {
-          "line": 587,
+          "line": 592,
           "column": 65,
           "symbol": "MouseController.dispatch",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "f7f0633d9c0dcdeaa8af4a4b82b334a4dec215da437e8223bd97b65d2dcdf210"
+          "id": "393212fa4f301e94f8d3bc281ba2f744e46d5e429c481a010a4906af99a0aa28"
         },
         {
           "line": 679,
@@ -92162,7 +92234,7 @@
           "id": "1ac3f6bd94591d6942ff02907454c5addd3bf4211a35632be1dfaab532fef298"
         }
       ],
-      "sha256": "0d1b4537669f16f2ae6d58d5498538ac41458084ecff38cf0fae8ae441d22d73"
+      "sha256": "3247a5ba1ea425dd288a84e4abfd7f0a982602e1ca2adb0fcabc4a9745a38d30"
     },
     {
       "path": "hub/widget/mouse_contract.py",
@@ -95183,70 +95255,79 @@
       "status": "reviewed",
       "candidates": [
         {
-          "line": 10,
+          "line": 11,
           "column": 14,
           "symbol": "",
           "role": "Assign",
           "area": "declaration",
           "literal": "Constant(value=1)",
-          "id": "36662bcbb1e9e1ce1426e1e5bc91b72151eddbfbff8c5b17c4b2d868489894f3"
+          "id": "8a42b4fe2756b4baafefd9d1ecacbdb220be79b1430f021b16e35081d329949c"
         },
         {
-          "line": 20,
+          "line": 21,
           "column": 30,
           "symbol": "section",
           "role": "arguments",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "7564832e9e59cf1b1147d02e00def0bbf352aeb4c90f2adddc8b99e7ca83ce55"
+          "id": "fc88ff2c629232436e600f065f949c9d7e7a5c6c9aca8bb25176bb0db17dbddf"
         },
         {
-          "line": 20,
+          "line": 21,
           "column": 49,
           "symbol": "section",
           "role": "arguments",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "888cb3fb3f48df6799c4bbbf5036b6cbcf5c459e5e70248cd1555adda7e71d6c"
+          "id": "7403b85d57f3a4f426e53935519e91a8172b9ccc6d21f39d79046d6747d96b7e"
         },
         {
-          "line": 23,
+          "line": 21,
+          "column": 66,
+          "symbol": "section",
+          "role": "arguments",
+          "area": "implementation",
+          "literal": "Constant(value=False)",
+          "id": "4cf325f842c9f88867bea6600978f8cfd07690018c1c1170cc9a863a56973200"
+        },
+        {
+          "line": 26,
           "column": 27,
           "symbol": "section",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "7586e25fe26224012cc9d6121eaa7212ea520cc936ef3372a52a6908809d9674"
+          "id": "764f517802e46f471da8258a210efe9e0bb6c1e3fda400687f7f230c87eafbea"
         },
         {
-          "line": 27,
+          "line": 30,
           "column": 48,
           "symbol": "section",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "4d3cc47a5a15dbc87eda7d26c198bde76bcbae465d42168a2cc47c3f808c9f0b"
+          "id": "054c9f98ab1b31beaf25b60ae7c21806c0ff46118ef8b057d1d326ed5e993d4f"
         },
         {
-          "line": 27,
+          "line": 30,
           "column": 58,
           "symbol": "section",
           "role": "Call",
           "area": "implementation",
           "literal": "Constant(value=1)",
-          "id": "bcd0e0e524218368c6e052bcb36cc58f827df7bab32444a5884e97df8547a45c"
+          "id": "0435bfb65b0e7f8303351e1c026dd8ed8749b8eef0b51f756303d9a8283407b1"
         },
         {
-          "line": 28,
+          "line": 31,
           "column": 31,
           "symbol": "section",
           "role": "Compare",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "5596718d1a3f917b342c0bbd30d39a0a614d223e7f37a877dcbe9c1fa4a52f8b"
+          "id": "407e3d5b494f81d03d62b8cfe7dc38d32deac41db055e438a664567121037a37"
         }
       ],
-      "sha256": "047f88abb87514c32f2164b1b798d9a9dccf03b35a3d7d82335515cacdde5f0d"
+      "sha256": "59fb552747d1ced26c3dfb10e7f66d5bc94454cf976c2316697db83dc61db204"
     },
     {
       "path": "hub/widget/shortcuts.py",
@@ -95593,6 +95674,15 @@
           "id": "e87e60122383ff9490d8563c388772955c1f8ad71f1feb5ae924f093f218ed3c"
         },
         {
+          "line": 35,
+          "column": 88,
+          "symbol": "SidebarHeading.__init__",
+          "role": "Call",
+          "area": "implementation",
+          "literal": "Constant(value=True)",
+          "id": "23e1d4ce1d2197b88da4ea2fd3e63b303b417a0dc639aae2c75ae19bf08ea2a3"
+        },
+        {
           "line": 42,
           "column": 12,
           "symbol": "SidebarHeading.minimum_width",
@@ -95926,7 +96016,7 @@
           "id": "02df06ba7eca4e199c7fce66a8e562004eb1cbda69b6246557f90ab9d255f832"
         }
       ],
-      "sha256": "9450c32d3be03090094ac78009f21637e5b89c6bed595002d5607b968e528767"
+      "sha256": "a87febf1d208871d240f3182a51629a0eda6677df1a4fc179b9419f8cec0ac2d"
     },
     {
       "path": "hub/widget/sidebar_panel.py",
@@ -95987,16 +96077,16 @@
           "id": "27383b001948476d305e483ab4ec599afa695e50750ea3c525b198b388d04c93"
         },
         {
-          "line": 51,
+          "line": 58,
           "column": 68,
           "symbol": "SidebarPanel.drag_handler",
           "role": "Lambda",
           "area": "implementation",
           "literal": "Constant(value=None)",
-          "id": "fdf84e971cf6bc43dd2b447070b17cfbbc49d87506fe7dc094fd7aa9f7280bba"
+          "id": "88da854daa073eb1d428eb8480ef31c9adb10201db44953b673b8aa9e7552166"
         }
       ],
-      "sha256": "e8dc140b3d193864d9a9174588aa2e4eff7eba84b66c15aadc48a352436d2e2f"
+      "sha256": "d410b71053370c0cb861ed08b10950ab32fbf8f427dc8961b3460cce3bfe59bf"
     },
     {
       "path": "hub/widget/summary.py",
@@ -96289,7 +96379,7 @@
           "id": "7acbb042f972306b48300e34e08c97e42a273914d6c4933b0b19d09f3912982f"
         }
       ],
-      "sha256": "775097ad117e5b82e5655c772c51fbad3653b08de864d02c7d61a85190426e90"
+      "sha256": "96cfa57f7ce72fe5b21d9c886fe27521f81c2da7d765e0a2d057d21e0a222751"
     },
     {
       "path": "hub/widget/text_editing.py",

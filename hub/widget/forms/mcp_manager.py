@@ -83,6 +83,8 @@ class MCPToolSelection(Dialog):
             self.select_agent(self.agent.value)
 
     def select_agent(self, name):
+        if name == self.current_agent:
+            return
         if self.current_agent is not None:
             self.drafts[self.current_agent] = list(self.tools.current_values)
         self.current_agent = name

@@ -11,6 +11,7 @@ from prompt_toolkit.input import create_pipe_input
 from examples.hub.preview import create_preview
 from hub.config.preferences import PreferencesStore
 from hub.config.sidebar_heights import SidebarHeights
+from hub.widget.mouse_contract import MouseBinding
 from tests.hub.support import SizedOutput, eventually
 
 
@@ -68,10 +69,33 @@ class SidebarHeightMouseTests(unittest.IsolatedAsyncioTestCase):
                         headings = sorted((rect for window, rect in positions.items()
                                            if callable(getattr(window, 'drag_handler', None))
                                            and window is not view.active_page.edge), key=lambda p: p.ypos)
-                        rect = headings[2]
+                        self.assertEqual(len(headings), 2)  # Lower title and rule only.
+                        upper, lower = view.active_page.categories
+                        app.layout.focus(upper)
+                        rect = headings[0]
                         x, y = rect.xpos + 2, rect.ypos
                         profile_y = positions[view.profile_bar.page.window].ypos
                         count = save.call_count
+                        # An inactive lower category must not resize either list.
+                        await mouse(0, x, y)
+                        await mouse(32, x, y + 3)
+                        await mouse(0, x, y + 3, True)
+                        self.assertEqual(view.sidebar_heights, initial)
+                        self.assertEqual(save.call_count, count)
+                        # The top title remains fixed even with its category focused.
+                        top_window = next(w for w, p in positions.items()
+                                          if p.xpos == rect.xpos and p.ypos < y
+                                          and p.height == 1)
+                        self.assertFalse(hasattr(top_window, 'drag_handler'))
+                        if page == 'settings':
+                            global_window = next(p for w, p in positions.items() if w.content is upper)
+                            self.assertEqual(global_window.ypos + global_window.height, y)
+                        app.layout.focus(lower)
+                        await paint()
+                        await mouse(35, x, headings[1].ypos)
+                        rule = next(w for w, p in app.renderer._last_screen.visible_windows_to_write_positions.items()
+                                    if p.ypos == headings[1].ypos and p.xpos == rect.xpos)
+                        self.assertTrue(MouseBinding.hovered(rule))
                         await mouse(0, x, y)
                         await mouse(32, x, y + 3)
                         self.assertEqual(save.call_count, count)

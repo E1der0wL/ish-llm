@@ -236,9 +236,11 @@ class WorkflowEditor(DefinitionEditor):
         get_app().invalidate()
 
     def select(self, name):
-        if name not in self.document.graph()[WorkflowDocument.NODES] or not self.flush():
+        if name not in self.document.graph()[WorkflowDocument.NODES]:
             return False
         if name != self.selected:
+            if not self.flush():
+                return False
             self.selected = name
             self.inspector.show(name)
         self.canvas.reveal()
