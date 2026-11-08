@@ -60,6 +60,9 @@ class DockState:
         self.diagnostic = ""
         return True
 
+    def can_submit(self, token: object) -> bool:
+        return not self.closed and (token is not self._prompt_token or self.phase == SubmissionPhase.READY)
+
     def finish_submission(self, *, accepted: bool, error: str = "") -> None:
         self.phase = SubmissionPhase.SUBMITTED if accepted else SubmissionPhase.READY
         self.diagnostic = error

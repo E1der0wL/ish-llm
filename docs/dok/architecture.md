@@ -159,11 +159,19 @@ tests/dok/
 
 팝업은 [팝업 계약](popups.md)을 따른다. `PopupPanel`이 배치와 스타일, `NotificationQueue`가 순서와 가시 시간 상태 전이, `PopupHost`가 포커스 복원과 호스트 수명주기를 소유한다. `OverlayLayers`가 기존 Float 하나에서 dock 뒤에 팝업을 그린다. 캘린더와 날씨 View는 팝업 내용과 기능별 이동만 제공한다. 날씨 상세와 dock은 기존 WeatherRuntime 하나를 공유하며 팝업이 열려 있는 것도 조회 활성 조건에 포함한다. 일반 팝업은 호스트 프롬프트 종료 시 닫고 알림은 입력 화면이 다시 활성화될 때까지 대기한다.
 
-`CalendarEvent`·`Recurrence`는 저장 필드·검증·반복 날짜·알림 계산을 제공한다. CalendarStore는 파일 잠금·원자적 저장·revision 충돌과 알림 claim을 소유하고, CalendarRuntime은 I/O 직렬화·취소·예약 주기를 소유한다. EventDraft와 CalendarPage는 공개 API로만 저장·조회하며 저장 딕셔너리를 해석하지 않는다. 세부 시간·재시작·중복 방지 계약은 [캘린더](calendar.md)를 따른다.
+`Reminder`·`ReminderUnit`은 알림 단위·숫자·중복 기준과 표시 문구를 선언한다. `CalendarEvent`·`Recurrence`는 저장 필드·검증·반복 날짜·알림 시각을 제공한다. CalendarStore는 파일 잠금·원자적 저장·revision 충돌과 알림 claim·다음 시각 계획을 소유하고, CalendarRuntime은 I/O 직렬화·취소·기한 대기를 소유한다. EventDraft와 CalendarPage는 공개 API로만 저장·조회하며 저장 딕셔너리를 해석하지 않는다. 세부 시간·재시작·중복 방지 계약은 [캘린더](calendar.md)를 따른다.
 
 CalendarSnapshot은 현재 월의 일별 조회 결과와 캐시 수명을 소유하며 CalendarEvent의 시간 해석 환경 선언을 사용한다. CalendarStore는 파일 내용 비교와 검증된 해석 결과 하나의 재사용을 소유한다. CalendarRuntime은 변경 없는 상태를 다시 게시하지 않는다. UI는 이 공개 조회를 사용하고 반복 해석·저장 검증·캐시 무효화 규칙을 재구현하지 않는다.
 
+날짜·시각 선택은 calendar/selection.py의 DateSelection·TimePart·TimeSelection이 이동·범위·임시 값을 소유한다. picker_view.py는 해당 공개 API를 키·마우스와 공통 테마로 연결한다. CalendarPage는 기존 팝업 본문 안에 선택기를 배치하고 취소 시 초안을 유지하며, 적용할 때 EventDraft의 타입별 공개 API만 호출한다. 최종 시간대·시작/종료 관계 검증과 저장·알림 실행은 기존 CalendarEvent·Store·Runtime에 남는다.
+
+calendar/recurrence.py의 Recurrence·RepeatEnd가 반복 종료 방식·총 횟수·종료날짜·끝난 시리즈의 마지막 회차 조회를 소유한다. 기존 models의 공개 Recurrence·RepeatUnit import는 유지한다. EventTiming은 새 일정 생성 시 한 번 적용할 시작 정각과 종료 간격을 선언한다. EventDraft의 이후 날짜·시각 선택은 해당 필드만 바꾸며 종료 자동 연동 상태를 두지 않는다. CalendarStore는 명령 회차의 원자적 선기록과 미래 시작 감시, CalendarRuntime은 기한 대기·제출 결과 안내를 담당한다. CommandOccurrence는 기존 회차 계산을 재사용하고 별도 반복 규칙을 만들지 않는다. ish 어댑터는 ShortcutSubmission의 동일한 검증·수락·문서 복원 경로로 예약 명령을 제출하며 빈 기본 프롬프트 이외에는 건너뛴다. 호스트 소스와 llm/hub 실행 계층은 바꾸지 않는다.
+
+일반 팝업이 포커스를 가진 동안 controller는 dock의 audio·media 수집 요구를 끄고 필요한 팝업 시계·날씨 요구만 유지한다. 알림 실행기는 독립 수명으로 계속 실행한다. SystemConfig는 활성·유휴 측정 간격을 제공하며 SystemRuntime은 같은 작업과 카운터 기준값·이력을 유지한 채 간격만 바꾼다. 월 달력 행과 날씨 그래프는 해당 View가 마지막 렌더링 입력 한 건에 한정해 캐시한다. 저장·외부 조회·시간 해석은 각 기능 Owner의 공개 API를 사용한다.
+
 InteractivePopup은 로컬 키 처리·닫기 확인·본문 렌더링·해제 계약이다. PopupHost는 기존 단일 modal 컨트롤의 포커스를 유지하며 PopupSurface가 키와 제한된 화면 크기를 위임한다. 편집 Buffer는 캘린더 초안만 소유한다. 일반 PopupContent API와 비대화형 알림 표시는 그대로 유지한다. 현재·일별·시간별 날씨는 OpenMeteo 어댑터가 한 응답을 WeatherSnapshot으로 해석하고 기존 WeatherRuntime이 같은 요청 키와 캐시·실패 전이를 사용한다.
+
+`InteractivePopup.scroll_at()`은 본문 셀 좌표의 휠 이벤트를 선택적으로 처리한다. PopupSurface가 prompt-toolkit 문자 좌표를 터미널 셀로 바꾸고 테두리·제목·여백을 제외한 본문 좌표를 제공한다. CalendarPage는 그린 알림 목록의 사각형과 3행 스크롤 상태를 소유한다. 목록 밖이거나 API가 처리하지 않은 휠은 기존 페이지 스크롤로 전달한다.
 
 외부 인증·계정 동기화처럼 현재 없는 책임은 해당 기능 구현 시 명시적으로 설계한다. 빈 패키지나 범용 서비스 프레임워크를 미리 추가하지 않는다.
 

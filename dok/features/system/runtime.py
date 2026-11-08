@@ -20,24 +20,34 @@ class SystemRuntime:
         self._active = False
         self._snapshot = SystemSnapshot()
         self._history = deque()
+        self._idle = False
+        self._wake = asyncio.Event()
 
     async def _read(self, config: SystemConfig) -> SystemReading:
         return await run_blocking(self._backend.read, config.interfaces)
 
     async def _run(self, config: SystemConfig) -> None:
         previous = None
-        while True:
+        while self._active and config == self._config and not self._task.closed:
             try:
                 current = await self._read(config)
             except Exception as exc:
                 current = SystemReading(time.monotonic(), diagnostic=str(exc))
             if not self._active or config != self._config:
                 return
+            before = (self._snapshot.display_key, tuple(item.display_key for item in self._history))
             self._snapshot = SystemSnapshot.between(previous, current)
             self._history.append(self._snapshot)
             previous = current
-            self._changed()
-            await asyncio.sleep(config.refresh_s)
+            after = (self._snapshot.display_key, tuple(item.display_key for item in self._history))
+            if after != before:
+                self._changed()
+            self._wake.clear()
+            try:
+                async with asyncio.timeout(config.interval(self._idle)):
+                    await self._wake.wait()
+            except TimeoutError:
+                pass
 
     @property
     def snapshot(self) -> SystemSnapshot:
@@ -47,9 +57,13 @@ class SystemRuntime:
     def history(self) -> tuple[SystemSnapshot, ...]:
         return tuple(self._history)
 
-    def sync(self, *, active: bool, config: SystemConfig, start_task: TaskStarter) -> None:
+    def sync(self, *, active: bool, config: SystemConfig, start_task: TaskStarter, idle=False) -> None:
         active = active and config.enabled and not self._task.closed
+        if idle != self._idle:
+            self._idle = idle
+            self._wake.set()
         if active != self._active or config != self._config:
+            self._wake.set()
             self._snapshot = SystemSnapshot()
             self._history = deque(maxlen=min(config.history, sys.maxsize))
         self._active, self._config = active, config
@@ -58,5 +72,6 @@ class SystemRuntime:
     def close(self) -> None:
         self._active = False
         self._task.close()
+        self._wake.set()
         self._snapshot = SystemSnapshot()
         self._history.clear()

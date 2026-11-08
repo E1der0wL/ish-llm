@@ -6,12 +6,15 @@ import unittest
 from unittest.mock import patch
 
 from prompt_toolkit.formatted_text.utils import split_lines
+from prompt_toolkit.data_structures import Point
+from prompt_toolkit.mouse_events import MouseButton, MouseEvent, MouseEventType
 from prompt_toolkit.styles import Style
 
 from dok import DockConfig
 from dok.features.calendar.editor import EditorField
 from dok.features.calendar.view import CalendarPage
 from dok.features.calendar.models import CalendarEvent, Recurrence
+from dok.features.calendar.reminders import Reminder, ReminderUnit
 from dok.features.calendar.store import CalendarSnapshot
 from dok.features.weather.models import WeatherSnapshot
 from dok.features.weather.popup import WeatherPage
@@ -49,6 +52,7 @@ class PopupLayoutTests(unittest.TestCase):
         self.assertFalse(self.inner(lines[2]))  # Below title.
         self.assertFalse(self.inner(lines[-3]))  # Above status.
         self.assertIn("Title ·", lines[-2])
+        self.assertIn("Today 2026-11-07", "\n".join(lines))
         self.assertNotIn("New", "\n".join(lines))
         self.assertNotIn("Events", "\n".join(lines))
         self.assertIn(page.TIME_ARROW, "\n".join(lines))
@@ -86,6 +90,65 @@ class PopupLayoutTests(unittest.TestCase):
         page.key("tab", "")
         _, lines = self.draw(page, self.config.popups.weather.panel, 112, 36)
         self.assertIn("Buttons ·", lines[-2])
+
+    def test_reminder_registration_list_and_start_number_style(self):
+        page = self.calendar()
+        page.field = EditorField.ALARM_ADD
+        page.key("enter", "")
+        self.assertEqual(page.draft.alarms, (Reminder("minutes", 5),))
+        page.field = EditorField.ALARM_UNIT
+        page.key("enter", "")
+        page.key("home", "")
+        page.key("enter", "")
+        self.assertEqual(page.draft.alarm_unit, ReminderUnit.START)
+        page.key("s-tab", "")
+        self.assertEqual(page.field, EditorField.HOLIDAY)  # No repeat limit and no editable alarm number.
+        page.field = EditorField.ALARM_ADD
+        page.key("enter", "")
+        parts, lines = self.draw(page, self.config.popups.calendar.panel, 136, 44)
+        self.assertIn("5 minutes before", "\n".join(lines))
+        self.assertIn("At event start", "\n".join(lines))
+        register = next(i for i, line in enumerate(lines) if " Add " in line)
+        self.assertFalse(lines[register + 1].split("│")[-2].strip())
+        number = next(p for p in parts[register] if p[1].strip() == "5")
+        self.assertEqual(Style([]).get_attrs_for_style_str(number[0]).color,
+                         self.config.theme.resolve("comment")[1:])
+        self.assertEqual(len(number), 2)  # Read-only number has no mouse action.
+        page.field = EditorField.ALARMS
+        page.key("home", "")
+        page.key("delete", "")
+        self.assertEqual(page.draft.alarms, (Reminder("start", 0),))
+
+    def test_reminder_list_scrolls_without_limiting_registered_count(self):
+        page = self.calendar()
+        page.draft.alarms = tuple(Reminder("minutes", value) for value in range(10, 0, -1))
+        page.field = EditorField.ALARMS
+        page.key("end", "")
+        _, lines = self.draw(page, self.config.popups.calendar.panel, 136, 44)
+        self.assertIn("1 minutes before", "\n".join(lines))
+        self.assertNotIn("10 minutes before", "\n".join(lines))
+        self.assertEqual(len(page.draft.alarms), 10)
+        self.assertEqual(sum("minutes before" in line and " Delete " in line for line in lines), 3)
+
+    def test_reminder_wheel_is_scoped_to_three_row_list_without_clicking_first(self):
+        page = self.calendar()
+        page.draft.alarms = tuple(Reminder("minutes", value) for value in range(10, 0, -1))
+        panel = self.config.popups.calendar.panel
+        _, lines = self.draw(page, panel, 136, 44)
+        y = next(i for i, line in enumerate(lines) if "10 minutes before" in line)
+        x = lines[y].index("10 minutes before")  # PTK supplies character indices.
+        self.assertEqual(page.field, EditorField.TITLE)
+        self.surface.control.mouse_handler(MouseEvent(Point(x, y), MouseEventType.SCROLL_DOWN,
+                                                     MouseButton.NONE, frozenset()))
+        _, scrolled = self.draw(page, panel, 136, 44)
+        self.assertEqual(page.field, EditorField.ALARMS)
+        self.assertIn("7 minutes before", "\n".join(scrolled))
+        self.assertNotIn("10 minutes before", "\n".join(scrolled))
+        self.assertEqual(sum("minutes before" in line and " Delete " in line for line in scrolled), 3)
+        offset = page._alarm_offset
+        self.surface.control.mouse_handler(MouseEvent(Point(1, y), MouseEventType.SCROLL_DOWN,
+                                                     MouseButton.NONE, frozenset()))
+        self.assertEqual(page._alarm_offset, offset)
 
     def test_calendar_redraw_reuses_queries_and_narrow_editor_skips_hidden_month(self):
         item = CalendarEvent("Original", datetime(2026,11,7,9), datetime(2026,11,7,10),

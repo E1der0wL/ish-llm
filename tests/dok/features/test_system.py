@@ -73,6 +73,75 @@ class SystemTests(unittest.TestCase):
 
 
 class SystemRuntimeTests(unittest.IsolatedAsyncioTestCase):
+    async def test_close_at_sample_timeout_stops_without_another_backend_read(self):
+        backend = SimpleNamespace(read=lambda interfaces: reading())
+        runtime = SystemRuntime(lambda: None, backend)
+        class CloseAtTimeout(asyncio.Event):
+            async def wait(self):
+                try:
+                    return await super().wait()
+                except asyncio.CancelledError:
+                    runtime.close()
+                    raise
+        runtime._wake = CloseAtTimeout()
+        with patch.object(backend, "read", wraps=backend.read) as read:
+            runtime.sync(active=True, config=SystemConfig(refresh_s=.01), start_task=asyncio.create_task)
+            task = runtime._task._task
+            try:
+                await asyncio.wait_for(asyncio.shield(task), 1)
+                self.assertEqual(read.call_count, 1)
+                self.assertEqual(runtime.history, ())
+            finally:
+                runtime.close()
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+
+    async def test_idle_interval_switch_preserves_rates_history_and_worker(self):
+        calls = []
+        def read(interfaces):
+            count = len(calls) + 1
+            calls.append(count)
+            return reading(count * 3, total=count * 300, busy=count * 75,
+                           received=count * 600, sent=count * 900)
+        runtime = SystemRuntime(lambda: None, SimpleNamespace(read=read))
+        config = SystemConfig(refresh_s=.01, idle_s=30)
+        runtime.sync(active=True, config=config, idle=True, start_task=asyncio.create_task)
+        try:
+            await until(lambda: runtime.snapshot.timestamp is not None)
+            first, task = runtime.history[0], runtime._task._task
+            await asyncio.sleep(.05)
+            self.assertEqual(len(calls), 1)
+            runtime.sync(active=True, config=config, idle=False, start_task=asyncio.create_task)
+            await until(lambda: runtime.snapshot.cpu_percent is not None)
+            self.assertIs(runtime._task._task, task)
+            self.assertIs(runtime.history[0], first)
+            self.assertEqual(runtime.snapshot.cpu_percent, 25)
+            self.assertEqual(runtime.snapshot.received_per_second, 200)
+            self.assertEqual(runtime.snapshot.sent_per_second, 300)
+            self.assertEqual(replace(config, idle_s=None).interval(True), config.refresh_s)
+        finally:
+            runtime.close()
+            await until(lambda: not runtime._task.running)
+
+    async def test_identical_full_history_does_not_invalidate_only_for_timestamp(self):
+        calls, changes = [], []
+        def read(interfaces):
+            count = len(calls) + 1
+            calls.append(count)
+            return reading(count, total=count * 100, busy=count * 25,
+                           received=count * 100, sent=count * 200)
+        runtime = SystemRuntime(lambda: changes.append(True), SimpleNamespace(read=read))
+        runtime.sync(active=True, config=SystemConfig(refresh_s=.01, history=2), start_task=asyncio.create_task)
+        try:
+            await until(lambda: len(calls) >= 4)
+            before = len(changes)
+            await until(lambda: len(calls) >= 8)
+            self.assertEqual(len(changes), before)
+            self.assertEqual(len(runtime.history), 2)
+        finally:
+            runtime.close()
+            await until(lambda: not runtime._task.running)
+
     async def test_history_is_bounded_and_failure_recovers_without_a_tight_loop(self):
         calls = []
         def read(interfaces):

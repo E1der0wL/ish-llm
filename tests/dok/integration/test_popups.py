@@ -21,6 +21,8 @@ from dok.core.state import DockMode
 from dok.features.weather.models import ForecastDay, WeatherKind, WeatherSnapshot
 from dok.features.calendar.models import CalendarEvent, RepeatUnit
 from dok.features.calendar.editor import EditorField
+from dok.features.calendar.reminders import Reminder
+from dok.features.calendar.commands import CommandResult
 from tests.dok.support import HostPrompt, Output, render, screen_lines, wait_running
 
 
@@ -58,6 +60,35 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.pipe.send_bytes(data)
         await asyncio.sleep(.05)
         return await render(self.prompt.app)
+
+    async def test_scheduled_submission_preserves_busy_prompt_and_uses_native_dispatch_when_idle(self):
+        await self.start("unfinished")
+        before = self.prompt.default_buffer.document
+        self.assertEqual(self.dock._submission.execute_command("printf scheduled"), CommandResult.SKIPPED)
+        self.assertEqual(self.prompt.default_buffer.document, before)
+        self.prompt.default_buffer.text = ""
+        self.dock.open_calendar()
+        await render(self.prompt.app)
+        self.assertEqual(self.dock._submission.execute_command("printf scheduled"), CommandResult.SKIPPED)
+        self.dock.close_popup()
+        await render(self.prompt.app)
+        self.prompt.interactive_shell.continuation_active = asyncio.Event()
+        self.prompt.interactive_shell.continuation_active.set()
+        self.assertEqual(self.dock._submission.execute_command("printf scheduled"), CommandResult.SKIPPED)
+        self.prompt.interactive_shell.continuation_active.clear()
+        self.assertEqual(self.dock._submission.execute_command("printf scheduled"), CommandResult.SUBMITTED)
+        self.assertEqual(await asyncio.wait_for(self.task, 2), "printf scheduled")
+        self.assertEqual(self.dock._submission.execute_command("printf scheduled"), CommandResult.SKIPPED)
+
+    async def test_scheduled_command_rejected_by_host_restores_empty_document(self):
+        from ish.shell.input import InputRejected
+        await self.start("")
+        def reject(text):
+            raise InputRejected("transport unavailable")
+        self.prompt.transport_check = reject
+        self.assertEqual(self.dock._submission.execute_command("printf scheduled"), CommandResult.FAILED)
+        self.assertEqual(self.prompt.default_buffer.text, "")
+        self.assertFalse(self.task.done())
 
     async def test_host_language_and_explicit_override_update_open_popup_without_losing_draft(self):
         with patch("dok.integrations.ish.language.HostLanguage.current", return_value="ko_KR"):
@@ -104,6 +135,40 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.prompt.layout_rebuilds, rebuilds)
         await self.send(b"\x1bOQ")
         self.assertEqual(calls, ["host"])
+
+    async def test_calendar_picker_keys_cancel_locally_and_save_through_existing_runtime(self):
+        await self.start("prompt text")
+        original_prompt = self.prompt.default_buffer.document
+        self.dock.open_calendar()
+        await render(self.prompt.app)
+        page = self.dock._popups.page
+        page.key("enter", "")
+        page.key("<any>", "Picker meeting")
+        original_date = page.draft.temporal_value(EditorField.START_DATE)
+        initial_end = page.draft.temporal_value(EditorField.END_TIME)
+        page.field = EditorField.START_DATE
+        await self.send(b"\r")
+        self.assertIsNotNone(page._picker)
+        await self.send(b"\x1b[C")
+        await self.send(b"\x1b")
+        await until(lambda: page._picker is None)
+        self.assertTrue(self.dock._popups.modal)
+        self.assertTrue(page.editing)
+        self.assertEqual(page.draft.temporal_value(EditorField.START_DATE), original_date)
+        page.field = EditorField.END_TIME
+        await self.send(b"\r\t\x1b[B\t\x1b[B\r")
+        await until(lambda: page._picker is None)
+        expected_end = initial_end.replace(minute=min(59, initial_end.minute + 1), second=min(59, initial_end.second + 1))
+        self.assertEqual(page.draft.temporal_value(EditorField.END_TIME), expected_end)
+        await self.send(b"\x1bOQ")
+        await until(lambda: page.draft.original is not None and not page.busy)
+        self.assertEqual(page.draft.original.title, "Picker meeting")
+        self.assertEqual(page.draft.original.end.time(), expected_end)
+        self.assertEqual(self.prompt.default_buffer.document, original_prompt)
+        self.dock.close_popup()
+        await render(self.prompt.app)
+        self.assertFalse(self.dock._popups.modal)
+        self.assertFalse(self.prompt.app.mouse_support())
 
     async def test_calendar_weather_keys_navigation_and_escape(self):
         await self.start()
@@ -170,6 +235,9 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.pipe.send_bytes(b"\x1b[")
         await asyncio.sleep(.01)
         await self.send(b"C")
+        # Rendering and input processing are separate event-loop callbacks.
+        # Wait for an observable result, while still failing if ESC closed it.
+        await until(lambda: page.selected != before or not self.dock._popups.modal)
         self.assertEqual(page.selected, before + timedelta(days=1))
         self.pipe.send_bytes(b"\x1b")
         await asyncio.sleep(.01)
@@ -276,6 +344,47 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await render(self.prompt.app)
         self.assertEqual(self.dock._popups.page.snapshot.events[0].title, "Meeting 한글")
 
+    async def test_registered_reminders_save_through_real_keys_and_survive_reopen(self):
+        await self.start("unchanged")
+        await self.send(b"\x1bc\rMeeting")
+        page = self.dock._popups.page
+        page.field = EditorField.ALARM_ADD
+        await self.send(b"\r")
+        page.field = EditorField.ALARM_UNIT
+        await self.send(b"\r\x1b[H\r\t\r")  # Choose start, Tab to Add, register.
+        self.assertEqual(page.draft.alarms, (Reminder("minutes", 5), Reminder("start", 0)))
+        await self.send(b"\x1bOQ")
+        await until(lambda: page.draft.original is not None)
+        self.assertEqual(self.dock._calendar.store.load().events[0].alarms, page.draft.alarms)
+        await self.send(b"\x1b")
+        await until(lambda: not page.editing)
+        await self.send(b"\x1b")
+        await until(lambda: not self.dock._popups.modal)
+        self.dock.open_calendar()
+        await render(self.prompt.app)
+        await self.send(b"\r")
+        self.assertEqual(self.dock._popups.page.draft.alarms, (Reminder("minutes", 5), Reminder("start", 0)))
+        self.assertEqual(self.prompt.default_buffer.text, "unchanged")
+
+    async def test_modal_pauses_dock_collectors_and_restores_display_demand(self):
+        await self.start()
+        self.dock.show()
+        await render(self.prompt.app)
+        with patch.object(self.dock._audio, "sync") as audio, patch.object(self.dock._media, "sync") as media, \
+             patch.object(self.dock._system, "sync") as system, patch.object(self.dock._dashboard, "sync") as dashboard:
+            self.dock.open_calendar()
+            await render(self.prompt.app)
+            self.assertFalse(audio.call_args.kwargs["active"])
+            self.assertFalse(media.call_args.kwargs["active"])
+            self.assertTrue(system.call_args.kwargs["idle"])
+            self.assertFalse(dashboard.call_args.kwargs["dock_active"])
+            self.assertTrue(dashboard.call_args.kwargs["clock_active"])
+            self.dock.close_popup()
+            await render(self.prompt.app)
+            self.assertTrue(audio.call_args.kwargs["active"])
+            self.assertTrue(media.call_args.kwargs["active"])
+            self.assertFalse(system.call_args.kwargs["idle"])
+
     async def test_calendar_dropdown_dirty_close_confirmation_and_narrow_form(self):
         await self.start()
         self.dock.open_calendar()
@@ -305,7 +414,7 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.start()
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         await self.dock._calendar.save(CalendarEvent("Due", now + timedelta(hours=1), now + timedelta(hours=2),
-                                                      timezone="UTC", alarm=now + timedelta(seconds=.3)))
+                                                      timezone="UTC", alarms=(Reminder.from_delta(now + timedelta(hours=1) - (now + timedelta(seconds=.3))),)))
         self.prompt.app.exit(result="command")
         await self.task
         await until(lambda:self.dock.pending_notifications == 1)

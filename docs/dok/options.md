@@ -13,10 +13,13 @@
 | `clock.timezone` | 날짜·시간·요일과 날씨 갱신 시각의 공통 시간대. 기본 `null`은 시스템 시간대 |
 | `widgets` | 화면 순서대로 기능별 내용·스타일·간격 |
 | `system` | Linux 측정 활성화·주기·기록 한도·네트워크 인터페이스 |
+| `system.idle_s` | dock 숨김·일반 팝업 중 측정 간격, 기본 3초. null이면 refresh_s 사용 |
 | `toolbar` | 날짜·입력 상태·숫자 합계(평균)와 오른쪽 시스템 정보. [설명](toolbar.md) |
 | `toolbar.pad_left`, `toolbar.pad_right` | 하단 바 전체의 좌우 끝 여백. 런타임 각각 0칸, 새 파일 각각 1칸 |
 | `toolbar.background` | 테마 이름 또는 하단 바 전용 RGB. 런타임 background, 새 파일 #1D2035 |
 | `popups` | 중앙 일반 팝업, 우측 하단 알림, 일정 편집·예약 알림과 현재/시간별 예보. [설명](popups.md) |
+| `popups.calendar.poll_s`, `idle_s` | 캘린더 열림·닫힘 중 외부 일정 파일 확인 간격, 기본 1초·30초. 저장한 알림 기한과 별개 |
+| `popups.calendar.clock_s` | 미래 알림 대기 중 가벼운 시계 변경 확인, 기본 1초. 파일 조회 없음 |
 
 `widgets`에는 `weather`, `weekday`, `date`, `time`, `visualizer`, `progress`, `title`, `controls`, `shortcuts`가 있다. 정보 영역의 네 위젯은 최대화에서 표시한다. 순서를 바꾸는 옵션은 추가하지 않았다.
 

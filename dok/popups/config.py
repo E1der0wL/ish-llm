@@ -116,6 +116,9 @@ class PopupRect:
     width: int
     height: int
 
+    def contains(self, x: int, y: int) -> bool:
+        return self.left <= x < self.left + self.width and self.top <= y < self.top + self.height
+
 
 @dataclass(frozen=True, slots=True)
 class PopupPanel(Record):

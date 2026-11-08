@@ -412,3 +412,49 @@ Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 *
 Linux Python 3.12.14의 해시 검증된 스냅샷에서 dok 전체 실행은 **275개 통과·선택적 Hub 연동 1개 건너뜀**(92.693초)이었다. 임시 의존성을 찾지 못한 해당 검사만 커밋 `d5377cb6`의 읽기 전용 의존성 복사본을 제공해 같은 스냅샷에서 재실행하여 **1개 통과**(8.663초)했다. 합쳐서 dok 276개 검사를 확인했다. [전체 로그](../../tests/dok/reports/dok-qxk25dgm/dok.txt), [소스 해시](../../tests/dok/reports/dok-qxk25dgm/snapshot.json), [선택적 연동 로그](../../tests/dok/reports/dok-qxk25dgm/optional-hub.txt), [의존성 해시](../../tests/dok/reports/dok-qxk25dgm/optional-dependencies.json).
 
 숫자 길이의 증가·감소, `gap` 0·1·4칸, 자동 너비의 좌우 정렬, 명시적 고정 너비와 단위 축약, 좁은 화면, 생성 폼·schema 및 실제 프롬프트 표시를 검증했다. ESC 입력 파이프 검사는 110.8ms였다. ish 본체·llm·hub 코드와 WSL 개인 설정·설치본은 변경하지 않았으며 llm/hub 전체 회귀, 커밋·업로드는 수행하지 않았다.
+
+## 복수 알림 등록 UI·팝업 수요별 최적화 (2026-11-08)
+
+사용자가 [최종 UI](../../tests/dok/reports/reminder-ui-20261108-v4/reminders-minutes.png)를 확정한 뒤 Linux Python 3.12.14의 해시 검증된 소스 스냅샷에서 **dok 테스트 296개 전부 통과**했다. 실행기 기준 63.550초, unittest 기준 62.343초이며 건너뛴 검사는 없다. [로그](../../tests/dok/reports/dok-t73cabsb/dok.txt), [소스 해시](../../tests/dok/reports/dok-t73cabsb/snapshot.json), [결과](../../tests/dok/reports/dok-t73cabsb/results.json).
+
+복수 상대 알림의 등록·중복·삭제·저장·재시작, 반복·DST·시계 변경, 알림 없는 상태의 대기, 외부 파일 확인과 알림 기한 분리, 시스템 유휴 수집·기준값 보존, 팝업 뒤 수집 중지·복원, 3행 알림 목록·휠·키보드·좁은 화면, 기본 JSONC·Owner/schema 일치를 검증했다. 선택적 Hub 연결은 커밋된 의존성 복사본을 사용해 포함했다. [의존성 해시](../../tests/dok/reports/dok-rf54y013/optional-dependencies.json).
+
+초기 실행에서 타이머 만료와 종료 요청이 겹치는 알림 작업의 대기 지속 문제를 재현하고 Owner의 종료·설정 상태 확인 및 깨우기로 수정했다. 같은 순간을 재현하는 알림·시스템 수집 회귀 검사도 통과했다. UI 검사 3개의 잘못된 전체 화면 선택자를 등록 행·목록으로 한정했다. 확정 후 UI 모양은 변경하지 않았다. 초기 실패와 진단 기록은 [상세 기록](reminder-optimization-20261108.md)에 보존했다.
+
+ESC 응답은 입력 파이프 **106.2ms**, PTY 캘린더 **112.4ms**·날씨 **114.9ms**였다. 사용자 Windows Terminal의 물리 마우스 환경에 대한 재검증은 아니다. ish 본체·llm·hub, 개인 WSL 설치본·설정·일정은 수정하지 않았고 llm/hub 전체 회귀, 커밋·업로드는 수행하지 않았다.
+
+## 날짜 미니 달력·시/분/초 선택기 (2026-11-08)
+
+사용자가 [버튼 간격 3칸·가운데 정렬 최종 화면](../../tests/dok/reports/calendar-pickers-20261108-v4/closed.png)을 확정한 뒤 테스트했다. 날짜는 미니 달력의 연·월 이동과 날짜 선택, 시각은 시·분·초 열 선택으로 편집한다. [날짜 선택 화면](../../tests/dok/reports/calendar-pickers-20261108-v4/date.png), [시각 선택 화면](../../tests/dok/reports/calendar-pickers-20261108-v4/time.png), [실제 버튼 셀·좌우 여백 기록](../../tests/dok/reports/calendar-pickers-20261108-v4/button-alignment.json). 버튼 글자·아이콘을 포함해 가운데 정렬하며 시작/끝 버튼 너비를 같게 맞췄다. 드롭다운 내부 항목의 정렬은 별도로 유지한다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 311개 테스트 전부 통과**, 건너뜀 0개였다. unittest 86.195초, 실행기 87.651초. [최종 로그](../../tests/dok/reports/dok-lmtpoq96/dok.txt), [소스 스냅샷](../../tests/dok/reports/dok-lmtpoq96/snapshot.json), [결과](../../tests/dok/reports/dok-lmtpoq96/results.json). 현재 제품·자동 테스트·참조 호스트 192개 파일이 검증 소스와 같고, 선택적 연결에 사용한 커밋 의존성 복사본 796개 파일도 기존 해시와 같았다. [일치 기록](../../tests/dok/reports/dok-lmtpoq96/current-source-verification.json).
+
+추가 15개 검사로 윤년·월말·Python 날짜 경계, 시·분·초 범위와 기존 마이크로초 보존, 초안 적용/취소, 잘못된 타입·시작/종료·DST·하루 종일 검증, 날짜 클릭·시간 열 위 휠·한글 셀 좌표·외부 클릭 차단, 좁은 화면·리사이즈·동일 너비·가운데 정렬·3칸 간격을 확인했다. 실제 호스트 입력 파이프에서 Enter로 선택기 열기, Esc로 선택기만 취소하기, 시·분·초를 고르고 F2로 기존 CalendarRuntime에 저장하기, 셸 문서 보존과 닫은 뒤 마우스 지원 복원도 통과했다.
+
+날짜 이동과 월 격자는 DateSelection이 소유하며 기존 큰 달력과 미니 달력이 같은 API를 사용한다. TimePart/TimeSelection은 시각 범위·전이를, EventDraft는 필드 해석·적용을 소유한다. UI는 저장 레코드를 해석하거나 시간대·반복·알림 검증을 복제하지 않는다. 새 저장 형식·설정 호환 별칭·호스트 Float·백그라운드 작업은 추가하지 않았다.
+
+첫 실행은 311개 중 310개 통과·1개 오류였다. 새 통합 테스트를 삽입하면서 기존 테스트의 마지막 검증 두 줄이 새 메서드로 들어간 작성 오류를 원래 위치로 복원했다. [초기 로그](../../tests/dok/reports/dok-7_hpnac3/dok.txt)는 보존했다. 확정 후 UI 모양은 변경하지 않았다.
+
+ESC 응답은 입력 파이프 **111.7ms**, PTY 캘린더 **118.5ms**·날씨 **122.9ms**였다. 실제 사용자 Windows Terminal의 물리 입력 재검증은 아니다. ish 본체·llm·hub 수정, llm/hub 전체 회귀 테스트, 개인 WSL 설치본·설정·일정 변경, 커밋·업로드는 수행하지 않았다.
+
+## 일정 기본 시각·반복 기간·프롬프트 명령 (2026-11-08)
+
+사용자가 [최종 화면](../../tests/dok/reports/calendar-schedule-20261108-v3/count.png)을 확정한 뒤 검증했다. 제목 → 시간 → 반복 간격 → 알림 → 명령어 → 메모 순서이며, 반복 기간은 위 한 줄 여백과 왼쪽 값·오른쪽 `반복`/`종료날짜` 버튼이다. 횟수 3은 `3회`, 0은 `계속`으로 보인다. 별도 설명 행은 제거했다. 알림 삭제 버튼은 목록의 `input_bg`와 같은 배경을 사용한다. [횟수 화면](../../tests/dok/reports/calendar-schedule-20261108-v3/finite.png), [종료날짜 화면](../../tests/dok/reports/calendar-schedule-20261108-v3/until.png).
+
+새 시작은 현재 지역 시각 +1시간, 종료는 시작 +1시간이며 사용자가 종료를 직접 고르면 자동 연동을 해제한다. 기존 시각과 위치 데이터는 보존하고 위치를 명령으로 변환하지 않는다. 알림 등록 입력 기본값은 5분 전이다. Recurrence는 최초 일정을 포함한 총 횟수(0은 계속)와 마지막 시작 날짜 포함 규칙을 달력·알림·명령어에 함께 제공한다. 명령은 빈 기본 ish 프롬프트로 제출하고, 명령 실행·계속 입력·팝업·작성 중 문서가 있으면 해당 회차를 건너뛰어 알린다. 선기록된 v3 명령 처리 기록으로 중복 제출과 자동 재시도를 막는다. 자세한 계약은 [캘린더](calendar.md)를 따른다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 328개 전부 통과, 건너뜀 0개**였다. unittest 67.877초, 실행기 69.225초. [로그](../../tests/dok/reports/dok-u12l3ggr/dok.txt), [스냅샷](../../tests/dok/reports/dok-u12l3ggr/snapshot.json), [결과](../../tests/dok/reports/dok-u12l3ggr/results.json). 제품·자동 테스트·참조 호스트 196개 파일과 커밋된 선택 의존성 796개 파일이 검증된 해시와 같았다. [일치 기록](../../tests/dok/reports/dok-u12l3ggr/current-source-verification.json).
+
+추가 17개 검사로 자정 넘김·종료 연동 해제·5분 기본값·기존 값 보존, 0/유한 횟수·월말·윤년·종료날짜·마지막 회차 이후 조회, 비활성 값 배제, 명령의 원자적 선기록·인스턴스 간 중복 방지·저장 실패·과거 일정 미실행·삭제·유한 반복, 건너뛰기/실패 알림, 실제 프롬프트 제출과 호스트 거부·문서/포커스 보존, 새 행 순서·여백·삭제 배경·미니 달력을 확인했다. 기존 선택기·예약 알림·설정·단축키 검사는 계속 포함했다.
+
+첫 전체 실행은 327개 통과, 기존 ESC 분할 입력 검사 1개 실패였다. 동일 스냅샷의 단독 재실행은 106.7ms로 통과했다. 고정 대기 뒤 즉시 단정하던 검사를 키 처리 결과 또는 팝업 닫힘이라는 관찰 가능한 상태를 기다리도록 보강했다. 잘못 닫히거나 날짜가 이동하지 않으면 계속 실패하며 ESC 단독 입력의 0.5초 상한과 제품의 0.05초 설정은 변경하지 않았다. [첫 로그](../../tests/dok/reports/dok-kwy1xcsg/dok.txt)는 보존한다.
+
+최종 ESC 응답은 입력 파이프 **105.4ms**, PTY 캘린더 **116.4ms**·날씨 **116.6ms**였다. 사용자 Windows Terminal의 물리 입력 재검증은 아니다. ish 본체·llm·hub는 수정하지 않았고 llm/hub 전체 회귀 테스트, WSL 개인 설치본·설정·일정 변경, 커밋·업로드는 하지 않았다.
+
+## 일정 초기 정각·종료 자동 연동 제거 (2026-11-08)
+
+새 초안을 만들 때만 현재 지역 시각의 다음 정각과 그로부터 한 시간 뒤를 시작·종료에 채운다. 분·초·마이크로초는 0이며 자정 넘김을 반영한다. EventTiming이 초기 계산을 소유하고 EventDraft의 이후 선택은 해당 필드만 변경한다. 이전 종료 자동 연동 상태와 전이 코드는 제거했다. 저장된 일정의 기존 시각과 시작보다 늦은 종료 검증은 유지한다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 330개 테스트 전부 통과, 건너뜀 0개**였다. unittest 69.910초, 실행기 73.183초. [로그](../../tests/dok/reports/dok-tas5j82u/dok.txt), [소스 스냅샷](../../tests/dok/reports/dok-tas5j82u/snapshot.json), [결과](../../tests/dok/reports/dok-tas5j82u/results.json), [현재 소스 일치 기록](../../tests/dok/reports/dok-tas5j82u/current-source-verification.json).
+
+선택 날짜의 정각 기본값·자정 넘김·Python 마지막 날짜 경계, 시작 날짜/시각을 반복 선택한 뒤의 종료 값 보존, 하루 종일 모드의 독립 날짜 선택, 기존 일정의 분·초·마이크로초 보존을 확인했다. ish 본체·llm·hub, WSL 개인 설치본·설정·일정은 변경하지 않았고 llm/hub 전체 회귀 테스트와 커밋·업로드는 하지 않았다.

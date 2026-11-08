@@ -21,6 +21,10 @@ class InteractivePopup:
     def draw_body(self, columns, rows, theme):
         raise NotImplementedError
 
+    def scroll_at(self, x: int, y: int, amount: int) -> bool:
+        """Handle a wheel event in body coordinates; false uses page scrolling."""
+        return False
+
     def dispose(self):
         """Release page-owned work when the host replaces or closes the page."""
 

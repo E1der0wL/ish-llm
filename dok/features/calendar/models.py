@@ -1,16 +1,15 @@
 """Calendar records own validation, recurrence and reminder interpretation."""
-from calendar import monthrange
 from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta, timezone
-from enum import StrEnum
 import os
 import time
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
-from ...core.records import Boolean, Choice, Nested, Nullable, Number, Record, Rule, SettingsError, Text, setting
+from ...core.records import Boolean, Nested, Nullable, Number, Record, Rule, Sequence, SettingsError, Text, setting
 from ..clock.config import TimezoneRule
-from ...locales import Locale, Message as M
+from .reminders import Reminder
+from .recurrence import Recurrence, RepeatUnit
 
 
 class LocalDateTime(Rule):
@@ -35,56 +34,6 @@ class LocalDateTime(Rule):
         return {"type": "string", "format": "local-date-time"}
 
 
-class RepeatUnit(StrEnum):
-    NONE = "none"
-    DAYS = "days"
-    WEEKS = "weeks"
-    MONTHS = "months"
-    YEARS = "years"
-
-    @property
-    def label(self):
-        return self.translated(Locale())
-
-    def translated(self, locale):
-        return locale.text({self.NONE: M.NO_REPEAT, self.DAYS: M.DAYS, self.WEEKS: M.WEEKS,
-                           self.MONTHS: M.MONTHS, self.YEARS: M.YEARS}[self])
-
-
-@dataclass(frozen=True, slots=True)
-class Recurrence(Record):
-    unit: RepeatUnit = setting(Choice(RepeatUnit), default=RepeatUnit.NONE, description="Calendar recurrence unit.")
-    interval: int = setting(Number(minimum=1, integer=True), default=1, description="Positive recurrence interval; months and years clamp to the last day of shorter months.")
-
-    @classmethod
-    def from_input(cls, unit, interval):
-        return cls(unit, int(interval))
-
-    def day(self, origin: date, index: int) -> date | None:
-        if index < 0 or self.unit == RepeatUnit.NONE and index:
-            return None
-        try:
-            if self.unit in (RepeatUnit.NONE, RepeatUnit.DAYS, RepeatUnit.WEEKS):
-                return origin + timedelta(days=index * self.interval * (7 if self.unit == RepeatUnit.WEEKS else 1))
-            months = index * self.interval * (12 if self.unit == RepeatUnit.YEARS else 1)
-            total = (origin.year - 1) * 12 + origin.month - 1 + months
-            year, month = total // 12 + 1, total % 12 + 1
-            return date(year, month, min(origin.day, monthrange(year, month)[1]))
-        except (ValueError, OverflowError):
-            return None
-
-    def index_near(self, origin: date, target: date) -> int:
-        if self.unit == RepeatUnit.NONE:
-            return 0
-        if self.unit in (RepeatUnit.DAYS, RepeatUnit.WEEKS):
-            distance = (target - origin).days
-            step = self.interval * (7 if self.unit == RepeatUnit.WEEKS else 1)
-        else:
-            distance = (target.year - origin.year) * 12 + target.month - origin.month
-            step = self.interval * (12 if self.unit == RepeatUnit.YEARS else 1)
-        return max(0, distance // step)
-
-
 @dataclass(frozen=True, slots=True)
 class CalendarEvent(Record):
     title: str = setting(Text(nonblank=True, single_line=True), description="Event title.")
@@ -95,10 +44,11 @@ class CalendarEvent(Record):
     timezone: str | None = setting(Nullable(TimezoneRule()), default=None, description="IANA timezone; null uses system local rules at the event date. Ambiguous times use the first occurrence.")
     all_day: bool = setting(Boolean(), default=False, description="All-day event, with midnight boundaries.")
     location: str = setting(Text(single_line=True), default="", description="Event location.")
-    alarm: datetime | None = setting(Nullable(LocalDateTime()), default=None, description="Local reminder time for the first occurrence; subsequent reminders keep the same offset from start.")
+    alarms: tuple[Reminder, ...] = setting(Sequence(Nested(Reminder)), default=(), description="Reminder offsets from every occurrence's local start. Empty disables reminders; equivalent offsets are delivered once.")
     repeat: Recurrence = setting(Nested(Recurrence), factory=Recurrence, description="Repeating schedule.")
     notes: str = setting(Text(), default="", description="Multiline event notes.")
     holiday: bool = setting(Boolean(), default=False, description="Mark this user-registered event's dates as holidays.")
+    command: str = setting(Text(single_line=True), default="", description="Shell command submitted through an idle empty ish prompt at each occurrence start. Empty disables execution.")
 
     def localize(self, value: datetime):
         aware = value.replace(tzinfo=ZoneInfo(self.timezone)) if self.timezone else value.astimezone()
@@ -109,28 +59,56 @@ class CalendarEvent(Record):
         return aware
 
     def _check(self):
+        self.repeat.validate_start(self.start.date())
         if self.end <= self.start:
             raise SettingsError("End must be after start")
         if self.all_day and (self.start.time() != datetime.min.time() or self.end.time() != datetime.min.time()):
             raise SettingsError("All-day events need midnight start and exclusive end")
-        for value in (self.start, self.end, self.alarm):
-            if value is not None:
-                self.localize(value)
+        object.__setattr__(self, "alarms", Reminder.ordered(self.alarms))
+        for value in (self.start, self.end):
+            self.localize(value)
+        for alarm in self.alarms:
+            try:
+                self.localize(self.start - alarm.delta)
+            except OverflowError as exc:
+                raise SettingsError("Reminder falls outside the supported date range") from exc
+
+    @classmethod
+    def from_single_alarm(cls, data):
+        """Decode the previous stored event format in its owning domain only."""
+        if not isinstance(data, dict):
+            raise SettingsError("Expected a calendar event object")
+        values = dict(data)
+        if "alarms" in values:
+            raise SettingsError("The single-alarm storage format cannot contain an alarms list")
+        alarm = values.pop("alarm", None)
+        event = cls.from_dict(values)
+        return replace(event, alarms=(Reminder.from_delta(event.start - LocalDateTime().decode(alarm)),)) if alarm is not None else event
 
     @staticmethod
     def recurrence_context() -> tuple[str | None, tuple[str, str], int, int]:
         """System-local interpretation context for cached recurrence queries."""
         return os.environ.get("TZ"), time.tzname, time.timezone, time.daylight
 
-    def occurrence(self, index: int):
+    def _bounds(self, index: int):
         day = self.repeat.day(self.start.date(), index)
         if day is None:
             return None
         try:
             start = datetime.combine(day, self.start.time())
-            delta = start - self.start
-            return replace(self, start=start, end=self.end + delta,
-                           alarm=self.alarm + delta if self.alarm else None)
+            return start, self.end + (start - self.start)
+        except OverflowError:
+            return None
+
+    def occurrence(self, index: int):
+        bounds = self._bounds(index)
+        if bounds is None:
+            return None
+        try:
+            event = replace(self, start=bounds[0], end=bounds[1], alarms=())
+            # A missing DST wall time skips that reminder, not the other offsets.
+            alarms = tuple(alarm for alarm in self.alarms if ReminderOccurrence.for_event(event, alarm) is not None)
+            return replace(event, alarms=alarms)
         except (OverflowError, ValueError):
             return None
 
@@ -143,21 +121,67 @@ class CalendarEvent(Record):
                 yield event
                 return
 
-    def latest_due(self, now: datetime):
-        if self.alarm is None:
-            return None
+    def _reminder_index(self, alarm, now):
         local = now.astimezone(ZoneInfo(self.timezone) if self.timezone else None).replace(tzinfo=None)
         try:
-            target = local + (self.start - self.alarm)
+            target = local + alarm.delta
         except OverflowError:
-            target = datetime.max
-        index = self.repeat.index_near(self.start.date(), target.date())
+            target = datetime.max if alarm.identity >= 0 else datetime.min
+        return self.repeat.index_near(self.start.date(), target.date())
+
+    def latest_due(self, now: datetime, alarm: Reminder):
+        now = now.astimezone(timezone.utc)
+        index = self._reminder_index(alarm, now)
         for current in (index + 1, index, index - 1):
             event = self.occurrence(current)
-            if event and event.alarm and event.localize(event.alarm) <= now:
-                return event
+            if event:
+                occurrence = ReminderOccurrence.for_event(event, alarm)
+                if occurrence and occurrence.at <= now:
+                    return occurrence
+        return None
+
+    def next_due(self, now: datetime, alarm: Reminder):
+        now = now.astimezone(timezone.utc)
+        index = max(0, self._reminder_index(alarm, now) - 1)
+        while (bounds := self._bounds(index)) is not None:
+            try:
+                bounds[0] - alarm.delta
+            except OverflowError:
+                # The first occurrence was validated. Later dates can only
+                # overflow the upper bound; advancing cannot recover from it.
+                return None
+            event = self.occurrence(index)
+            occurrence = ReminderOccurrence.for_event(event, alarm) if event else None
+            if occurrence and occurrence.at > now:
+                return occurrence.at
+            index += 1
         return None
 
     @property
-    def reminder_key(self):
+    def reminder_series(self):
         return f"{self.id}:{self.revision}"
+
+    def reminder_key(self, alarm: Reminder):
+        return f"{self.reminder_series}:{alarm.identity}"
+
+    @property
+    def command_key(self):
+        return self.reminder_series
+
+
+@dataclass(frozen=True, slots=True)
+class ReminderOccurrence:
+    event: CalendarEvent
+    alarm: Reminder
+    at: datetime
+
+    @classmethod
+    def for_event(cls, event, alarm):
+        try:
+            return cls(event, alarm, event.localize(event.start - alarm.delta))
+        except (ValueError, OverflowError):
+            return None
+
+    @property
+    def stamp(self):
+        return (self.event.start - self.alarm.delta).isoformat()

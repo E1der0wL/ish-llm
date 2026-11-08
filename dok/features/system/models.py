@@ -33,6 +33,12 @@ class SystemSnapshot:
     diagnostic: str = ""
 
     @property
+    def display_key(self):
+        """Values that can affect the toolbar or its history, excluding sample time."""
+        return (self.cpu_percent, self.memory_used, self.memory_total, self.received_per_second,
+                self.sent_per_second, self.interfaces, self.diagnostic)
+
+    @property
     def memory_percent(self) -> float | None:
         return self.memory_used / self.memory_total * 100 if self.memory_total and self.memory_used is not None else None
 

@@ -17,6 +17,7 @@ from dok.features.calendar.store import CalendarStore, CalendarConflict, Calenda
 from dok.features.calendar.runtime import CalendarRuntime
 from dok.features.calendar.config import CalendarConfig
 from dok.features.calendar.editor import EventDraft, EditorField
+from dok.features.calendar.reminders import Reminder, ReminderUnit
 
 
 def event(**changes):
@@ -42,12 +43,13 @@ class CalendarModelTests(unittest.TestCase):
             CalendarEvent("DST", datetime(2026,3,8,2,30), datetime(2026,3,8,4), timezone="America/New_York")
 
     def test_repeat_due_is_timezone_aware_and_coalesces_without_replaying_history(self):
-        original = event(alarm=datetime(2026,1,31,8,50), repeat=Recurrence("days", 1))
-        occurrence = original.latest_due(datetime(2026,11,7,8,51,tzinfo=timezone.utc))
-        self.assertEqual(occurrence.start, datetime(2026,11,7,9))
-        self.assertEqual(occurrence.alarm, datetime(2026,11,7,8,50))
-        self.assertEqual(original.latest_due(datetime(2026,11,7,8,49,tzinfo=timezone.utc)).start.day, 6)
-        self.assertIsNone(original.latest_due(datetime(2025,1,1,tzinfo=timezone.utc)))
+        alarm = Reminder("minutes", 10)
+        original = event(alarms=(alarm,), repeat=Recurrence("days", 1))
+        occurrence = original.latest_due(datetime(2026,11,7,8,51,tzinfo=timezone.utc), alarm)
+        self.assertEqual(occurrence.event.start, datetime(2026,11,7,9))
+        self.assertEqual(occurrence.at, datetime(2026,11,7,8,50,tzinfo=timezone.utc))
+        self.assertEqual(original.latest_due(datetime(2026,11,7,8,49,tzinfo=timezone.utc), alarm).event.start.day, 6)
+        self.assertIsNone(original.latest_due(datetime(2025,1,1,tzinfo=timezone.utc), alarm))
 
     def test_multiday_and_all_day_use_exclusive_end_and_one_entry_per_series(self):
         item = CalendarEvent("Holiday", datetime(2026,11,7), datetime(2026,11,9), all_day=True, holiday=True,
@@ -57,13 +59,13 @@ class CalendarModelTests(unittest.TestCase):
         self.assertFalse(tuple(one.on_day(date(2026,11,9))))
 
     def test_record_roundtrip_preserves_alarm_and_owner_validation(self):
-        item = event(alarm=datetime(2026,1,31,8,50), notes="one\ntwo", holiday=True)
+        item = event(alarms=(Reminder("minutes", 10),), notes="one\ntwo", holiday=True)
         self.assertEqual(CalendarEvent.from_dict(item.to_dict()), item)
         with self.assertRaises(ValueError):
             Recurrence("days", 0)
 
     def test_draft_typing_paste_and_all_day_conversion(self):
-        draft = EventDraft(date(2026,11,7), "Asia/Seoul")
+        draft = EventDraft(date(2026,11,7), "Asia/Seoul", now=datetime(2026,11,7,8))
         draft.edit(EditorField.TITLE, "<bracketed-paste>", "hello\nworld")
         draft.all_day = True
         saved = draft.event()
@@ -156,7 +158,7 @@ class CalendarStoreTests(unittest.TestCase):
         self.assertFalse(self.store.delete(newer).events)
 
     def test_reminders_are_claimed_once_across_store_instances_and_clock_rollback(self):
-        _, saved = self.store.save(event(alarm=datetime(2026,1,31,8,50), repeat=Recurrence("days",1)))
+        _, saved = self.store.save(event(alarms=(Reminder("minutes", 10),), repeat=Recurrence("days",1)))
         now = datetime(2026,11,7,9,tzinfo=timezone.utc)
         self.assertEqual(len(self.store.claim_due(now)[1]), 1)
         second = CalendarStore(self.store.path.parent)
@@ -191,7 +193,7 @@ class CalendarStoreTests(unittest.TestCase):
             self.assertFalse(self.store.load().events)
 
     def test_failed_reminder_write_does_not_poison_cached_receipts(self):
-        self.store.save(event(alarm=datetime(2026,1,31,8,50)))
+        self.store.save(event(alarms=(Reminder("minutes", 10),)))
         first = self.store.load()
         now = datetime(2026,1,31,9,tzinfo=timezone.utc)
         with patch("dok.features.calendar.store.os.replace", side_effect=OSError("disk")):
@@ -265,10 +267,10 @@ class CalendarRuntimeTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             notified = []
             runtime = CalendarRuntime(Path(directory), lambda: None, lambda *a, **k: notified.append((a,k)))
-            await runtime.save(event(alarm=datetime(2026,1,31,8,50)))
+            await runtime.save(event(alarms=(Reminder("minutes", 10),)))
             clock = SimpleNamespace(now=lambda: datetime(2026,1,31,9,tzinfo=timezone.utc))
             enabled = False
-            config = CalendarConfig(poll_s=.01)
+            config = CalendarConfig(poll_s=.01, idle_s=.01)
             runtime.sync(config, lambda:clock, lambda:enabled)
             await asyncio.sleep(.04)
             self.assertFalse(notified)

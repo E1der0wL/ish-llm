@@ -52,9 +52,10 @@ class DockController:
         self._dashboard = DashboardRuntime(prompt.app.invalidate)
         self._hub = HubAgents(prompt)
         self._popups = PopupHost(prompt, lambda: self._config.popups, lambda: self._config.theme, locale=lambda: self.locale)
-        self._calendar = CalendarRuntime(store.path.parent, prompt.app.invalidate, self._popups.notify)
         self._bindings = OwnedBindings(prompt, suspended=lambda: self._popups.modal)
         self._submission = ShortcutSubmission(prompt, self._state, locale=lambda: self.locale)
+        self._calendar = CalendarRuntime(store.path.parent, prompt.app.invalidate, self._popups.notify,
+                                         submit=self._submission.execute_command, locale=lambda: self.locale)
         self._view = DockView(self._mouse_execute, self._media_input)
         self._overlay = DockOverlay(self, self._view, locale=lambda: self.locale)
         self._surface = OverlayLayers(self._overlay, self._popups.layer)
@@ -119,20 +120,22 @@ class DockController:
         if active:
             self._hub.sync()
             self._calendar.sync(self._config.popups.calendar, lambda: self._config.clock,
-                                lambda: self._config.popups.notifications.enabled)
+                                lambda: self._config.popups.notifications.enabled,
+                                visible=self._popups.modal and isinstance(self._popups.page, CalendarPage))
+        dock_active = self.visible and self.display_mode != DockMode.HIDDEN and not self._popups.modal
         self._toolbar.sync(active=active, dock_visible=self.display_mode != DockMode.HIDDEN)
         self._system.sync(active=active and self._toolbar.owned and self._config.toolbar.needs_system,
-                          config=self._config.system, start_task=app.create_background_task)
-        self._media.sync(active=self.visible and self.display_mode != DockMode.HIDDEN,
+                          config=self._config.system, start_task=app.create_background_task, idle=not dock_active)
+        self._media.sync(active=dock_active,
                          config=self._config.media, start_task=app.create_background_task)
         if self._mouse is not None:
             self._mouse.sync()
-        self._audio.sync(active=self.visible and self.display_mode != DockMode.HIDDEN
+        self._audio.sync(active=dock_active
                          and (self._config.widgets.visualizer.enabled or self._config.widgets.title.enabled),
                          config=self._config.audio, start_task=app.create_background_task)
-        self._dashboard.sync(active=self.visible and self.display_mode == DockMode.MAXIMIZED,
+        self._dashboard.sync(active=dock_active and self.display_mode == DockMode.MAXIMIZED,
                              config=self._config, app=app,
-                             dock_active=self.visible,
+                             dock_active=dock_active,
                              weather_active=self._popups.modal and isinstance(self._popups.page, WeatherPage),
                              clock_active=self._popups.modal and isinstance(self._popups.page, (WeatherPage, CalendarPage)))
 

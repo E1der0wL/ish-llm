@@ -24,9 +24,9 @@ class PopupControl(FormattedTextControl):
 
     def mouse_handler(self, event):
         if event.event_type == MouseEventType.SCROLL_UP:
-            self.surface.move_scroll(-3)
+            self.surface.move_scroll(-3, position=event.position)
         elif event.event_type == MouseEventType.SCROLL_DOWN:
-            self.surface.move_scroll(3)
+            self.surface.move_scroll(3, position=event.position)
         else:
             super().mouse_handler(event)
         return None
@@ -39,6 +39,8 @@ class PopupSurface:
         self.scroll = self.selected = 0
         self._max_scroll = 0
         self._page_rows = 1
+        self._body_origin = (0, 0)
+        self._painted_rows = []
         self._actions = ()
         self._wrapped_key = None
         self._wrapped_rows = []
@@ -87,8 +89,16 @@ class PopupSurface:
         self._wrapped_key = None
         self._wrapped_rows = []
 
-    def move_scroll(self, amount):
+    def move_scroll(self, amount, *, position=None):
         if isinstance(self.page, InteractivePopup):
+            if position is not None and 0 <= position.y < len(self._painted_rows):
+                # Window maps mouse x to a UIContent character index. Page
+                # regions use terminal cells, including Korean/wide glyphs.
+                text = "".join(item[1] for item in self._painted_rows[position.y])
+                x = width(text[:position.x])
+                if self.page.scroll_at(x - self._body_origin[0], position.y - self._body_origin[1], amount):
+                    self._invalidate()
+                    return
             self.page.key("scroll-up" if amount < 0 else "scroll-down", "")
             self._invalidate()
             return
@@ -135,6 +145,7 @@ class PopupSurface:
         w, h = rect.width, rect.height
         if not w or not h:
             self.fragments = []
+            self._painted_rows = []
             return
         border = int(panel.border and w >= panel.COMPACT_WIDTH and h >= panel.COMPACT_HEIGHT + 2)
         inner_w, inner_h = w - border * 2, h - border * 2
@@ -145,6 +156,7 @@ class PopupSurface:
         interactive = isinstance(self.page, InteractivePopup)
         status_rows = int(not notification and body_h >= 3)
         title_padding = int(not notification and body_h >= 5)
+        self._body_origin = border + left, border + title_rows + top + title_padding
         footer_rows = int(not interactive and body_h >= (3 if notification else 6))
         self._page_rows = max(1, body_h - title_rows - title_padding - footer_rows - status_rows)
         if not interactive:
@@ -211,7 +223,8 @@ class PopupSurface:
                     *[[(edge, "│"), *row, (edge, "│")] for row in rows],
                     [(edge, "└" + "─" * (w - 2) + "┘")]]
         self.fragments = []
-        for index, row in enumerate(rows[:h]):
+        self._painted_rows = rows[:h]
+        for index, row in enumerate(self._painted_rows):
             if index:
                 self.fragments.append((normal, "\n"))
             self.fragments.extend(row)

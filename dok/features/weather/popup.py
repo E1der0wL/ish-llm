@@ -60,6 +60,7 @@ class WeatherPage(InteractivePopup):
         self._art_key = None
         self._art = ()
         self._hours = ()
+        self._graph_cache = None
 
     def _days(self, config, snapshot):
         return snapshot.days or WeatherSnapshot.unknown(self._clock().now().date(), config.days).days
@@ -236,7 +237,10 @@ class WeatherPage(InteractivePopup):
         hourly(M.TEMPERATURE, [("--°" if h.temperature is None else f"{h.temperature:.0f}°", ThemeRole.FOREGROUND) for h in hours] or [("--°", ThemeRole.FOREGROUND)])
         height = min(options.graph_height, max(1, rows))
         values = [h.temperature for h in hours]
-        for graph in self.graph(values, cell, height):
+        graph_key = tuple(values), cell, height
+        if self._graph_cache is None or self._graph_cache[0] != graph_key:
+            self._graph_cache = graph_key, self.graph(values, cell, height)
+        for graph in self._graph_cache[1]:
             body.append(fitted([p(" " * label_width), p(graph, ThemeRole.TITLE)], columns, theme))
         hourly(M.RAIN_CHANCE, [("--%" if h.precipitation_probability is None else f"{h.precipitation_probability:g}%",
                             ThemeRole.MUTED if h.precipitation_probability in (None, 0) else ThemeRole.FOREGROUND) for h in hours] or [("--%", ThemeRole.MUTED)])
