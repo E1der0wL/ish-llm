@@ -10,6 +10,7 @@ from ...config.sections import PreferenceSection
 from ...config.theme import HubTheme
 from ...locales.keys import MessageKey, MessagePattern
 from ...widget.forms.settings import ChoiceField
+from ...widget.color_preview import ColorPreview
 
 
 class GlobalSettingsSchema:
@@ -22,16 +23,40 @@ class GlobalSettingsSchema:
     GENERAL_DESCRIPTIONS = {
         GeneralSettings.editor.__name__: MessageKey.SETTINGS_EDITOR_DESCRIPTION,
     }
-    COLOR_FIELDS = (
+    BASE_COLORS = (
         HubTheme.background.__name__,
         HubTheme.foreground.__name__,
-        HubTheme.accent1.__name__,
-        HubTheme.accent2.__name__,
-        HubTheme.accent3.__name__,
-        HubTheme.accent4.__name__,
-        HubTheme.accent5.__name__,
-        HubTheme.comment.__name__,
-        HubTheme.comment2.__name__,
+    )
+    NORMAL_COLORS = (
+        HubTheme.black.__name__,
+        HubTheme.red.__name__,
+        HubTheme.orange.__name__,
+        HubTheme.green.__name__,
+        HubTheme.yellow.__name__,
+        HubTheme.blue.__name__,
+        HubTheme.purple.__name__,
+        HubTheme.cyan.__name__,
+        HubTheme.white.__name__,
+        HubTheme.gray.__name__,
+    )
+    BRIGHT_COLORS = (
+        HubTheme.bright_black.__name__,
+        HubTheme.bright_red.__name__,
+        HubTheme.bright_orange.__name__,
+        HubTheme.bright_green.__name__,
+        HubTheme.bright_yellow.__name__,
+        HubTheme.bright_blue.__name__,
+        HubTheme.bright_purple.__name__,
+        HubTheme.bright_cyan.__name__,
+        HubTheme.bright_white.__name__,
+        HubTheme.bright_gray.__name__,
+    )
+    COLOR_FIELDS = (*BASE_COLORS, *NORMAL_COLORS, *BRIGHT_COLORS)
+    APPEARANCE_GROUPS = (
+        (MessageKey.SETTINGS_THEME_BASE, BASE_COLORS),
+        (MessageKey.SETTINGS_THEME_NORMAL, NORMAL_COLORS),
+        (MessageKey.SETTINGS_THEME_BRIGHT, BRIGHT_COLORS),
+        (MessageKey.SETTINGS_THEME_DISPLAY, (HubTheme.icon_style.__name__,)),
     )
     REFRESH_FIELDS = (
         HubTheme.output_refresh_interval,
@@ -87,6 +112,7 @@ class GlobalSettingsSchema:
                 },
             }
             for key in cls.COLOR_FIELDS:
+                properties[key][ColorPreview.SCHEMA_KEY] = True
                 properties[key][SchemaKeyword.TITLE] = t(
                     MessagePattern.settings_theme(key)
                 )

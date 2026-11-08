@@ -58,7 +58,10 @@ class WorkflowNavigation:
 
     def escape(self):
         e = self.editor
-        if e.inspector.editing:
+        choice = next((field for field in e.inspector.fields() if field.menu_open), None)
+        if choice is not None:
+            choice.input.close()
+        elif e.inspector.editing:
             e.inspector.finish()
         elif self.region() == WorkflowRegion.ACTIONS:
             e.close()
@@ -71,6 +74,8 @@ class WorkflowNavigation:
 
     def cycle(self, reverse=False):
         e, current = self.editor, get_app().layout.current_control
+        if any(field.menu_open for field in e.inspector.fields()):
+            return
         if e.inspector.focused:
             if e.inspector.actions_focused:
                 e.inspector.focus()

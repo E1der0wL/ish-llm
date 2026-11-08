@@ -29,7 +29,7 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
                 value = await settings.execute('preset_export', project.id)
                 completion = value['project']['agents']['assistant'].get('completion', {})
                 self.assertFalse(completion)
-                self.assertEqual(value['global']['appearance']['comment2'], '#3A3A3A')
+                self.assertEqual(value['global']['appearance']['gray'], '#3A3A3A')
                 value['project']['agents']['assistant']['completion'] = {
                     'model': 'test/chosen', 'api_key': 'test-secret', 'api_base': 'https://example.invalid'}
                 value['project']['agents']['reviewer'] = {'engine': 'loop', 'tools': [],
@@ -188,39 +188,41 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
 
     def test_default_profiles_are_detached(self):
         values = HubDefaults.globals()
-        values['appearance']['accent1'] = 'red'
-        self.assertNotEqual(HubDefaults.globals()['appearance']['accent1'], 'red')
+        values['appearance']['green'] = 'red'
+        self.assertNotEqual(HubDefaults.globals()['appearance']['green'], 'red')
         components = HubDefaults.components()
         components.clear()
         self.assertTrue(HubDefaults.components())
         from hub.config.preset_records import PresetGlobals
         saved = HubDefaults.globals()['appearance']
-        saved.pop('comment2')
-        saved.pop('accent4')
-        saved.pop('accent5')
+        saved.pop('gray')
+        saved.pop('white')
+        saved.pop('bright_black')
         saved['foreground'] = '#123456'
         exported = PresetGlobals.snapshot(None, lambda: {'appearance': saved})
         self.assertEqual(exported['appearance']['foreground'], '#123456')
-        self.assertEqual(exported['appearance']['comment2'], '#3A3A3A')
-        self.assertEqual(exported['appearance']['accent4'], '#A8B2BF')
-        self.assertEqual(exported['appearance']['accent5'], '#1D2035')
-        self.assertNotIn('comment2', saved)
+        self.assertEqual(exported['appearance']['gray'], '#3A3A3A')
+        self.assertEqual(exported['appearance']['white'], '#A8B2BF')
+        self.assertEqual(exported['appearance']['bright_black'], '#1D2035')
+        self.assertNotIn('gray', saved)
 
-    def test_palette_preferences_use_additive_defaults_without_legacy_migration(self):
+    def test_palette_preferences_require_current_fields_without_legacy_migration(self):
         from hub.config.preferences import PreferencesStore
         saved = HubDefaults.globals()['appearance']
-        saved.pop('accent4')
-        saved.pop('accent5')
-        saved['accent1'] = '#123456'
+        saved['green'] = '#123456'
         validated = PreferencesStore.validate_section('appearance', saved)
-        self.assertEqual(validated['accent1'], '#123456')
-        self.assertEqual(validated['accent4'], '#A8B2BF')
-        self.assertEqual(validated['accent5'], '#1D2035')
-        self.assertNotIn('accent4', saved)
+        self.assertEqual(validated['green'], '#123456')
+        self.assertEqual(validated['white'], '#A8B2BF')
+        self.assertEqual(validated['bright_black'], '#1D2035')
+        incomplete = saved.copy()
+        incomplete.pop('bright_black')
         with self.assertRaises(TypeError):
-            PreferencesStore.validate_section('appearance', {**saved, 'mode': 'dark'})
+            PreferencesStore.validate_section('appearance', incomplete)
+        for removed in ('mode', 'accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'comment', 'comment2'):
+            with self.subTest(removed=removed), self.assertRaises(TypeError):
+                PreferencesStore.validate_section('appearance', {**saved, removed: '#123456'})
         with self.assertRaises(ValueError):
-            PreferencesStore.validate_section('appearance', {**validated, 'accent5': 'invalid'})
+            PreferencesStore.validate_section('appearance', {**validated, 'bright_black': 'invalid'})
 
     def test_dropdown_uses_completion_styles_without_radio_or_border(self):
         from hub.widget.dropdown import DropdownBox, CompletionChoices

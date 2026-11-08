@@ -83,12 +83,12 @@ class PopupCompletionTests(unittest.IsolatedAsyncioTestCase):
                             for cell in selected:
                                 attrs = app._merged_style.get_attrs_for_style_str(cell.style)
                                 self.assertEqual((attrs.color, attrs.bgcolor),
-                                                 (view.theme.accent5[1:], view.theme.accent4[1:]))
+                                                 (view.theme.bright_black[1:], view.theme.white[1:]))
                                 self.assertFalse(attrs.bold)
                             thumbs = [cell for cell in cells if 'class:hub-scrollbar-thumb' in cell.style]
                             self.assertTrue(thumbs)
                             self.assertTrue(all(app._merged_style.get_attrs_for_style_str(cell.style).bgcolor
-                                                == view.theme.accent1[1:] for cell in thumbs))
+                                                == view.theme.green[1:] for cell in thumbs))
                         pipe.send_text("\x1b[B\t")
                         await eventually(lambda: field.buffer.text.startswith("sample-"))
                         self.assertIs(app.layout.current_control, field)

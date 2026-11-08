@@ -28,8 +28,9 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: app.layout.current_control is view.profile_bar.page.control)
                 for width, height in ((132, 40), (80, 24)):
                     output.columns, output.rows = width, height
+                    frame = app.render_counter
                     app._on_resize()
-                    await asyncio.sleep(.1)
+                    await eventually(lambda: app.render_counter > frame)
                     panel = view._sidebar.content
                     self.assertEqual(panel.sections[0].height.preferred, round((height - 2) * .27))
                     position = app.renderer._last_screen.visible_windows_to_write_positions[view.profile_bar.presets.button.window]
@@ -64,8 +65,9 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 await open_home(app, view)
                 # Padding in the shared profile rectangle must also focus its buttons.
                 output.columns = 132
+                frame = app.render_counter
                 app._on_resize()
-                await asyncio.sleep(.1)
+                await eventually(lambda: app.render_counter > frame)
                 pipe.send_text(f"\x1b[<0;2;{output.rows - 3}M\x1b[<0;2;{output.rows - 3}m")
                 await eventually(lambda: app.layout.current_control in view.profile_bar.controls)
                 with set_app(app):

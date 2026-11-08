@@ -30,6 +30,7 @@ from ..config.theme_style import ThemeSelector
 from ..asset.icon import AuxiliaryIcon
 from ..locales import Language
 from ..config.theme import HubTheme
+from ..config.sidebar_heights import SidebarHeights
 from ..widget.controls import TextArea, CompletionsMenu
 from ..widget.focus import focus_control
 from ..widget.input_frame import InputFrame
@@ -65,7 +66,6 @@ class HubView:
     FIXED_COMPOSER_HEIGHT = True
     WRAP_COMPOSER = True
     HEADING_SEPARATOR = " "
-    PROJECT_FRACTION = 0.27
     SIDEBAR_MIN_COLUMNS = 88
     HINT_SEPARATOR = " • "
     NO_HINT = ""
@@ -156,6 +156,8 @@ class HubView:
 
         self.user_profile = UserProfile()
         self.theme = theme or HubTheme()
+        self.sidebar_heights = SidebarHeights()
+        self.on_sidebar_heights = HubView.ABSENT
         self.style = self.theme.style()
         self.sessions = list(sessions) or [
             SessionView(self.t(MessageKey.WELCOME_TITLE))
@@ -308,9 +310,11 @@ class HubView:
         self.project_heading = SidebarHeading(
             lambda: self.icons.project + HubView.HEADING_SEPARATOR
             + self.t(MessageKey.SETTINGS_PROJECTS), actions=self.project_actions,
+            drag_handler=lambda point: self._sidebar.content.drag_handler(point),
         )
         self.session_heading = SidebarHeading(
             lambda: self.t(MessageKey.SESSIONS), actions=self.session_buttons,
+            drag_handler=lambda point: self._sidebar.content.drag_handler(point),
         )
         self._sidebar = ConditionalContainer(
             SidebarPanel(
@@ -334,7 +338,10 @@ class HubView:
                 ],
                 self.profile_bar,
                 width=self.sidebar_width,
-                project_fraction=HubView.PROJECT_FRACTION,
+                fraction=lambda: self.sidebar_heights.home,
+                resize=lambda ratio, persist: self.set_sidebar_height(
+                    SidebarHeights.home.__name__, ratio, persist=persist,
+                ),
                 controls=((self.projects.control, *self.project_actions.controls),
                           (self._session_control, *self.session_buttons.controls)),
             ),
@@ -514,6 +521,11 @@ class HubView:
     @staticmethod
     def _rows():
         return get_app().output.get_size().rows
+
+    def set_sidebar_height(self, page, ratio, *, persist):
+        self.sidebar_heights = self.sidebar_heights.resized(page, ratio)
+        if persist and self.on_sidebar_heights is not HubView.ABSENT:
+            self.on_sidebar_heights(self.sidebar_heights)
 
     def sidebar_width(self):
         minimum = max(self.profile_bar.minimum_width, self.project_heading.minimum_width,

@@ -244,7 +244,10 @@ class SettingsEditorLayout:
         return ShortcutAction.TABS if self.tabs.content_focused else ShortcutAction.SIDEBAR
 
     def escape(self):
-        if self.auxiliary.focused:
+        choice = next((field for field in self.editor.all_fields() if field.menu_open), None)
+        if choice is not None:
+            choice.input.close()
+        elif self.auxiliary.focused:
             self.auxiliary.leave()
         elif self.editor.engine.expanded:
             self.editor.engine.close()
@@ -258,7 +261,8 @@ class SettingsEditorLayout:
             self.focus_sidebar()
 
     def cycle(self, reverse=False):
-        if self.editor.engine.expanded or (self.editor.review and self.editor.review.choice.expanded):
+        if (self.editor.engine.expanded or (self.editor.review and self.editor.review.choice.expanded)
+                or any(field.menu_open for field in self.editor.all_fields())):
             return
         if get_app().layout.has_focus(self.sidebar):
             return

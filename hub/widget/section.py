@@ -17,11 +17,15 @@ class Heading(Label):
         super().__init__(text, style=TITLE_STYLE)
 
 
-def section(title, *, actions=None):
+def section(title, *, actions=None, drag_handler=None):
+    heading = Heading(title)
+    rule = Window(height=RULE_HEIGHT, char=RULE, style=ThemeSelector.DIVIDER.style)
+    if drag_handler is not None:
+        heading.window.drag_handler = rule.drag_handler = drag_handler
     return HSplit(
         [
-            (VSplit([Heading(title), actions], padding=1, height=1)
-             if actions is not None else Heading(title)),
-            Window(height=RULE_HEIGHT, char=RULE, style=ThemeSelector.DIVIDER.style),
+            (VSplit([heading, actions], padding=1, height=1)
+             if actions is not None else heading),
+            rule,
         ]
     )

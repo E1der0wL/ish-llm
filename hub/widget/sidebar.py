@@ -26,13 +26,13 @@ class SidebarHeading(HSplit):
 
     PREFIX = " "
 
-    def __init__(self, title, *, actions=None):
+    def __init__(self, title, *, actions=None, drag_handler=None):
         self.title = lambda: self.PREFIX + (title() if callable(title) else title)
         self.actions = actions
         if actions is not None:
             actions.width = actions.minimum_width
         super().__init__(
-            [section(self.title, actions=actions)],
+            [section(self.title, actions=actions, drag_handler=drag_handler)],
             style=ThemeSelector.SIDEBAR_HEADING.style,
         )
 

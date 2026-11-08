@@ -27,7 +27,7 @@ from tests.hub.support import SizedOutput, eventually, render_container
 
 class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
     async def test_setting_field_background_survives_focus_editing_and_inactive_tint(self):
-        theme = HubTheme(accent4='#102030', accent5='#aabbcc')
+        theme = HubTheme(white='#102030', bright_black='#aabbcc')
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
             installation = install_preview(prompt, theme=theme)
@@ -136,10 +136,11 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn("e", keys())
                 pipe.send_text("\r")
                 await eventually(lambda: field.editing)
-                self.assertEqual(keys()["Enter"], view.t("shortcut_done"))
+                self.assertEqual(keys()["Enter/Space"], view.t("shortcut_confirm"))
                 self.assertNotIn("Ctrl+Space", keys())
                 pipe.send_text("\x1b[B")
-                await eventually(lambda: field.value() == "unicode")
+                await eventually(lambda: field.input.choices._selected_index == 2)
+                self.assertEqual(field.value(), "nerd")
                 pipe.send_text("\r")
                 await eventually(lambda: not field.editing)
                 self.assertTrue(screen.page.dirty)
@@ -147,7 +148,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 await paint()
                 with set_app(app):
                     screen.layout.focus_main()
-                    app.layout.focus(screen.page.form.fields[("accent1",)].input)
+                    app.layout.focus(screen.page.form.fields[("green",)].input)
                 self.assertIn("e", keys())
                 pipe.send_text("\r")
                 await eventually(lambda: screen.editing)

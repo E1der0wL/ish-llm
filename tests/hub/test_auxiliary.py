@@ -179,27 +179,27 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
         with set_app(app):
             app.layout.focus(button)
         await self.paint()
-        self.assertEqual(color(), view.theme.accent2[1:])
+        self.assertEqual(color(), view.theme.blue[1:])
         with patch('hub.widget.controls.monotonic', return_value=100.0) as clock:
             self.pipe.send_text(' ')
             await eventually(lambda: len(calls) == 1)
             await self.paint()
-            self.assertEqual(color(), view.theme.accent1[1:])
+            self.assertEqual(color(), view.theme.green[1:])
             clock.return_value = 101.0
             await self.paint()
-            self.assertEqual(color(), view.theme.accent2[1:])
+            self.assertEqual(color(), view.theme.blue[1:])
             with set_app(app):
                 handler = button._get_text_fragments()[2][2]
                 handler(MouseEvent(Point(0, 0), MouseEventType.MOUSE_DOWN, MouseButton.LEFT, frozenset()))
             await self.paint()
-            self.assertEqual(color(), view.theme.accent1[1:])
+            self.assertEqual(color(), view.theme.green[1:])
             self.assertEqual(calls, ['history'])
             with set_app(app):
                 handler(MouseEvent(Point(0, 0), MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
             self.assertEqual(calls, ['history', 'history'])
             clock.return_value = 102.0
             await self.paint()
-            self.assertEqual(color(), view.theme.accent2[1:])
+            self.assertEqual(color(), view.theme.blue[1:])
 
     async def test_normal_button_flashes_for_keyboard_and_mouse_without_delaying_action(self):
         from prompt_toolkit.widgets import Label
@@ -224,28 +224,28 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(attrs.bgcolor, self.view.theme.button_background[1:])
             return attrs.color
 
-        self.assertEqual(color(), self.view.theme.accent2[1:])
+        self.assertEqual(color(), self.view.theme.blue[1:])
         with patch('hub.widget.controls.monotonic', return_value=100.0) as clock:
             for count, key in enumerate(('\r', ' '), 1):
                 self.pipe.send_text(key)
                 await eventually(lambda: len(calls) == count)
                 await self.paint()
-                self.assertEqual(color(), self.view.theme.accent1[1:])
+                self.assertEqual(color(), self.view.theme.green[1:])
                 clock.return_value += 1
                 await self.paint()
-                self.assertEqual(color(), self.view.theme.accent2[1:])
+                self.assertEqual(color(), self.view.theme.blue[1:])
             with set_app(self.app):
                 clicked = button._get_text_fragments()[2][2]
                 clicked(MouseEvent(Point(0, 0), MouseEventType.MOUSE_DOWN, MouseButton.LEFT, frozenset()))
             await self.paint()
-            self.assertEqual(color(), self.view.theme.accent1[1:])
+            self.assertEqual(color(), self.view.theme.green[1:])
             self.assertEqual(len(calls), 2)
             with set_app(self.app):
                 clicked(MouseEvent(Point(0, 0), MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
             self.assertEqual(len(calls), 3)
             clock.return_value += 1
             await self.paint()
-            self.assertEqual(color(), self.view.theme.accent2[1:])
+            self.assertEqual(color(), self.view.theme.blue[1:])
 
     async def test_dropdown_rendered_rows_are_plain_with_selected_palette_and_accent_thumb(self):
         view, app = self.view, self.app
@@ -264,11 +264,11 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
                 cell = screen.data_buffer[y][x]
                 attrs = app._merged_style.get_attrs_for_style_str(cell.style)
                 if 'class:hub-scrollbar-thumb' in cell.style:
-                    self.assertEqual(attrs.bgcolor, view.theme.accent1[1:])
+                    self.assertEqual(attrs.bgcolor, view.theme.green[1:])
                     seen.add('thumb')
                 elif 'class:completion-menu.completion.current' in cell.style:
                     self.assertEqual((attrs.color, attrs.bgcolor),
-                                     (view.theme.accent5[1:], view.theme.accent4[1:]))
+                                     (view.theme.bright_black[1:], view.theme.white[1:]))
                     self.assertFalse(attrs.bold)
                     seen.add('current')
                 elif 'class:completion-menu.completion' in cell.style:
@@ -285,24 +285,24 @@ class PaletteTests(unittest.TestCase):
     def test_explicit_colors_and_automatic_inactive_grayscale(self):
         from hub.config.theme_style import ThemeSelector
         theme = HubTheme()
-        self.assertEqual([theme.accent1, theme.accent2, theme.accent3, theme.accent4, theme.accent5],
+        self.assertEqual([theme.green, theme.blue, theme.orange, theme.white, theme.bright_black],
                          ['#98C379', '#528BFF', '#D19A66', '#A8B2BF', '#1D2035'])
         self.assertNotIn('mode', asdict(theme))
         self.assertEqual(HubTheme(**asdict(theme)), theme)
         for background in ('default', '#123456', '#ffffff'):
             palette = replace(theme, foreground='#102030', background=background,
-                              accent1='#234567', accent4='#345678', accent5='#456789')
+                              green='#234567', white='#345678', bright_black='#456789')
             style = palette.style()
             for selector, foreground, fill in (
                     (ThemeSelector.PTK_BUTTON, '345678', '456789'),
-                    (ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT, theme.accent2[1:], '456789'),
+                    (ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT, theme.blue[1:], '456789'),
                     (ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT, '345678', '456789'),
                     (ThemeSelector.CHECKLIST, '102030', '456789'),
                     (ThemeSelector.PTK_CHECKBOX_LIST, '102030', '456789'),
                     (ThemeSelector.PTK_COMPLETION_MENU, '345678', '456789'),
                     (ThemeSelector.PTK_COMPLETION_MENU_COMPLETION, '345678', '456789'),
                     (ThemeSelector.PTK_COMPLETION_MENU_COMPLETION_CURRENT, '456789', '345678'),
-                    (ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION, theme.comment[1:], '456789'),
+                    (ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION, theme.bright_gray[1:], '456789'),
                     (ThemeSelector.PTK_COMPLETION_MENU_META_COMPLETION_CURRENT, '456789', '345678')):
                 attrs = style.get_attrs_for_style_str(' '.join('class:' + part for part in selector.value.split()))
                 self.assertEqual((attrs.color, attrs.bgcolor), (foreground, fill))
@@ -313,8 +313,8 @@ class PaletteTests(unittest.TestCase):
             for selector in (ThemeSelector.HEADER, ThemeSelector.PROFILE, ThemeSelector.PROFILE_NAME,
                              ThemeSelector.PROFILE_ACCOUNT, ThemeSelector.SETTINGS_INPUT_FOCUSED):
                 self.assertEqual(style.get_attrs_for_style_str(selector.style).bgcolor, '456789')
-            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.PROFILE_NAME.style).color, theme.accent2[1:])
-            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.PROFILE_ACCOUNT.style).color, theme.comment[1:])
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.PROFILE_NAME.style).color, theme.blue[1:])
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.PROFILE_ACCOUNT.style).color, theme.bright_gray[1:])
             for state in ('', '.focused'):
                 attrs = style.get_attrs_for_style_str('class:hub class:hub.header class:button' + state + ' class:button.text')
                 self.assertEqual(attrs.bgcolor, '456789')
@@ -322,7 +322,7 @@ class PaletteTests(unittest.TestCase):
             for state in ('', '.focused'):
                 attrs = style.get_attrs_for_style_str('class:hub class:hub.auxiliary class:button' + state + ' class:button.text')
                 self.assertEqual(attrs.bgcolor, 'default')
-                self.assertEqual(attrs.color, theme.accent2[1:] if state else '345678')
+                self.assertEqual(attrs.color, theme.blue[1:] if state else '345678')
             for state in ('', '.focused'):
                 attrs = style.get_attrs_for_style_str('class:hub class:hub.dropdown class:button' + state + ' class:button.text')
                 self.assertEqual((attrs.color, attrs.bgcolor), ('345678', '456789'))
@@ -349,7 +349,7 @@ class PaletteTests(unittest.TestCase):
             for selector in (ThemeSelector.SHORTCUT_SEGMENT, ThemeSelector.SHORTCUT_KEY):
                 self.assertEqual(style.get_attrs_for_style_str(selector.style).bgcolor, '345678')
             self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_SEGMENT.style).color, '456789')
-            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_KEY.style).color, theme.accent2[1:])
+            self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_KEY.style).color, theme.blue[1:])
             self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.FOOTER.style).color, '345678')
             self.assertEqual(style.get_attrs_for_style_str(ThemeSelector.FOOTER.style).bgcolor, '456789')
             leading = style.get_attrs_for_style_str(ThemeSelector.SHORTCUT_LEADING.style)

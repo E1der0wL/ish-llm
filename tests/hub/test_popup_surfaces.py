@@ -59,17 +59,17 @@ class PopupSurfaceTests(unittest.IsolatedAsyncioTestCase):
             for dy in range(rect.height):
                 for dx in (0, rect.width // 2):
                     self.assertEqual(self.attrs(screen, window, dx=dx, dy=dy).bgcolor,
-                                     self.view.theme.accent5[1:])
+                                     self.view.theme.bright_black[1:])
         attrs = self.attrs(screen, heading.window)
         self.assertTrue(attrs.bold)
-        self.assertEqual(attrs.color, self.view.theme.accent1[1:])
+        self.assertEqual(attrs.color, self.view.theme.green[1:])
 
     async def test_popup_sidebar_fill_does_not_change_home_or_settings_sidebar(self):
         popup = ComponentManager(self.view, lambda *a, **k: None, name='rag')
         self.view.dialogs.show(popup, popup.list)
         screen, _, _ = self.paint(popup)
         window = next(w for w in screen.visible_windows_to_write_positions if w.content is popup.list)
-        self.assertEqual(self.attrs(screen, window).bgcolor, self.view.theme.accent5[1:])
+        self.assertEqual(self.attrs(screen, window).bgcolor, self.view.theme.bright_black[1:])
         for style in ('class:hub class:hub.sidebar', 'class:hub class:hub.sidebar-heading'):
             self.assertEqual(self.view.style.get_attrs_for_style_str(style).bgcolor, 'default')
 
@@ -113,7 +113,7 @@ class PopupSurfaceTests(unittest.IsolatedAsyncioTestCase):
             popup = Dialog(body=widget, size=PopupSize.CUSTOM, buttons=[Button('Close')])
             self.view.dialogs.show(popup, widget)
             screen, _, _ = self.paint(popup)
-            self.assert_track_background(screen, self.view.theme.accent5[1:])
+            self.assert_track_background(screen, self.view.theme.bright_black[1:])
         # A page list has no popup-specific fill; an explicitly colored widget
         # must keep its own surface rather than either palette default.
         for background in ('default', '#314159'):

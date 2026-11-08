@@ -282,12 +282,12 @@ class SettingsRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 with self.assertRaises(ValueError):
                     await runtime.settings_service.clone_project(runtime.project.id, "Busy")
                 await runtime.settings_service.save_global("profile", {"display_name": "Profile name"})
-                await runtime.settings_service.save_global("appearance", asdict(HubTheme(accent1="#abcdef")))
+                await runtime.settings_service.save_global("appearance", asdict(HubTheme(green="#abcdef")))
                 self.assertEqual(runtime.config.user_profile.display_name, "Profile name")
                 with self.assertRaises(ValueError):
-                    await runtime.settings_service.save_global("appearance", {"accent1": "invalid"})
+                    await runtime.settings_service.save_global("appearance", {"green": "invalid"})
                 stored = PreferencesStore(directory).load()
-                self.assertEqual(stored["appearance"]["accent1"], "#abcdef")
+                self.assertEqual(stored["appearance"]["green"], "#abcdef")
                 self.assertEqual(stored["profile"]["display_name"], "Profile name")
             finally:
                 gate.set()
@@ -435,7 +435,7 @@ class SettingsUITests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.settings_open and not screen.busy)
                 screen.choose("appearance")
                 appearance = screen.page
-                appearance.form.fields[("accent1",)].input.text = "#abcdef"
+                appearance.form.fields[("green",)].input.text = "#abcdef"
                 app.layout.focus(appearance.save)
                 pipe.send_text("\r")
                 await until(lambda: view.theme.accent == "#abcdef" and not screen.busy)

@@ -167,7 +167,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                                 view.toggle_settings()
                                 view.settings.choose("appearance")
                                 if scope != "settings panel":
-                                    field = view.settings.page.form.fields[("accent1",)]
+                                    field = view.settings.page.form.fields[("green",)]
                                     app.layout.focus(field.input)
                                     if scope == "settings editing":
                                         field.begin()

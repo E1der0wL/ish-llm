@@ -50,11 +50,12 @@ class LazyFieldTests(unittest.TestCase):
     def test_choice_draft_survives_delayed_creation_and_empty_form_is_visible(self):
         schema = {'type': 'string', settings.ChoiceField.SCHEMA_KEY: {'a': 'A', 'b': 'B'}}
         field = settings.ChoiceField('choice', schema, 'a', Language('en'))
-        field.text = 'B'
+        field.select(2)
         self.assertEqual(field.value(), 'b')
-        self.assertEqual(field.input.text, 'B')
-        self.assertTrue(field.input.buffer.read_only())
-        self.assertTrue(field.input.window.always_hide_cursor())
+        self.assertIsNone(field._input)
+        self.assertEqual(field.input.text, '"b"')
+        self.assertIn('B', field.input.caption())
+        self.assertFalse(field.input.control.show_cursor)
         self.assertTrue(settings.SchemaForm(False, {}, Language('en')).container.children)
 
 

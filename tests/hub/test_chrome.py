@@ -15,7 +15,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
     async def test_composer_growth_and_session_sidebar_resize(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
-            theme = HubTheme(accent2="#123456")
+            theme = HubTheme(blue="#123456")
             installation = install_preview(prompt, theme=theme)
             app, view = prompt.app, installation.view
             widths = []
@@ -37,7 +37,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
                 await eventually(lambda: view.theme.sidebar_width == theme.sidebar_width + 1)
                 self.assertIs(app.layout.current_control, view._session_control)
                 self.assertNotIn("appearance", view.settings.drafts.pages)
-                self.assertEqual(view.theme.accent2, "#123456")
+                self.assertEqual(view.theme.blue, "#123456")
                 self.assertEqual(view.settings.drafts.preferences["appearance"]["sidebar_width"], theme.sidebar_width + 1)
                 pipe.send_text("\x1b[1;5D")
                 await eventually(lambda: view.theme.sidebar_width == theme.sidebar_width)
@@ -64,7 +64,7 @@ class ChromeTests(unittest.IsolatedAsyncioTestCase):
             try:
                 await eventually(lambda: app.is_running)
                 for columns, rows, theme in ((132, 40, HubTheme()), (80, 24, HubTheme(
-                        background="#123456", accent1="#234567")),
+                        background="#123456", green="#234567")),
                         (60, 14, HubTheme())):
                     output.columns, output.rows = columns, rows
                     view.set_theme(theme)

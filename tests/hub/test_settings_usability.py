@@ -108,7 +108,7 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     screen.choose('appearance')
                     appearance = screen.page
-                    appearance.form.fields[('comment',)].input.text = '#123456'
+                    appearance.form.fields[('bright_gray',)].input.text = '#123456'
                     screen.choose('profile')
                     profile = screen.page
                     profile.form.fields[('display_name',)].input.text = 'Unsaved'
@@ -131,7 +131,7 @@ class SettingsUsabilityTests(unittest.IsolatedAsyncioTestCase):
                 await open_home(app, view)
                 self.assertEqual(view.theme.sidebar_width, 30)
                 self.assertEqual(store.load()['profile']['display_name'], 'Saved')
-                self.assertEqual(store.load()['appearance']['comment'], HubTheme().comment)
+                self.assertEqual(store.load()['appearance']['bright_gray'], HubTheme().bright_gray)
                 pipe.send_text('\x1b')
                 await eventually(lambda: app.layout.current_control == view._session_control)
                 pipe.send_text('\x1b[1;5D')

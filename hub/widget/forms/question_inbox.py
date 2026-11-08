@@ -108,7 +108,7 @@ class QuestionInbox:
 
     def navigation_style(self):
         focused = get_app().layout.current_control is self.navigation_control
-        foreground = self.view.theme.accent2 if focused else self.view.theme.muted
+        foreground = self.view.theme.blue if focused else self.view.theme.muted
         return ThemeSelector.QUESTION_HEADING.style + self.PAGE_STYLE + foreground
 
     def bind_navigation(self, control):

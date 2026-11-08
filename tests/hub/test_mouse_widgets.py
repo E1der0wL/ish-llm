@@ -12,6 +12,7 @@ from prompt_toolkit.widgets import Label
 from examples.hub.preview import install_preview
 from hub.model import ChatMessage
 from hub.widget.controls import Button, CheckboxList, TextArea, RadioList, ScrollablePane
+from hub.widget.color_preview import ColorPreview
 from hub.widget.dialog import Dialog
 from hub.widget.mouse import ScrollbarGeometry
 from hub.widget.focus_region import grayscale
@@ -242,11 +243,11 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         rect = self.position(choices.window)
         screen = self.app.renderer._last_screen
         for y in range(rect.ypos, rect.ypos + rect.height):
-            self.assertEqual(attrs[screen.data_buffer[y][rect.xpos].style].bgcolor, self.view.theme.accent5[1:])
+            self.assertEqual(attrs[screen.data_buffer[y][rect.xpos].style].bgcolor, self.view.theme.bright_black[1:])
         for selector in ("hub-scrollbar-track", "hub-scrollbar-arrow"):
             self.assertEqual(self.view.style.get_attrs_for_style_str("class:hub class:" + selector).bgcolor, "123456")
         self.assertEqual(self.view.style.get_attrs_for_style_str("class:hub class:checkbox-list").bgcolor,
-                         self.view.theme.accent5[1:])
+                         self.view.theme.bright_black[1:])
 
     async def test_tagbar_click_selects_and_keyboard_opens_code_viewer(self):
         from hub.widget.output.code_viewer import CodeViewer
@@ -555,7 +556,12 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((gap.xpos, gap.width), (settings_edge - 1, 1))
             field = self.view.settings.page.form.fields[("background",)].input.window
             field_rect = self.position(field)
-            self.assertEqual(field_rect.xpos + field_rect.width, gap.xpos)
+            preview = next(position for window, position in
+                           self.app.renderer._last_screen.visible_windows_to_write_positions.items()
+                           if isinstance(window, ColorPreview) and position.ypos == field_rect.ypos)
+            self.assertEqual(field_rect.xpos + field_rect.width + 1, preview.xpos)
+            self.assertEqual(preview.width, 2)
+            self.assertEqual(preview.xpos + preview.width, gap.xpos)
             cells = self.app.renderer._last_screen.data_buffer
             for y in range(rect.ypos, rect.ypos + rect.height):
                 self.assertEqual(cells[y][gap.xpos].char, " ")

@@ -117,7 +117,7 @@ class WorkflowInspector:
         for field in self.fields():
             field.enabled = lambda: not e.busy
             field.on_edit = lambda item: get_app().create_background_task(self.edit_field(item))
-            field.input.buffer.on_text_changed += e.update_dirty
+            field.on_change += e.update_dirty
             self.bind_navigation(field.input.control, lambda f=field: not f.editing)
         for button in self.special:
             self.bind_navigation(button.control, lambda: True)
@@ -142,7 +142,7 @@ class WorkflowInspector:
 
     async def edit_field(self, field):
         e = self.editor
-        if e.busy or not e.manager.edit_text:
+        if e.busy or not e.manager.edit_text or field.readonly or not field.external_editable:
             return
         e.busy = True
         try:

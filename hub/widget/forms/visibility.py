@@ -66,6 +66,7 @@ class EssentialSettings:
         GeneralSettings.recovery_summary_chars.__name__, GeneralSettings.recovery_max_summary_calls.__name__,
     ))
     ADVANCED_APPEARANCE = frozenset((
+        HubTheme.sidebar_width.__name__,
         HubTheme.output_refresh_interval.__name__, HubTheme.progress_refresh_interval.__name__,
     ))
 

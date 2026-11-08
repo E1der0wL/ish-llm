@@ -288,6 +288,9 @@ class LiveController:
         self.worker = LiveController.ABSENT
         self._sidebar_width_pending = LiveController.ABSENT
         HubView.bind_sidebar_width(self.view, self._save_sidebar_width)
+        self._sidebar_heights_pending = LiveController.ABSENT
+        view.sidebar_heights = preferences.sidebar_heights
+        view.on_sidebar_heights = self._save_sidebar_heights
         HubView.bind_output_interval(self.view, self._set_output_interval)
         self.app = LiveController.ABSENT
         self.loop = LiveController.ABSENT
@@ -661,6 +664,12 @@ class LiveController:
             self.worker.set_sidebar_width(width)
             self._sidebar_width_pending = LiveController.ABSENT
 
+    def _save_sidebar_heights(self, heights):
+        self._sidebar_heights_pending = heights
+        if self.worker:
+            self.worker.set_sidebar_heights(heights)
+            self._sidebar_heights_pending = LiveController.ABSENT
+
     def open(self, app):
         self.app = app
         self.refresh_shell_root()
@@ -689,6 +698,8 @@ class LiveController:
             self._set_output_interval(self.view.theme.output_refresh_interval)
             if self._sidebar_width_pending is not LiveController.ABSENT:
                 self._save_sidebar_width(self._sidebar_width_pending)
+            if self._sidebar_heights_pending is not LiveController.ABSENT:
+                self._save_sidebar_heights(self._sidebar_heights_pending)
             self.worker.set_visible(self.view.visible)
         return self.worker
 

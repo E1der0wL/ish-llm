@@ -76,7 +76,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
         from hub.asset.icon import for_style
         from hub.config.theme_style import ThemeSelector
         from hub.widget.transcript.thought_trace import render_trace_item
-        theme = HubTheme(comment='#456789')
+        theme = HubTheme(bright_gray='#456789')
         for style, glyph in (('nerd',''), ('unicode','⇲')):
             language = Language('ko', icons=for_style(style))
             rows = render_trace_item(TraceItem('summary',TraceItem.SUMMARY,''),80,theme,language)
@@ -89,7 +89,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
                 for style, text in row:
                     if text.strip():
                         attrs = theme.style().get_attrs_for_style_str(style)
-                        self.assertEqual(attrs.color.lower(), theme.accent1[1:].lower())
+                        self.assertEqual(attrs.color.lower(), theme.green[1:].lower())
 
     def test_reasoning_heading_contains_only_agent_name_and_title(self):
         message = ChatMessage('reasoning', 'Visible thought', author='도우미', status='running',

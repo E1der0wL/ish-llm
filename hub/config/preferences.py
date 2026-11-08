@@ -9,6 +9,7 @@ from .general import GeneralSettings
 from .sections import PreferenceSection
 from .workspace import WorkspaceSelection
 from .preference_records import PreferenceRecord, PreferenceSnapshot, SidebarWidth
+from .sidebar_heights import SidebarHeights
 
 
 def configured_workspace(config):
@@ -86,6 +87,7 @@ class PreferencesStore(WorkspaceJSONStore):
     def __init__(self, workspace):
         super().__init__(workspace, PreferenceRecord.FILE)
         self.sidebar = WorkspaceJSONStore(workspace, SidebarWidth.FILE)
+        self.sidebar_heights = WorkspaceJSONStore(workspace, SidebarHeights.FILE)
 
     @classmethod
     def validate_section(cls, section, record):
@@ -105,6 +107,10 @@ class PreferencesStore(WorkspaceJSONStore):
         sidebar = read_for_startup(self.sidebar, width) if startup else width()
         if sidebar is not SidebarWidth.ABSENT:
             result.apply_sidebar(sidebar)
+        def heights():
+            value = self.sidebar_heights._read_json(SidebarHeights().to_dict())
+            return SidebarHeights.read(value)
+        result.sidebar_heights = read_for_startup(self.sidebar_heights, heights) if startup else heights()
         return result
 
     def load(self):
@@ -114,6 +120,9 @@ class PreferencesStore(WorkspaceJSONStore):
         HubTheme(sidebar_width=width)
         self.sidebar._write_json(SidebarWidth.create(width))
         return width
+
+    def save_sidebar_heights(self, heights: SidebarHeights) -> None:
+        self.sidebar_heights._write_json(heights.to_dict())
 
     @classmethod
     def input_record(cls, section, values):

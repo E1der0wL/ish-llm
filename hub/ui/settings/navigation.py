@@ -104,11 +104,10 @@ class SettingsNavigation:
 
     @property
     def editing(self):
-        current = get_app().layout.current_control
         return bool(
             self.screen.page
             and any(
-                field.editing and field.input.control == current
+                field.editing and field.owns_focus()
                 for field in self.screen.page.all_fields()
             )
         )
@@ -126,7 +125,7 @@ class SettingsNavigation:
         return editing
 
     def edit_field(self, field):
-        if self.screen.busy or field.readonly:
+        if self.screen.busy or field.readonly or not field.external_editable:
             return
         self.screen.busy = field.editing = SettingsActivity.BUSY
         get_app().create_background_task(self._edit_field(field))

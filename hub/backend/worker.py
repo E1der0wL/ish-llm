@@ -129,8 +129,8 @@ class BackendWorker:
         self._output_interval = BackendWorker.DEFAULT_OUTPUT_INTERVAL
         self._visible = True
         self._interval_changed = BackendWorker.ABSENT
-        self._sidebar_width_pending = BackendWorker.ABSENT
-        self._sidebar_width_task = BackendWorker.ABSENT
+        self._sidebar_pending = {}
+        self._sidebar_task = BackendWorker.ABSENT
         self._startup_lock = threading.Lock()
         self._startup_observer = None
         self._request_observer = None
@@ -487,47 +487,50 @@ class BackendWorker:
         if not self._closed and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(apply)
 
-    async def _write_sidebar_width(self):
+    async def _write_sidebar_state(self):
         await self._initialized.wait()
-        while self._sidebar_width_pending is not BackendWorker.ABSENT:
-            width, self._sidebar_width_pending = (
-                self._sidebar_width_pending,
-                BackendWorker.ABSENT,
-            )
+        while self._sidebar_pending:
+            operation = next(iter(self._sidebar_pending))
+            value = self._sidebar_pending.pop(operation)
             try:
                 async with self.runtime.lock:
                     await asyncio.to_thread(
-                        self.runtime.settings_service.preferences.save_sidebar_width,
-                        width,
+                        operation, self.runtime.settings_service.preferences, value,
                     )
             except Exception as error:
                 self.report_error(
                     from_exception(
                         error,
                         origin=ErrorOrigin.HUB,
-                        operation=PreferencesStore.save_sidebar_width.__name__,
+                        operation=operation.__name__,
                     )
                 )
 
-    def set_sidebar_width(self, width: int) -> None:
-        """Coalesce only width writes, serialized with explicit settings saves."""
+    def _queue_sidebar_write(self, operation, value):
+        """Coalesce each UI geometry record, serialized with explicit settings saves."""
 
         def queue():
             if self._restarting:
                 return
-            self._sidebar_width_pending = width
+            self._sidebar_pending[operation] = value
             if (
-                self._sidebar_width_task is BackendWorker.ABSENT
-                or self._sidebar_width_task.done()
+                self._sidebar_task is BackendWorker.ABSENT
+                or self._sidebar_task.done()
             ):
-                self._sidebar_width_task = asyncio.create_task(
-                    self._write_sidebar_width()
+                self._sidebar_task = asyncio.create_task(
+                    self._write_sidebar_state()
                 )
-                self._commands.add(self._sidebar_width_task)
-                self._sidebar_width_task.add_done_callback(self._commands.discard)
+                self._commands.add(self._sidebar_task)
+                self._sidebar_task.add_done_callback(self._commands.discard)
 
         if not self._closed and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(queue)
+
+    def set_sidebar_width(self, width: int) -> None:
+        self._queue_sidebar_write(PreferencesStore.save_sidebar_width, width)
+
+    def set_sidebar_heights(self, heights) -> None:
+        self._queue_sidebar_write(PreferencesStore.save_sidebar_heights, heights)
 
     def _stop_worker(self):
         if self.runtime is not None and self.runtime.plugins is not None:

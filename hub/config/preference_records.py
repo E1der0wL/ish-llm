@@ -7,6 +7,7 @@ from .general import GeneralSettings
 from .profile import UserProfile
 from .theme import HubTheme
 from .sections import PreferenceSection
+from .sidebar_heights import SidebarHeights
 
 
 class SidebarWidth:
@@ -37,6 +38,7 @@ class PreferenceSnapshot:
 
     def __init__(self, value):
         self._value = value
+        self.sidebar_heights = SidebarHeights()
 
     @property
     def record(self):
@@ -196,7 +198,6 @@ class PreferenceRecord:
         # Explicit additive fields use their Owner defaults when omitted.
         # Removed/unknown fields are still rejected, never silently migrated.
         optional = {
-            HubTheme: {HubTheme.comment2.__name__, HubTheme.accent4.__name__, HubTheme.accent5.__name__},
             GeneralSettings: {GeneralSettings.tool_context_chars.__name__},
         }.get(owner, set())
         if not isinstance(record, dict) or not expected - optional <= record.keys() <= expected:

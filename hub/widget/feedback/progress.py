@@ -83,7 +83,7 @@ class ProgressControl(UIControl):
                 line_count=self.ROWS,
                 show_cursor=self.SHOW_CURSOR,
             )
-        owner.bar.style = theme.comment2
+        owner.bar.style = theme.gray
         owner.bar.complete_style = owner.bar.finished_style = owner.bar.pulse_style = (
             theme.accent
         )

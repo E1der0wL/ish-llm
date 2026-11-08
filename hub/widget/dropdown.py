@@ -10,7 +10,7 @@ from prompt_toolkit.layout import ConditionalContainer, Float, FloatContainer
 from prompt_toolkit.formatted_text import to_formatted_text, fragment_list_width, fragment_list_to_text
 from prompt_toolkit.mouse_events import MouseEventType
 
-from .controls import Button, RadioList, ScrollbarMargin
+from .controls import Button, RadioList, ScrollbarMargin, ScrollablePane
 from ..asset.icon import NERD
 from ..config.theme_style import ThemeSelector
 
@@ -71,12 +71,7 @@ class DropdownBox(FloatContainer):
     EXPANDED = True
     DEFAULT_WIDTH = 16
     CHOICE_ROWS = 8
-    MENU_BOTTOM = 1
     MENU_LEFT = 0
-    MENU_MAX_ROWS = 10
-    MENU_BORDER_ROWS = 0
-    MENU_MIN_ROWS = 1
-    TERMINAL_RESERVED_ROWS = 5
     MENU_LAYER = 400
     BASE_LAYER = 0
     MIN_CAPTION_WIDTH = 1
@@ -126,20 +121,12 @@ class DropdownBox(FloatContainer):
             floats=[
                 Float(
                     ConditionalContainer(self.choices, Condition(self.is_open)),
-                    # Explicit height lets the menu extend above a one-row button;
-                    # preferred height alone is clipped to the button's own row.
-                    bottom=self.MENU_BOTTOM,
+                    # Position/height are assigned from the current visible area,
+                    # rather than this one-row container's own dimensions.
+                    top=0,
                     left=self.MENU_LEFT,
                     width=self.rendered_width,
-                    height=lambda: min(
-                        self.MENU_MAX_ROWS,
-                        len(self.choices.values) + self.MENU_BORDER_ROWS,
-                        max(
-                            self.MENU_MIN_ROWS,
-                            get_app().output.get_size().rows
-                            - self.TERMINAL_RESERVED_ROWS,
-                        ),
-                    ),
+                    height=0,
                     z_index=self.MENU_LAYER,
                 )
             ],
@@ -167,6 +154,29 @@ class DropdownBox(FloatContainer):
         info = self.button.window.render_info
         return info.window_width if info else self.width
 
+    def visible_bounds(self):
+        """A pane renders in virtual coordinates; ordinary layouts use screen rows."""
+        layout = get_app().layout
+        parent = layout.get_parent(self)
+        while parent is not None:
+            if isinstance(parent, ScrollablePane):
+                return parent.vertical_scroll, parent.vertical_scroll + parent.viewport_height
+            parent = layout.get_parent(parent)
+        return 0, get_app().output.get_size().rows
+
+    def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
+        if self.is_open():
+            top, bottom = self.visible_bounds()
+            above = max(0, write_position.ypos - top)
+            below = max(0, bottom - write_position.ypos - write_position.height)
+            preferred = min(self.CHOICE_ROWS, len(self.choices.values))
+            opens_below = below >= preferred or (above < preferred and below >= above)
+            height = min(preferred, below if opens_below else above)
+            menu = self.floats[0]
+            menu.top = write_position.height if opens_below else -height
+            menu.height = height
+        super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
+
     def caption(self):
         from ..ui.output.labels import ellipsize
 
@@ -177,7 +187,7 @@ class DropdownBox(FloatContainer):
         return (
             ellipsize(
                 label,
-                max(self.MIN_CAPTION_WIDTH, self.width - self.CAPTION_RESERVED_WIDTH),
+                max(self.MIN_CAPTION_WIDTH, self.rendered_width() - self.CAPTION_RESERVED_WIDTH),
             )
             + self.CAPTION_SEPARATOR
             + self.icons().dropdown

@@ -157,7 +157,7 @@ class AgentEditor(Dialog):
         self.workspace.bind_field(field)
 
     async def edit_field(self, field):
-        if not self.manager.edit_text:
+        if not self.manager.edit_text or field.readonly or not field.external_editable:
             return
         self.busy = True
         try:

@@ -131,3 +131,28 @@ Linux Python 3.12.14와 WSL의 Linux 파일시스템에 고정한 소스 복사�
 설정 해석·요청/응답 타입·관측·UI 선언 경계를 수정했다.
 [파일별 범위와 검증](ownership-review-20261106.md)에 결과를 기록한다.
 기존 검사 규칙과 debt baseline, `llm/` 구현은 변경하지 않는다.
+
+## 2026-11-08 패널 비율·명명 팔레트·설정 입력
+
+확정된 UI 변경의 제품 파일 31개를 개별 검토했다. `SidebarHeights`가 화면별 비율과
+저장 형식을 소유하며, 공통 `SidebarPanel`은 드래그 중 화면만 변경하고 해제 시에만
+`PreferencesStore`의 독립 UI 기록을 저장한다. 기존 Worker의 직렬 저장 경로를 재사용한다.
+
+색상 선언·검증은 `HubTheme`, 표시 그룹은 `GlobalSettingsSchema`, 스타일 적용은
+`ThemeStyle`이 소유한다. 이전 accent/comment 필드의 별칭·자동 변환은 제공하지 않는다.
+비활성 영역의 흑백 계산은 유지하며, 색 미리보기는 초안을 읽기만 한다.
+
+`ChoiceField`는 공개 Schema의 유한 선택지만 표시한다. missing/null, JSON 타입,
+원본 초안, host-fixed 제약과 명시적 저장 검증을 보존한다. 공통 필드 변경 이벤트를 통해
+Agent·Workflow 편집기가 TextArea의 buffer에 의존하지 않게 했다. 드롭다운 방향은
+`DropdownBox`가 실제 화면·스크롤 뷰포트 여유로 결정하며 설정 의미를 해석하지 않는다.
+
+Hub 관련 감사 근거·소스 해시·현재 인덱스를 갱신했다. 검사 규칙과 baseline은 바꾸지
+않았으며, 백엔드 실행·승인·재개·설정 소유권과 `llm/` 구현은 그대로다.
+검증 명령, 스냅샷 해시와 각 실행의 원본 결과는
+`tests/hub/reports/theme-controls-20261108/`에 보관한다.
+
+전체 회귀에서 터미널 축소 시 이전 프레임의 정확한 자식 높이가 부모의 최소 높이로
+남는 문제를 발견했다. `SidebarPanel.preferred_height`가 현재 가용 높이와 기존
+최소 행 선언으로 크기를 계산하게 수정했다. 설정값·비율·저장 시점은 바꾸지 않았으며,
+홈·설정의 축소 후 실제 패널과 프로필 위치를 확인하는 재검사를 추가했다.

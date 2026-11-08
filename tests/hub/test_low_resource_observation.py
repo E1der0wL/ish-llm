@@ -286,7 +286,7 @@ class LowResourceObservationTests(unittest.IsolatedAsyncioTestCase):
             page.usage_output.text = 'one\ntwo'
             self.assertEqual(page.usage_output.window.preferred_height(100, 100).preferred, 2)
             attrs = view.style.get_attrs_for_style_str('class:hub ' + page.usage_chart.style)
-            self.assertEqual(attrs.bgcolor, view.theme.accent5.lstrip('#'))
+            self.assertEqual(attrs.bgcolor, view.theme.bright_black.lstrip('#'))
             screen.choose(PreferenceSection.PROFILE.value)
             self.assertEqual(len(calls), 1)
         finally:

@@ -88,23 +88,24 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                     screen.choose("appearance")
                     screen.layout.focus_main()
                 self.assertEqual(set(screen.page.form.fields), {(key,) for key in
-                    ("background", "foreground", "accent1", "accent2", "accent3", "accent4", "accent5", "comment", "comment2", "sidebar_width", "icon_style",
+                    ("background", "foreground", "black", "red", "orange", "green", "yellow", "blue", "purple", "cyan", "white", "gray",
+                     "bright_black", "bright_red", "bright_orange", "bright_green", "bright_yellow", "bright_blue", "bright_purple", "bright_cyan", "bright_white", "bright_gray", "sidebar_width", "icon_style",
                      "output_refresh_interval", "progress_refresh_interval")})
-                screen.page.form.fields[("accent1",)].input.text = "invalid"
+                screen.page.form.fields[("green",)].input.text = "invalid"
                 settings_button(app, pipe, view)
-                await until(lambda: "accent1" in screen.status)
+                await until(lambda: "green" in screen.status)
                 self.assertTrue(view.settings_open)
-                screen.page.form.fields[("accent1",)].input.text = "#abcdef"
+                screen.page.form.fields[("green",)].input.text = "#abcdef"
                 screen.page.form.fields[("output_refresh_interval",)].input.text = "0.23"
                 screen.page.form.fields[("progress_refresh_interval",)].input.text = "0.41"
                 settings_button(app, pipe, view, "save")
                 await open_home(app, view)
                 await until(lambda: controller.worker._output_interval == 0.23)
-                self.assertEqual(view.theme.accent1, "#abcdef")
+                self.assertEqual(view.theme.green, "#abcdef")
                 self.assertEqual(view.theme.progress_refresh_interval, 0.41)
                 self.assertEqual(PreferencesStore(directory).load()["appearance"]["output_refresh_interval"], 0.23)
                 self.assertEqual(PreferencesStore(directory).load()["appearance"]["progress_refresh_interval"], 0.41)
-                self.assertEqual(PreferencesStore(directory).load()["appearance"]["accent1"], "#abcdef")
+                self.assertEqual(PreferencesStore(directory).load()["appearance"]["green"], "#abcdef")
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertEqual(view.composer.text, "preserved draft")
             finally:
@@ -130,10 +131,10 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
             # The reader never translates old names or discards widget fields.
             current = PreferencesStore(Path(directory) / "current")
             values = current.save("appearance", asdict(HubTheme(
-                accent1="#123456", accent2="#234567", comment="#345678",
-                accent3="#456789", sidebar_width=30)))
-            self.assertEqual(values["accent1"], "#123456")
-            self.assertEqual(values["comment"], "#345678")
+                green="#123456", blue="#234567", bright_gray="#345678",
+                orange="#456789", sidebar_width=30)))
+            self.assertEqual(values["green"], "#123456")
+            self.assertEqual(values["bright_gray"], "#345678")
             self.assertEqual(set(values), set(asdict(HubTheme())))
             current.save("appearance", values)
             self.assertEqual(current.load()["appearance"], values)

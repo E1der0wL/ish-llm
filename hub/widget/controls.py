@@ -133,11 +133,13 @@ class ScrollablePane(PTKScrollablePane):
         self._mouse_metrics = self.INITIAL_METRICS
         self._mouse_anchor = self.ABSENT
         self._scrollbar_parent_style = ThemeSelector.ROOT.style
+        self.viewport_height = self.INITIAL_METRICS[1]
 
     def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
         # Unlike a Window margin, PTK's pane scrollbar is drawn separately.
         # Carry the containing surface's style into that final rendering pass.
         self._scrollbar_parent_style = parent_style
+        self.viewport_height = write_position.height
         super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
 
     def geometry(self, height=ABSENT, arrows=ARROWS):

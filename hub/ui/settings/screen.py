@@ -21,6 +21,7 @@ from prompt_toolkit.widgets import Label
 
 from .pages import Page, GlobalPage, ProjectPage, SettingsTab
 from ...config.theme import HubTheme
+from ...config.sidebar_heights import SidebarHeights
 from ...widget.controls import TextArea
 from ...widget.forms.settings_viewport import SettingsPane
 from .navigation import SettingsNavigation, SettingsZone
@@ -266,9 +267,10 @@ class SettingsScreen:
                         SidebarHeading(
                             lambda: self.view.icons.settings
                             + self.ICON_GAP
-                            + self.t(MessageKey.SETTINGS_GLOBAL)
+                            + self.t(MessageKey.SETTINGS_GLOBAL),
+                            drag_handler=lambda point: self._left.drag_handler(point),
                         ),
-                        Window(self.global_list, height=len(self.global_keys)),
+                        Window(self.global_list, height=Dimension(min=1, preferred=len(self.global_keys))),
                         Window(height=self.SIDEBAR_GAP_HEIGHT),
                     ]
                 ),
@@ -277,7 +279,8 @@ class SettingsScreen:
                         SidebarHeading(
                             lambda: self.view.icons.project
                             + self.ICON_GAP
-                            + self.t(MessageKey.SETTINGS_PROJECTS)
+                            + self.t(MessageKey.SETTINGS_PROJECTS),
+                            drag_handler=lambda point: self._left.drag_handler(point),
                         ),
                         Window(self.project_list),
                     ]
@@ -285,6 +288,10 @@ class SettingsScreen:
             ],
             self.view.profile_bar,
             width=self.view.sidebar_width,
+            fraction=lambda: self.view.sidebar_heights.settings,
+            resize=lambda ratio, persist: self.view.set_sidebar_height(
+                SidebarHeights.settings.__name__, ratio, persist=persist,
+            ),
             controls=(self.global_list, self.project_list),
         )
         if previous and self.view.visible and self.view.settings_open:

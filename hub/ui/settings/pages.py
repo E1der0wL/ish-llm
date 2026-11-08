@@ -500,11 +500,6 @@ class GlobalPage(Page):
         self.container = HSplit(
             [section(screen.t(MessagePattern.settings(name))), self.form.container]
         )
-        if name == PreferenceSection.APPEARANCE:
-            self.container = SettingsBody(
-                [section(screen.t(MessagePattern.settings(name))), *self.form.children, *self.advanced_notice()],
-                list(self.form.visible_fields.values()),
-            )
         if self.general_form is not self.NO_GENERAL_FORM:
             self.container = self.general_form.container
             self.groups = [
@@ -516,6 +511,15 @@ class GlobalPage(Page):
             ]
         else:
             self.groups = [(screen.t(MessagePattern.settings(name)), list(self.form.visible_fields.values()))]
+        if name == PreferenceSection.APPEARANCE:
+            self.groups = [
+                (screen.t(title), [self.form.visible_fields[(key,)] for key in keys])
+                for title, keys in GlobalSettingsSchema.APPEARANCE_GROUPS
+            ]
+            visible = list(self.form.visible_fields.values())
+            self.container = SettingsBody(
+                [*self.grouped_children(visible), *self.advanced_notice()], visible,
+            )
         self.usage_output = self.NO_USAGE_OUTPUT
         if name == PreferenceSection.PROFILE:
             from ...widget.usage_chart import DailyUsageChart

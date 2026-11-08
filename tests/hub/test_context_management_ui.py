@@ -50,7 +50,7 @@ class ContextManagementUITests(unittest.IsolatedAsyncioTestCase):
                 for dx in (0, rect.width // 2, rect.width - 2):
                     cell = screen.data_buffer[rect.ypos + dy][rect.xpos + dx]
                     attrs = self.view.style.get_attrs_for_style_str(cell.style)
-                    self.assertEqual(attrs.bgcolor, self.view.theme.accent5[1:])
+                    self.assertEqual(attrs.bgcolor, self.view.theme.bright_black[1:])
             self.view.close_dialog()
 
     def test_focused_button_and_footer_key_use_accent_two(self):
@@ -58,5 +58,5 @@ class ContextManagementUITests(unittest.IsolatedAsyncioTestCase):
                       'class:hub class:button.focused class:button.text',
                       ThemeSelector.SHORTCUT_KEY.style):
             attrs = self.view.style.get_attrs_for_style_str(style)
-            self.assertEqual(attrs.color, self.view.theme.accent2[1:])
+            self.assertEqual(attrs.color, self.view.theme.blue[1:])
         self.assertEqual(self.view.t(MessageKey.SHORTCUT_ALT_MOVEMENT), 'Alt + ←↓↑→')

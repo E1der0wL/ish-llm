@@ -322,7 +322,7 @@ class QuestionComposer:
         from ...backend.interactions.approval import risk_label
 
         request = self.observation.request
-        return [(f"bold fg:{self.view.theme.accent3}", self.INDENT + self.view.t(
+        return [(f"bold fg:{self.view.theme.orange}", self.INDENT + self.view.t(
             MessageKey.APPROVAL_RISK, value=risk_label(request.risk_scheme, request.risk)))]
 
     def tool_heading(self):

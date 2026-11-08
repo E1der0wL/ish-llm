@@ -83,7 +83,7 @@ class UsageAndSystemTests(unittest.TestCase):
                     for column in range(80):
                         style = screen.data_buffer[row][column].style
                         self.assertEqual(view.style.get_attrs_for_style_str(style).bgcolor,
-                                         view.theme.accent5.lstrip('#'))
+                                         view.theme.bright_black.lstrip('#'))
         finally:
             view.close()
 

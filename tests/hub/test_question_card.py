@@ -146,7 +146,7 @@ class QuestionCardTests(unittest.TestCase):
                             for row in rows for style, value in row if "example.py" in value))
         risk = question.risk_fragments()
         self.assertIn('high (70)', ''.join(value for _, value in risk))
-        self.assertTrue(all(self.view.theme.accent3 in style for style, _ in risk))
+        self.assertTrue(all(self.view.theme.orange in style for style, _ in risk))
         self.assertFalse(question.details.is_focusable())
 
     def test_new_question_never_keeps_previous_card_while_render_is_pending(self):

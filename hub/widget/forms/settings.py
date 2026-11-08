@@ -18,13 +18,17 @@ from copy import deepcopy
 import json
 
 from prompt_toolkit.filters import Condition
-from prompt_toolkit.layout import HSplit
+from prompt_toolkit.layout import HSplit, VSplit
+from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.application.current import get_app
+from prompt_toolkit.utils import Event
 from ...ui.input.registry import ShortcutRegistry
 from ..controls import TextArea
 from ..mouse_contract import MouseBinding
 from ..notices import Notice
 from .field_layout import FieldLayout
+from ..color_preview import ColorPreview
+from ..dropdown import DropdownBox
 
 
 MISSING = object()
@@ -107,6 +111,7 @@ def type_hint(schema):
 
 class SettingField:
     external_editable = True
+    menu_open = False
     VIEWING = False
     EDITING = True
     DEFAULT_READ_ONLY = False
@@ -141,11 +146,11 @@ class SettingField:
         self.on_edit = self.NO_CALLBACK
         self._text, self._t = self.initial, t
         self._input = self._container = None
+        self.on_change = Event(self)
 
     def _materialize(self):
         if self._input is not None:
             return
-        t = self._t
         self._input = TextArea(
             text=self._text,
             multiline=FieldDisplay.MULTILINE,
@@ -162,6 +167,7 @@ class SettingField:
         self.input.window.always_hide_cursor = Condition(
             lambda: not self.editing or self.readonly or not self.enabled()
         )
+        self.input.buffer.on_text_changed += lambda _: self.on_change()
         MouseBinding.set_focused_click(self.input.control, self.begin_if_viewing)
         MouseBinding.set_click_away(self.input.control, self.finish)
         registry = ShortcutRegistry()
@@ -208,6 +214,13 @@ class SettingField:
             if get_app().layout.has_focus(self.input)
             else ThemeSelector.SETTINGS_INPUT.style
         )
+        self._container = self._layout(self.editor())
+
+    def editor(self):
+        return self.input
+
+    def _layout(self, editor):
+        t = self._t
         description = self.schema.get(SchemaKeyword.DESCRIPTION) or t(
             MessageKey.SETTINGS_NO_DESCRIPTION
         )
@@ -224,9 +237,9 @@ class SettingField:
             description += FieldDisplay.DESCRIPTION_SEPARATOR + json.dumps(
                 constraints, ensure_ascii=FieldDisplay.JSON_ASCII
             )
-        self._container = FieldLayout(
+        return FieldLayout(
             lambda: (t.icons.edit + FieldDisplay.SPACE if self.editing else FieldDisplay.EMPTY) + self.label,
-            self.input,
+            editor,
             description=FieldDisplay.DESCRIPTION_PREFIX + description,
             type_label=t(MessageKey.SETTINGS_TYPE, type=type_hint(self.schema)),
             notes=self.observations,
@@ -250,12 +263,18 @@ class SettingField:
 
     @text.setter
     def text(self, value):
+        changed = value != self.text
         self._text = value
         if self._input is not None:
             self._input.text = value
+        elif changed:
+            self.on_change()
 
     def clear(self):
         self.text = FieldDisplay.EMPTY
+
+    def owns_focus(self):
+        return get_app().layout.current_control is self.input.control
 
     def begin_if_viewing(self):
         if not self.editing:
@@ -302,58 +321,153 @@ class SettingField:
         return JsonDocument.parse(raw)
 
 
+class ColorField(SettingField):
+    GAP = 1
+
+    def editor(self):
+        return VSplit([self.input, ColorPreview(self.value)], padding=self.GAP)
+
+
+class FieldDropdown(DropdownBox):
+    """Use the shared dropdown while the field retains its typed JSON draft."""
+
+    def __init__(self, field):
+        self.field = field
+        super().__init__(field.menu_items, on_change=field.select, icons=lambda: field._t.icons)
+        self.button.window.width = Dimension(min=self.MIN_CAPTION_WIDTH, weight=1)
+        self.button.enabled = Condition(lambda: field.enabled() and not field.readonly)
+        registry = ShortcutRegistry.require(self.control)
+        registry.add([KeyName.CLEAR], KeyName.CLEAR, ShortcutAction.CLEAR,
+                     lambda e: field.clear(), when=lambda: field.enabled() and not field.readonly)
+
+    @property
+    def text(self):
+        return self.field.text
+
+    @text.setter
+    def text(self, value):
+        self.field.text = value
+
+    def caption(self):
+        self.value = self.field.selected_index()
+        self.placeholder = self.field.text
+        return super().caption()
+
+    def open(self):
+        if not self.field.enabled() or self.field.readonly:
+            return
+        self.value = self.field.selected_index()
+        self.field.editing = self.field.EDITING
+        super().open()
+
+    def close(self):
+        self.field.editing = self.field.VIEWING
+        super().close()
+
+    def is_open(self):
+        expanded = super().is_open()
+        self.field.editing = expanded
+        return expanded
+
+
 class ChoiceField(SettingField):
-    """A finite choice in the same field region: Enter, arrows, Enter."""
+    """Only declared finite values; missing/null and the original JSON stay distinct."""
 
     external_editable = False
     SCHEMA_KEY = "x-hub-choices"
-    READ_ONLY = True
-    CURSOR_HIDDEN = True
+    BOOLEAN_VALUES = (True, False)
+    OPAQUE_FIELDS = (SchemaKeyword.ONE_OF, SchemaKeyword.ANY_OF, SchemaKeyword.ALL_OF, SchemaKeyword.REF)
+    NO_SELECTION = None
+
+    @property
+    def menu_open(self):
+        return self._input is not None and self._input.is_open()
 
     def __init__(self, key, schema, value, t, **kwargs):
         super().__init__(key, schema, value, t, **kwargs)
-        self.choices = schema[ChoiceField.SCHEMA_KEY]
-        self.text = self.initial = self.choices[value]
+        self.choices = self.declared_values(schema)
+
+    @classmethod
+    def declared_values(cls, schema):
+        if any(key in schema for key in cls.OPAQUE_FIELDS):
+            return ()
+        if SchemaKeyword.CONST in schema:
+            return (schema[SchemaKeyword.CONST],)
+        if SchemaKeyword.ENUM in schema:
+            return tuple(schema[SchemaKeyword.ENUM])
+        if cls.SCHEMA_KEY in schema:
+            return tuple(schema[cls.SCHEMA_KEY])
+        kind = schema.get(SchemaKeyword.TYPE)
+        kinds = set(kind if isinstance(kind, list) else (kind,))
+        if SchemaType.BOOLEAN in kinds and kinds <= {SchemaType.BOOLEAN, SchemaType.NULL}:
+            return cls.BOOLEAN_VALUES + ((JsonObject.NULL,) if SchemaType.NULL in kinds else ())
+        return ()
+
+    @classmethod
+    def supports(cls, schema):
+        return bool(cls.declared_values(schema))
+
+    @property
+    def text(self):
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        changed = value != self._text
+        self._text = value
+        if changed:
+            self.on_change()
+        get_app().invalidate()
+
+    def menu_items(self):
+        result = [(0, self._t(MessageKey.SETTINGS_UNSET))]
+        labels = self.schema.get(self.SCHEMA_KEY, {})
+        for index, value in enumerate(self.choices, 1):
+            label = next((label for key, label in labels.items()
+                          if JsonDocument.same(key, value, missing=MISSING)), None)
+            if label is None:
+                label = value if isinstance(value, str) else json.dumps(value, ensure_ascii=FieldDisplay.JSON_ASCII)
+            result.append((index, label))
+        return result
+
+    def selected_index(self):
+        try:
+            selected = self.value()
+        except (ValueError, TypeError):
+            return self.NO_SELECTION
+        if selected is MISSING:
+            return 0
+        return next((index for index, value in enumerate(self.choices, 1)
+                     if JsonDocument.same(value, selected, missing=MISSING)), self.NO_SELECTION)
+
+    def select(self, index):
+        if not self.enabled() or self.readonly:
+            return
+        value = self.choices[index - 1] if index else MISSING
+        if JsonDocument.same(value, self.original, missing=MISSING):
+            self.text = self.initial
+        else:
+            self.text = (FieldDisplay.EMPTY if value is MISSING else
+                         json.dumps(value, ensure_ascii=FieldDisplay.JSON_ASCII,
+                                    allow_nan=JsonObject.ALLOW_NON_FINITE))
 
     def _materialize(self):
         if self._input is not None:
             return
-        super()._materialize()
-        self.input.buffer.read_only = Condition(lambda: self.READ_ONLY)
-        self.input.window.always_hide_cursor = Condition(lambda: self.CURSOR_HIDDEN)
-        registry = ShortcutRegistry()
-        editable = lambda: self.enabled() and not self.readonly
-        registry.add(
-            [KeyName.ENTER],
-            ShortcutLabel.ENTER,
-            lambda: ShortcutAction.DONE if self.editing else ShortcutAction.EDIT,
-            lambda e: self.finish() if self.editing else self.begin(),
-            when=editable,
-        )
+        self._input = FieldDropdown(self)
+        self._container = self._layout(self.input)
 
-        def choose(event):
-            labels = list(self.choices.values())
-            delta = (
-                -1 if event.key_sequence[-1].key in (KeyName.UP, KeyName.LEFT) else 1
-            )
-            self.input.text = labels[
-                (labels.index(self.input.text) + delta) % len(labels)
-            ]
+    def begin(self):
+        self.input.open()
 
-        registry.add(
-            [KeyName.UP, KeyName.DOWN, KeyName.LEFT, KeyName.RIGHT],
-            ShortcutLabel.DIRECTIONS,
-            ShortcutAction.SELECT,
-            choose,
-            when=lambda: editable() and self.editing,
-        )
-        self.input.control.key_bindings = registry.bindings
-        registry.attach(self.input.control)
+    def finish(self):
+        self.editing = self.VIEWING
+        if self._input is not None:
+            self._input.expanded = self._input.CLOSED
+        get_app().invalidate()
 
-    def value(self):
-        return next(
-            key for key, label in self.choices.items() if label == self.text
-        )
+    def owns_focus(self):
+        return get_app().layout.current_control in self.input.controls
 
 
 class SchemaForm:
@@ -361,12 +475,7 @@ class SchemaForm:
     POLICY_PATH = (ImplementationParameters.POLICY,)
     PROJECT_POLICY_PATH = (*CONFIG_PATH, ProjectConfig.POLICIES)
     NO_EFFECTIVE = None
-    OPAQUE_FIELDS = (
-        SchemaKeyword.ONE_OF,
-        SchemaKeyword.ANY_OF,
-        SchemaKeyword.ALL_OF,
-        SchemaKeyword.REF,
-    )
+    OPAQUE_FIELDS = ChoiceField.OPAQUE_FIELDS
 
     def __init__(self, schema, values, t, *, prefix=(), effective=NO_EFFECTIVE, presentation=None):
         self.schema, self.original, self.t = schema, deepcopy(values), t
@@ -480,9 +589,8 @@ class SchemaForm:
                         name=SettingMetadata.PATH_SEPARATOR.join(path),
                     ),
                 }
-            field_type = (
-                ChoiceField if ChoiceField.SCHEMA_KEY in schema else SettingField
-            )
+            field_type = (ColorField if schema.get(ColorPreview.SCHEMA_KEY) else
+                          ChoiceField if ChoiceField.supports(schema) else SettingField)
             field = field_type(
                 schema.get(
                     SchemaKeyword.TITLE, SettingMetadata.PATH_SEPARATOR.join(path)

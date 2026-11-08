@@ -38,7 +38,7 @@ class ConversationTests(unittest.TestCase):
         self.assertIs(Markdown.elements["hr"], HorizontalRule)
 
     def test_short_user_markdown_has_a_compact_right_aligned_background(self):
-        theme = HubTheme(accent2="#123456")
+        theme = HubTheme(blue="#123456")
         messages = (ChatMessage("user", "**짧은 메시지**", "2026-10-03 12:34:56",
                                 status="committed", author="tester"),)
         lines = render_messages(messages, 100, theme)
@@ -49,12 +49,12 @@ class ConversationTests(unittest.TestCase):
         block = [(style, text) for style, text in body if "hub.user-block" in style]
         self.assertLess(sum(get_cwidth(text) for _, text in block), 20)
         self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).bgcolor, theme.user_background[1:])
-        self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).color, theme.accent4[1:])
+        self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).color, theme.white[1:])
         header = "".join(text for _, text in lines[0])
         self.assertIn("tester • ✓ 접수됨 • 2026-10-03 12:34:56", header)
 
     def test_user_markdown_keeps_the_message_palette_for_links_headings_and_code(self):
-        theme = HubTheme(accent4='#102030', accent5='#aabbcc')
+        theme = HubTheme(white='#102030', bright_black='#aabbcc')
         source = "# 제목\n\n**강조** [링크](https://example.com)\n\n`inline`\n\n```python\nprint('hello')\n```"
         lines = render_messages((ChatMessage('user', source),), 100, theme)
         cells = [theme.style().get_attrs_for_style_str(style) for line in lines for style, text in line
@@ -64,7 +64,7 @@ class ConversationTests(unittest.TestCase):
         self.assertTrue(any(cell.bold for cell in cells))
 
     def test_assistant_code_box_uses_accent_five_for_text_and_padding(self):
-        theme = HubTheme(accent4='#102030', accent5='#aabbcc')
+        theme = HubTheme(white='#102030', bright_black='#aabbcc')
         lines = render_messages((ChatMessage('assistant', '```python\nprint("hello")\n```'),), 70, theme)
         row = next(line for line in lines if 'print' in ''.join(text for _, text in line))
         colored = [theme.style().get_attrs_for_style_str(style) for style, text in row if 'bg:' in style]
@@ -98,7 +98,7 @@ class ConversationTests(unittest.TestCase):
     def test_terminal_background_overrides_host_and_rich_code_backgrounds(self):
         style = merge_styles([Style.from_dict({"": "bg:#ff0000"}), HubTheme().style()])
         lines = render_messages((ChatMessage("assistant", "`code`\n\n```python\nx = 1\n```"),),
-                                60, HubTheme(accent5="default"))
+                                60, HubTheme(bright_black="default"))
         for line in lines:
             for fragment_style, _ in line:
                 attrs = style.get_attrs_for_style_str("class:hub " + fragment_style)
