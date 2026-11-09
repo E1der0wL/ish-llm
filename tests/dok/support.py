@@ -3,9 +3,11 @@
 import asyncio
 from pathlib import Path
 import sys
+import shlex
 from types import SimpleNamespace
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import ThreadedCompleter
 from prompt_toolkit.data_structures import Size
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit.output import DummyOutput
@@ -13,6 +15,9 @@ from prompt_toolkit.output import DummyOutput
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "ish.platform/src"))
 from ish.ui.input import HandoffKeyProcessor
 from ish.ui.prompt import Prompt
+from ish.ui.completer import PromptCompleter
+from ish.shell.adapter.parsing import POSIX_PARSING
+from ish.shell.scrollback import Scrollback
 
 
 class Output(DummyOutput):
@@ -36,7 +41,13 @@ class HostPrompt(Prompt):
         self.input_observer = SimpleNamespace(record=lambda *args: None)
         self.transport_check = lambda text: None
         self.layout_rebuilds = 0
-        self.interactive_shell = SimpleNamespace(master_fd=None)
+        self.interactive_shell = SimpleNamespace(master_fd=None, accepted_prompt_id=0, last_command="", scrollback=Scrollback(),
+            adapter=SimpleNamespace(parsing=POSIX_PARSING, syntax=SimpleNamespace(quote=shlex.quote)))
+        self.default_completer = PromptCompleter(words=(), context=self.completion_context, quote=self.quote_argument)
+        kwargs.setdefault("completer", ThreadedCompleter(self.default_completer))
+        # Layout tests size the entire input area explicitly, including terminals
+        # shorter than PromptSession's default completion-menu reservation.
+        kwargs.setdefault("reserve_space_for_menu", 0)
         self.encoder = "utf-8"
         self.prompt_text = None
         self._primary_prompt = True

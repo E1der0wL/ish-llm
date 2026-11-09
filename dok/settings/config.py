@@ -17,7 +17,10 @@ from ..features.system.config import SystemConfig
 from ..features.toolbar.config import ToolbarConfig
 from ..integrations.ish.mouse import MouseConfig
 from ..integrations.ish.keys import KeyRule, KeySequence
+from ..integrations.hub_config import HubConfig
 from .popups import PopupSettings
+from .connections import ConnectionsConfig
+from ..features.completion.config import CompletionConfig
 
 class WidthMode(StrEnum):
     FIXED = "fixed"
@@ -118,15 +121,26 @@ class DockConfig(Record):
         description="Shared named colors and semantic roles. All themed style fields reference these names; shortcuts and the visualizer retain their own RGB colors.")
     language: Language | None = setting(Nullable(Choice(Language)), default=None,
         description='UI language: null follows ish\'s selected language with English fallback. "en" selects English; "ko" selects Korean. Custom text, event content and ASCII weekday art are preserved.')
+    completion: CompletionConfig = setting(Nested(CompletionConfig), factory=CompletionConfig,
+        description="Explicit command completion registration. Enter in the prefix/mode form runs the captured prompt command once, analyzes its output and saves the result. Stored catalogs live beside this file.")
+    hub: HubConfig = setting(Nested(HubConfig), factory=HubConfig,
+        description="Creation defaults shared by all dok-owned Hub Agents. Agent templates supply fixed reasoning effort and omit temperature. Applied only when Hub creates an absent Agent; existing Agent settings are never overwritten.")
+    connections: ConnectionsConfig = setting(Nested(ConnectionsConfig), factory=ConnectionsConfig,
+        description="External data connections shared by dok features. Independent of Hub and LLMs. No account is connected automatically.")
 
     def _check(self):
         music = (button.key for button in self.widgets.controls.keyed_buttons())
-        self.widgets.shortcuts.validate_keys((self.dock.keys.toggle, *music, *self.popups.keys()))
+        completion = self.completion.keys()
+        self.widgets.shortcuts.validate_keys((self.dock.keys.toggle, *music, *self.popups.keys(), *completion, *self.toolbar.keys()))
 
     @classmethod
     def initial(cls) -> DockConfig:
         """Initial file examples, distinct from ordinary missing-field defaults."""
-        return cls(toolbar=ToolbarConfig.initial(), widgets=WidgetsConfig(
+        from ..features.calendar.config import CalendarConfig
+        connections = ConnectionsConfig.initial()
+        return cls(connections=connections, popups=PopupSettings(calendar=CalendarConfig(
+            sources=tuple(account.calendar_source() for account in connections.google))),
+                   toolbar=ToolbarConfig.initial(), widgets=WidgetsConfig(
             controls=TransportConfig.initial(),
             shortcuts=ShortcutsConfig.initial(),
             visualizer=VisualizerConfig(style=VisualizerStyle.initial()),

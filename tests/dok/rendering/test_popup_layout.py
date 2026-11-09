@@ -58,10 +58,10 @@ class PopupLayoutTests(unittest.TestCase):
         self.assertIn(page.TIME_ARROW, "\n".join(lines))
         self.assertNotIn("->", "\n".join(lines))
         self.assertTrue(any("bg:#475569" in p[0] for row in parts for p in row if "Sample" in p[1]))
-        before = next(p[0] for row in parts for p in row if p[1].strip() == "Save")
+        before = next(p[0] for row in parts for p in row if p[1].strip() == "* Save")
         page.field = EditorField.SAVE
         focused, lines = self.draw(page, self.config.popups.calendar.panel, 136, 44)
-        after = next(p[0] for row in focused for p in row if p[1].strip() == "Save")
+        after = next(p[0] for row in focused for p in row if p[1].strip() == "* Save")
         style = Style([])
         self.assertEqual(style.get_attrs_for_style_str(before).bgcolor, style.get_attrs_for_style_str(after).bgcolor)
         self.assertEqual(style.get_attrs_for_style_str(after).color, self.config.theme.resolve("title")[1:])
@@ -83,7 +83,7 @@ class PopupLayoutTests(unittest.TestCase):
         probability = next(i for i, line in enumerate(lines) if "Rain chance" in line)
         self.assertFalse(self.inner(lines[first_apparent + 1]))
         self.assertFalse(self.inner(lines[probability + 1]))
-        button = next(i for i, line in enumerate(lines) if "Now" in line)
+        button = next(i for i, line in enumerate(lines) if "Current" in line)
         self.assertFalse(self.inner(lines[button - 1]))
         self.assertFalse(self.inner(lines[button + 1]))
         self.assertIn("Time", lines[-2])
@@ -145,10 +145,10 @@ class PopupLayoutTests(unittest.TestCase):
         self.assertIn("7 minutes before", "\n".join(scrolled))
         self.assertNotIn("10 minutes before", "\n".join(scrolled))
         self.assertEqual(sum("minutes before" in line and " Delete " in line for line in scrolled), 3)
-        offset = page._alarm_offset
+        offset = page._form.alarm_offset
         self.surface.control.mouse_handler(MouseEvent(Point(1, y), MouseEventType.SCROLL_DOWN,
                                                      MouseButton.NONE, frozenset()))
-        self.assertEqual(page._alarm_offset, offset)
+        self.assertEqual(page._form.alarm_offset, offset)
 
     def test_calendar_redraw_reuses_queries_and_narrow_editor_skips_hidden_month(self):
         item = CalendarEvent("Original", datetime(2026,11,7,9), datetime(2026,11,7,10),
@@ -161,6 +161,7 @@ class PopupLayoutTests(unittest.TestCase):
             _, second = self.draw(page, panel, 136, 44)
         self.assertEqual(first, second)
         page.key("enter", "")
+        page.key("enter", "")  # Enter the selected event from its day list.
         page.key("<any>", " edit")
         runtime.snapshot = CalendarSnapshot((replace(item, title="Updated"),))
         with patch.object(CalendarEvent, "on_day", side_effect=AssertionError("Hidden month query")):

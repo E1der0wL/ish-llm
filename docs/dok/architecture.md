@@ -1,6 +1,10 @@
 # dok 폴더 구조와 책임
 
-기존 기능을 책임별 패키지로 나눈 구조다. 팝업과 월간 캘린더를 포함하며 아직 구현하지 않은 외부 캘린더 연동·메일·스케줄러의 빈 폴더는 만들지 않는다. 아래 트리에서는 하위 패키지의 `__init__.py`를 생략했다.
+팝업 키 처리에서는 기능 Owner가 ESC의 내부 뒤로가기와 닫기 전 저장 확인을 제공하고, `PopupHost`가 실제 기능 설정의 열기 키로 모달 닫기 바인딩과 하단 안내를 함께 구성한다. `PopupSurface`는 false 반환을 닫기로 해석하지 않는다. `ToolbarConfig`는 중앙 안내 초기값·토글 키를 선언하고 `DockToolbar`가 현재 실행의 표시 상태를 소유한다. 팝업 하단 안내의 표시 상태와는 분리하며, 별도 타이머 없이 현재 너비와 활성 영역으로 렌더링한다. 자동완성 편집 변경 여부는 `ItemDraft`·`EditBuffer`, 저장 전 초안 변경 여부는 `CompletionManager`가 제공한다.
+
+기존 기능을 책임별 패키지로 나눈 구조다. 팝업·월간 캘린더·Google Calendar 읽기 연동을 포함하며 아직 구현하지 않은 메일·뉴스 등의 빈 폴더는 만들지 않는다. 아래 트리에서는 하위 패키지의 `__init__.py`를 생략했다.
+
+외부 연결은 [연결 계약](connections.md)을 따른다. `ConnectionRegistry`는 활성화·생성·capability 선택만 담당하고, `CalendarService`가 월간 조회 수명과 캐시를 소유한다. 공급자는 `CalendarProvider`를 구현해 typed `ExternalEvent`를 반환한다. `CalendarListing`은 로컬·외부 조회를 조합한다. 외부 일정의 저장은 공급자가 담당하고, 명시적으로 등록한 dok 알림·명령어는 `ActionSettings`와 `ActionCatalog`로 별도 관리한다. 원격 일정의 텍스트는 실행 설정으로 해석하지 않는다. 선택적 `CalendarWriter`는 `CalendarMutation`으로 외부 쓰기만 수행한다. `CalendarEdits`가 source별 읽기/쓰기 잠금과 불확실 요청의 재전송 차단을 소유하고 `RemoteDraft`가 변경 필드와 충돌 재적용을 제공한다. 향후 LLM과 다른 화면도 같은 조회 모델을 사용할 수 있지만 이번에 Hub 호출이나 데이터 전달은 추가하지 않는다.
 
 ```text
 dok/
@@ -8,6 +12,7 @@ dok/
 ├── dok.py                      # ish 메타데이터, 설치·해제 진입점
 ├── app/
 │   ├── controller.py           # 상태, 키, Float, 기능 작업 조율
+│   ├── composition.py          # 연결 설정과 실제 공급자 조합
 │   └── lifecycle.py            # 날씨·시계 작업을 독립적으로 호스트에 연결
 ├── core/
 │   ├── records.py              # Owner 필드 선언, 검증, schema, 직렬화
@@ -20,6 +25,7 @@ dok/
 ├── settings/
 │   ├── config.py               # 루트 설정 조합, 모드 키와 너비
 │   ├── popups.py               # 일반·알림·기능별 팝업 설정 조합
+│   ├── connections.py          # 공급자별 연결 설정 조합
 │   ├── files.py                # 파일명과 기본 경로
 │   ├── store.py                # 조회, 원자적 저장, 누락 파일 생성
 │   └── jsonc.py                # JSONC 해석과 Owner 설명 주석 생성
@@ -28,12 +34,28 @@ dok/
 │   ├── widgets.py              # 기본 영역 위젯 계약과 배치 순서
 │   ├── layout.py               # 행 수, 높이, 공간에 따른 모드 선택
 │   └── view.py                 # 기능별 화면 조합과 가운데 정렬
+├── connections/
+│   ├── models.py               # 연결 상태·실패 계약
+│   ├── registry.py             # 지연 생성·설정 세대·capability 선택
+│   └── __main__.py             # 명시적 login/logout/status CLI
 ├── features/
 │   ├── calendar/
 │   │   ├── config.py           # 월간 캘린더 설정
 │   │   ├── models.py           # 일정 검증·반복·알림 시각 해석
+│   │   ├── actions.py          # dok 실행 설정·연결 ID·회차별 상속
+│   │   ├── action_watch.py     # 실행 설정이 있는 외부 일정의 독립 조회
+│   │   ├── scheduler.py        # 공통 기한 계획·미래 명령 감시
 │   │   ├── store.py            # 원자적 저장·수정 충돌·알림 처리 기록
 │   │   ├── runtime.py          # 직렬 파일 작업·예약 알림 수명
+│   │   ├── contracts.py        # 외부 source·월 범위·이벤트·provider 계약
+│   │   ├── service.py          # 가시성 기반 외부 조회·캐시·로컬 조회 조합
+│   │   ├── external_view.py    # 외부 일정 읽기 전용 상세
+│   │   ├── writes.py           # 외부 쓰기 값·요청·충돌·실패 계약
+│   │   ├── edits.py            # 읽기/쓰기 직렬화와 불확실 요청 관리
+│   │   ├── remote_draft.py     # 외부 일정 초안과 충돌 재적용
+│   │   ├── remote_view.py      # 저장 위치·확인·충돌·비동기 쓰기 상태
+│   │   ├── form_view.py        # 로컬·Google 공통 일정 편집 폼
+│   │   ├── form_layout.py      # 캘린더 시간 버튼 배치 공통 선언
 │   │   ├── editor.py           # 팝업 내부 입력 버퍼·일정 초안
 │   │   └── view.py             # 월간 달력·편집 폼·로컬 입력
 │   ├── system/
@@ -71,7 +93,14 @@ dok/
 │       ├── config.py           # 기본 항목, 슬롯·명령·구분선·간격 규칙
 │       └── view.py             # 바로가기 표시와 클릭 연결
 ├── integrations/
+│   ├── google/
+│   │   ├── config.py           # Google 계정 설정과 비활성 source 예시
+│   │   ├── auth.py             # OAuth Desktop 인증·권한·개별 계정 토큰 저장
+│   │   ├── calendar.py         # Calendar REST·페이지·반복 회차·오류 해석
+│   │   ├── writer.py           # 조건부 생성·수정·삭제와 Google wire 변환
+│   │   └── transport.py        # 공통 HTTP 세션·401 토큰 갱신
 │   ├── hub.py                  # 같은 프롬프트의 live Hub 감지와 dok Agent 템플릿 등록
+│   ├── hub_config.py           # 새 에이전트 연결값 선언·null 해석·공급자 계약 변환
 │   ├── ish/
 │   │   ├── language.py         # 호스트 선택 언어 조회
 │   │   ├── toolbar.py          # toolbar 등록·원본 복원·날짜 시계 연결
@@ -133,6 +162,12 @@ tests/dok/
 
 `HubAgents`가 dok의 Hub 네임스페이스, Agent ID·역할 템플릿과 등록 상태를 소유한다. 활성 프롬프트에서 Hub 설치가 감지되면 host 이벤트 루프에서 공유 클라이언트의 `register()`를 호출한다. 이 작업은 각 입력 줄보다 오래 살아야 하므로 Enter로 프롬프트가 끝나도 계속되고, dok 해제 또는 Hub 설치 교체 시 취소된다. Project 생성·재사용, Agent 검증·저장과 사용자 설정 보존은 Hub의 등록 계약에 위임한다.
 
+`HubConfig`는 dok의 `hub.model`·`api_key`·`api_base` 필드, 기본 null과 null 생략 규칙을 소유한다. 설정·JSONC·schema는 같은 Record 선언을 사용하고, HubAgents는 공개 `completion()` 변환만 호출한다. 변환은 llm의 LiteLLMParameters 필드 선언과 validate_model_params를 사용하므로 URL·공급자 규칙을 재구현하지 않는다. Hub/llm import는 실제 등록 시까지 지연한다. 생성 템플릿은 기존 에이전트 설정을 갱신하지 않는다.
+
+자동완성 역할의 추론 강도는 HelpAnalysis가 한 번 선언하고, 나머지 역할의 기본 추론 강도는 HubAgents가 선언한다. 공개 `reasoning_effort()`가 역할별 선택 규칙을 제공하고 HubConfig의 공개 변환이 공급자 필드 선언·검증을 사용해 전달한다. JSONC에는 추론 강도와 온도를 별도 사용자 옵션으로 추가하지 않는다.
+
+`CompletionAgent`는 Locale 공급자에서 요청 시점의 언어를 읽고 HelpAnalysis에 전달한다. HelpAnalysis가 설명 번역 지침과 Candidate 필드 참조를 소유한다. 언어팩은 언어 선택을, Candidate는 원문 근거 검증을 유지한다. UI·자동완성 공급자는 저장된 번역문을 그대로 사용하며 추가 AI 요청을 만들지 않는다.
+
 기능별 `config.py`의 Owner가 기본값·한도·검증·표시 해석을 제공한다. 루트 `DockConfig`와 `WidgetsConfig`는 Owner를 조합한다. `Record`가 그 선언에서 schema와 직렬화를 만들고, `Jsonc`가 같은 설명을 주석으로 출력한다. 저장 계층과 화면은 내부 딕셔너리를 다시 해석하지 않는다.
 
 `body_widgets()`는 기본 영역의 순서와 기능별 View 연결을 한 번 선언한다. 높이 계산과 실제 렌더링은 모두 이 선언과 `ElementConfig.arrange()`를 사용한다. 정보 영역의 여러 행은 `TextRow`·`TextSpan`으로 전달해 정렬과 스타일 처리를 공유한다.
@@ -159,17 +194,31 @@ tests/dok/
 
 팝업은 [팝업 계약](popups.md)을 따른다. `PopupPanel`이 배치와 스타일, `NotificationQueue`가 순서와 가시 시간 상태 전이, `PopupHost`가 포커스 복원과 호스트 수명주기를 소유한다. `OverlayLayers`가 기존 Float 하나에서 dock 뒤에 팝업을 그린다. 캘린더와 날씨 View는 팝업 내용과 기능별 이동만 제공한다. 날씨 상세와 dock은 기존 WeatherRuntime 하나를 공유하며 팝업이 열려 있는 것도 조회 활성 조건에 포함한다. 일반 팝업은 호스트 프롬프트 종료 시 닫고 알림은 입력 화면이 다시 활성화될 때까지 대기한다.
 
-`Reminder`·`ReminderUnit`은 알림 단위·숫자·중복 기준과 표시 문구를 선언한다. `CalendarEvent`·`Recurrence`는 저장 필드·검증·반복 날짜·알림 시각을 제공한다. CalendarStore는 파일 잠금·원자적 저장·revision 충돌과 알림 claim·다음 시각 계획을 소유하고, CalendarRuntime은 I/O 직렬화·취소·기한 대기를 소유한다. EventDraft와 CalendarPage는 공개 API로만 저장·조회하며 저장 딕셔너리를 해석하지 않는다. 세부 시간·재시작·중복 방지 계약은 [캘린더](calendar.md)를 따른다.
+`Reminder`·`ReminderUnit`은 알림 단위·숫자·중복 기준과 표시 문구를 선언한다. `CalendarEvent`·`Recurrence`는 저장 필드·검증·반복 날짜·알림 시각을 제공한다. CalendarStore는 파일 잠금·원자적 저장·revision 충돌과 claim 선기록을 소유하고, CalendarScheduler는 다음 시각 계획과 미래 명령 감시를 소유한다. CalendarRuntime은 I/O 직렬화·취소·기한 대기를 소유한다. EventDraft와 CalendarPage는 공개 API로만 저장·조회하며 저장 딕셔너리를 해석하지 않는다. 세부 시간·재시작·중복 방지 계약은 [캘린더](calendar.md)를 따른다.
+
+`features/completion/`은 명시적 조회로 등록한 자동완성 데이터를 소유한다. Candidate·Analysis·Registration·Catalog가 필드·근거 검증·병합/교체·토큰별 후보 선택과 생성 후보 정렬을 선언하고, CompletionStore는 잠금·원자적 저장·동시 편집 검사를 담당한다. Runtime은 실행·분석·저장 수명과 typed Progress 관찰·결과 알림·메모리 스냅샷 게시를 담당한다. CompletionProgress는 해당 상태의 표시 문구와 완료 단계 수를 소유한다. PopupContent는 footer 표시와 rows_at(columns, theme) 본문 계약을 제공한다. CompletionNotice가 이를 구현하고, PopupSurface가 계산한 실제 내부 너비를 받아 막대를 만든다. 모든 알림은 Surface에서 실제 본문과 설정한 padding에 맞춰 높이를 줄이고, PopupLayer는 painted_height로 하단 위치와 마우스 영역을 맞춘다. 별도 길이 상수나 테두리·padding 계산을 복제하지 않는다. `rendering/progress.py`만 Rich ProgressBar와 Segment를 해석하여 TextRow로 변환한다. 문자 모양·부분 셀은 Rich가 결정하며, 실제 터미널 출력과 화면 수명은 ish에 남긴다. NotificationQueue는 생산자 key가 같은 알림의 현재/대기 항목 갱신과 제거를 소유하여 진행 단계마다 중복 알림이 쌓이지 않는다.
+
+HelpAnalysis는 로컬 파서 및 command-options Agent 역할·출력 schema를 제공한다. `integrations/completion_agent.py`는 공개 Hub/llm 계약만 해석하고 `integrations/ish/completion.py`는 공개 프롬프트·파서·최종 출력 API와 공급자 소유권을 처리한다. PromptSession의 completer 속성에 기존 공급자 전체를 한 번 호출하는 래퍼를 설치하여 기존 항목을 먼저 내보낸다. MenuStyle이 메뉴 색·기본값·스타일 매핑을 소유하고 CompletionMenu가 설정에서 이를 조합한다. CompletionAppearance는 공개 style 속성에 가역적인 스타일 계층을 설치한다. 스타일 생성은 설정 변경 시에만 수행하며 일반 스크롤바 선택자는 건드리지 않는다.
+
+공통 PopupHost/PopupPanel은 기존 포커스·키 수명을 유지하며 고정 프롬프트 위치 기준 배치를 제공한다. 등록창은 InteractivePopup의 본문 전용 표시로 접두사와 병합·교체만 그린다. 별도의 CompletionManager는 중앙 팝업과 로컬 초안을 소유하며 Catalog/Registration 공개 API로 접두사·항목을 편집한다. Candidate와 Registration이 잠금 필드와 수집 허용 규칙을, Catalog가 정확한 접두사 편집·삭제·전체 초안 교체 전이를 제공한다. ManagementAction이 카테고리 제목 옆의 보조 버튼 아이콘을 선언한다. ItemDraft는 입력 Buffer를 소유하되 저장 검증은 Candidate에 맡긴다. CompletionRuntime.save_changes는 기존 파일 잠금·원자적 교체·동시 변경 검사를 재사용하고 성공한 메모리 스냅샷만 게시한다. UI는 저장 사전이나 호스트 내부 상태 전이를 재구현하지 않는다. 상세 계약과 UI 확정 상태는 [자동완성](completion.md)에 기록한다.
+
+KeySequence는 단축키 표시 해석을, KeyRegistration은 활성 조건과 안내 문구 식별자를 제공한다. Controller는 실제 등록 목록과 선택한 Locale로 toolbar 안내를 만들고, ToolbarView는 좌우 영역을 유지한 남은 공간에 그린다. NotificationConfig.status_text는 설정된 알림 키를 해석하며 PopupHost가 상세 유무를 전달한다. PopupSurface는 같은 제목·padding·하단 바 계약으로 모든 알림을 그린다. 안내용 키 문자열이나 별도 수집 주기를 소비 계층에 복제하지 않는다.
 
 CalendarSnapshot은 현재 월의 일별 조회 결과와 캐시 수명을 소유하며 CalendarEvent의 시간 해석 환경 선언을 사용한다. CalendarStore는 파일 내용 비교와 검증된 해석 결과 하나의 재사용을 소유한다. CalendarRuntime은 변경 없는 상태를 다시 게시하지 않는다. UI는 이 공개 조회를 사용하고 반복 해석·저장 검증·캐시 무효화 규칙을 재구현하지 않는다.
 
 날짜·시각 선택은 calendar/selection.py의 DateSelection·TimePart·TimeSelection이 이동·범위·임시 값을 소유한다. picker_view.py는 해당 공개 API를 키·마우스와 공통 테마로 연결한다. CalendarPage는 기존 팝업 본문 안에 선택기를 배치하고 취소 시 초안을 유지하며, 적용할 때 EventDraft의 타입별 공개 API만 호출한다. 최종 시간대·시작/종료 관계 검증과 저장·알림 실행은 기존 CalendarEvent·Store·Runtime에 남는다.
 
-calendar/recurrence.py의 Recurrence·RepeatEnd가 반복 종료 방식·총 횟수·종료날짜·끝난 시리즈의 마지막 회차 조회를 소유한다. 기존 models의 공개 Recurrence·RepeatUnit import는 유지한다. EventTiming은 새 일정 생성 시 한 번 적용할 시작 정각과 종료 간격을 선언한다. EventDraft의 이후 날짜·시각 선택은 해당 필드만 바꾸며 종료 자동 연동 상태를 두지 않는다. CalendarStore는 명령 회차의 원자적 선기록과 미래 시작 감시, CalendarRuntime은 기한 대기·제출 결과 안내를 담당한다. CommandOccurrence는 기존 회차 계산을 재사용하고 별도 반복 규칙을 만들지 않는다. ish 어댑터는 ShortcutSubmission의 동일한 검증·수락·문서 복원 경로로 예약 명령을 제출하며 빈 기본 프롬프트 이외에는 건너뛴다. 호스트 소스와 llm/hub 실행 계층은 바꾸지 않는다.
+calendar/recurrence.py의 Recurrence·RepeatEnd가 반복 종료 방식·총 횟수·종료날짜·끝난 시리즈의 마지막 회차 조회를 소유한다. 기존 models의 공개 Recurrence·RepeatUnit import는 유지한다. EventTiming은 새 일정 생성 시 한 번 적용할 시작 정각과 종료 간격을 선언한다. EventDraft의 이후 날짜·시각 선택은 해당 필드만 바꾸며 종료 자동 연동 상태를 두지 않는다. CalendarStore는 명령 회차의 원자적 선기록, CalendarScheduler는 미래 시작 감시, CalendarRuntime은 기한 대기·제출 결과 안내를 담당한다. CommandOccurrence는 기존 회차 계산을 재사용하고 별도 반복 규칙을 만들지 않는다. ish 어댑터는 ShortcutSubmission의 동일한 검증·수락·문서 복원 경로로 예약 명령을 제출하며 빈 기본 프롬프트 이외에는 건너뛴다. 호스트 소스와 llm/hub 실행 계층은 바꾸지 않는다.
 
 일반 팝업이 포커스를 가진 동안 controller는 dock의 audio·media 수집 요구를 끄고 필요한 팝업 시계·날씨 요구만 유지한다. 알림 실행기는 독립 수명으로 계속 실행한다. SystemConfig는 활성·유휴 측정 간격을 제공하며 SystemRuntime은 같은 작업과 카운터 기준값·이력을 유지한 채 간격만 바꾼다. 월 달력 행과 날씨 그래프는 해당 View가 마지막 렌더링 입력 한 건에 한정해 캐시한다. 저장·외부 조회·시간 해석은 각 기능 Owner의 공개 API를 사용한다.
 
 InteractivePopup은 로컬 키 처리·닫기 확인·본문 렌더링·해제 계약이다. PopupHost는 기존 단일 modal 컨트롤의 포커스를 유지하며 PopupSurface가 키와 제한된 화면 크기를 위임한다. 편집 Buffer는 캘린더 초안만 소유한다. 일반 PopupContent API와 비대화형 알림 표시는 그대로 유지한다. 현재·일별·시간별 날씨는 OpenMeteo 어댑터가 한 응답을 WeatherSnapshot으로 해석하고 기존 WeatherRuntime이 같은 요청 키와 캐시·실패 전이를 사용한다.
+
+MessageForm은 내부 확인·오류 본문의 제목 행, 상세 간격, 고정 버튼 여백·가운데 정렬,
+셀 단위 줄바꿈과 스크롤을 선언한다. CalendarFormLayout도 공통 제목 행 선언을 참조한다.
+CalendarPage·RemoteEditor·CompletionManager는 공개 TextRow/PopupAction과 선택 상태만
+전달하며 각 기능의 저장·삭제·충돌 처리와 상태 전이는 기존 Owner에 남긴다.
+공통 폼은 마지막 텍스트/너비/테마 조합 한 건만 캐시하고 외부 조회·영속화·알림 큐를 다루지 않는다.
 
 `InteractivePopup.scroll_at()`은 본문 셀 좌표의 휠 이벤트를 선택적으로 처리한다. PopupSurface가 prompt-toolkit 문자 좌표를 터미널 셀로 바꾸고 테두리·제목·여백을 제외한 본문 좌표를 제공한다. CalendarPage는 그린 알림 목록의 사각형과 3행 스크롤 상태를 소유한다. 목록 밖이거나 API가 처리하지 않은 휠은 기존 페이지 스크롤로 전달한다.
 
@@ -181,8 +230,10 @@ Linux Python 3.12.14에서 `python tests/dok/run_linux.py`로 dok 테스트만 �
 
 ## 공통 Theme 소유권
 
-ThemeColors/ThemeRoles가 RGB·역할·이름·기본값을 선언한다. ThemeReference와 Theme API가 검증·해석을 소유하며 schema와 JSONC는 같은 Record 선언을 사용한다. 독, 툴바, 팝업에는 불변 Theme를 명시적으로 전달하고 재로드 시 팝업 캐시도 교체한다. 호스트 스타일과 전역 활성 테마는 변경하지 않는다. 바로가기와 비주얼라이저의 직접 RGB는 각 기능 Owner에 유지한다. 자세한 설정은 [공통 테마](theme.md)를 따른다.
+ThemeColors/ThemeRoles가 RGB·역할·이름·기본값을 선언한다. ThemeReference와 Theme API가 검증·해석을 소유하며 schema와 JSONC는 같은 Record 선언을 사용한다. 독, 툴바, 팝업에는 불변 Theme를 명시적으로 전달하고 재로드 시 팝업 캐시도 교체한다. 이 화면들의 렌더러는 호스트 스타일과 전역 활성 테마를 변경하지 않는다. 공유 자동완성 목록에만 CompletionAppearance가 공개 style 속성으로 가역적인 메뉴 스타일 계층을 추가한다. 바로가기와 비주얼라이저의 직접 RGB는 각 기능 Owner에 유지한다. 자세한 설정은 [공통 테마](theme.md)를 따른다.
 
 ## UI 언어 소유권
 
 Language와 Locale이 언어 선택·영어 폴백·사용자 문구 우선순위를 소유한다. Message의 영문 선언과 한국어 팩을 View에 명시적으로 주입하며, 호스트 선택은 읽기 전용 HostLanguage 어댑터로 얻는다. 기능별 필드·날씨 종류·반복 단위 Owner가 표시 이름을 제공한다. 설정의 language와 nullable 사용자 문구는 기존 Record 선언에서 검증·schema·JSONC를 함께 생성한다. 전역 언어 변경이나 저장 문자열 자동 변환은 하지 않는다. [UI 언어 계약](localization.md)
+
+일정 저장·실행 분리의 세부 계약은 [calendar-actions.md](calendar-actions.md)를 따른다. ExternalActions는 팝업 표시와 독립적으로 명시적 실행 설정이 있는 일정만 조회한다. Google RRULE과 예외 회차는 공급자가 해석하며 공통 스케줄러는 확장된 회차만 전달받는다. 사용자 UI 확정 후 dok 전용 회귀로 검증했으며 결과는 [validation.md](validation.md)에 기록했다.

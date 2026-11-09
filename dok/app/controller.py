@@ -29,8 +29,19 @@ from ..rendering.overlay import DockOverlay, OverlayLayers
 from ..settings.config import DockConfig
 from ..settings.store import ConfigStore
 from .lifecycle import DashboardRuntime
-from ..locales import Locale
+from ..locales import Locale, Message as M
 from ..integrations.ish.language import HostLanguage
+from ..integrations.ish.completion import CompletionHost
+from ..integrations.ish.completion_menu import CompletionAppearance
+from ..integrations.completion_agent import CompletionAgent
+from ..features.completion.runtime import CompletionRuntime, Phase
+from ..features.completion.progress import CompletionProgress
+from ..features.completion.view import CompletionPage
+from ..features.completion.management import CompletionManager
+from ..connections import ConnectionRegistry
+from ..features.calendar.service import CalendarService
+from ..features.calendar.contracts import CalendarWindow
+from .composition import connections
 
 
 class DockController:
@@ -50,12 +61,21 @@ class DockController:
         self._media_input = MediaInput(self._media, prompt.app.create_background_task, prompt.app.invalidate,
                                       lambda: self._config.dock.mouse.enabled and self.visible)
         self._dashboard = DashboardRuntime(prompt.app.invalidate)
-        self._hub = HubAgents(prompt)
-        self._popups = PopupHost(prompt, lambda: self._config.popups, lambda: self._config.theme, locale=lambda: self.locale)
+        self._hub = HubAgents(prompt, config=lambda: self._config.hub)
+        self._popups = PopupHost(prompt, lambda: self._config.popups, lambda: self._config.theme, locale=lambda: self.locale,
+            shortcuts=lambda: tuple(entry for entry in self._bindings.entries if entry.label == M.HINT_HELP))
         self._bindings = OwnedBindings(prompt, suspended=lambda: self._popups.modal)
         self._submission = ShortcutSubmission(prompt, self._state, locale=lambda: self.locale)
+        self._completion_host = CompletionHost(prompt, self._submission)
+        self._completion_appearance = CompletionAppearance(prompt)
+        self._completion = CompletionRuntime(store.path.parent,
+            lambda catalog: setattr(self._completion_host, "catalog", catalog), prompt.app.invalidate,
+            CompletionAgent(self._hub, locale=lambda: self.locale), self._completion_finished,
+            progressed=self._completion_progress)
         self._calendar = CalendarRuntime(store.path.parent, prompt.app.invalidate, self._popups.notify,
                                          submit=self._submission.execute_command, locale=lambda: self.locale)
+        self._connections = ConnectionRegistry()
+        self._calendars = CalendarService(self._calendar, self._connections, prompt.app.invalidate)
         self._view = DockView(self._mouse_execute, self._media_input)
         self._overlay = DockOverlay(self, self._view, locale=lambda: self.locale)
         self._surface = OverlayLayers(self._overlay, self._popups.layer)
@@ -72,10 +92,17 @@ class DockController:
         return False
 
     def _entries(self, config: DockConfig):
-        entries = [KeyRegistration(config.dock.keys.toggle, lambda event: self.toggle(), self._toggle_enabled)]
+        entries = [KeyRegistration(config.dock.keys.toggle, lambda event: self.toggle(), self._toggle_enabled, M.HINT_DOCK)]
+        if config.toolbar.hint_key is not None:
+            entries.append(KeyRegistration(config.toolbar.hint_key, self._toolbar.toggle_hints, self._help_enabled, M.HINT_HELP))
+        if config.completion.enabled and config.completion.key is not None:
+            entries.append(KeyRegistration(config.completion.key, lambda event: self.open_completions(), self._completion_keys_enabled, M.HINT_REGISTER))
+        if config.completion.enabled and config.completion.manage.key is not None:
+            entries.append(KeyRegistration(config.completion.manage.key, lambda event: self.manage_completions(), self._toggle_enabled, M.HINT_MANAGE))
         for owner, handler in ((config.popups.calendar, self.open_calendar), (config.popups.weather, self.open_weather)):
             if owner.enabled and owner.key is not None:
-                entries.append(KeyRegistration(owner.key, lambda event, handler=handler: handler(), self._toggle_enabled))
+                entries.append(KeyRegistration(owner.key, lambda event, handler=handler: handler(), self._toggle_enabled,
+                                               M.CALENDAR if owner is config.popups.calendar else M.WEATHER))
         notifications = config.popups.notifications
         if notifications.enabled:
             for key, handler in ((notifications.dismiss_key, self._popups.dismiss_notification),
@@ -104,6 +131,28 @@ class DockController:
     def _shortcuts_enabled(self) -> bool:
         return self._config.widgets.shortcuts.enabled and self._dock_keys_enabled()
 
+    def _help_enabled(self) -> bool:
+        return self._toolbar.owned and (self._toggle_enabled() or self._popups.modal)
+
+    def _completion_keys_enabled(self) -> bool:
+        return self._toggle_enabled() and getattr(self._prompt.app.layout.current_control, "buffer", None) is self._prompt.default_buffer
+
+    def toolbar_hints(self):
+        if not self._toolbar.hints_visible:
+            return ()
+        if self._popups.modal:
+            return (self._popups.status_text(),)
+        locale = self.locale
+        result = []
+        if (key := self._hub.toggle_key()) is not None:
+            result.append(f"{key.label()} {locale.text(M.HINT_HUB)}")
+        # The bindings own current keys and activation rules; hints never duplicate them.
+        labels = {entry.label: entry for entry in self._bindings.entries if entry.label is not None and entry.enabled()}
+        for label in (M.HINT_DOCK, M.CALENDAR, M.WEATHER, M.HINT_REGISTER, M.HINT_MANAGE, M.HINT_HELP):
+            if (entry := labels.get(label)) is not None:
+                result.append(f"{entry.sequence.label()} {locale.text(label)}")
+        return tuple(result)
+
     def _dock_keys_enabled(self) -> bool:
         return (self.visible and self._overlay.has_room
                 and getattr(self._prompt.app.layout.current_control, "buffer", None) is self._prompt.default_buffer)
@@ -112,6 +161,9 @@ class DockController:
         self._host.observe_loop()
         self._state.enter_prompt(app.future)
         self._popups.prepare()
+        result = self._completion_host.observe()
+        if result is not None and self._config.completion.enabled:
+            self._completion.receive(result, self._config.completion)
         self._toolbar.prepare()
 
     def _after_render(self, app):
@@ -119,9 +171,16 @@ class DockController:
         active = app.is_running and not app.is_done
         if active:
             self._hub.sync()
+            if self._config.completion.enabled:
+                self._completion.ensure_loaded()
             self._calendar.sync(self._config.popups.calendar, lambda: self._config.clock,
                                 lambda: self._config.popups.notifications.enabled,
                                 visible=self._popups.modal and isinstance(self._popups.page, CalendarPage))
+        page = self._popups.page
+        calendar_visible = active and self._popups.modal and isinstance(page, CalendarPage) and self._config.popups.calendar.enabled
+        window = CalendarWindow(page.selected.year, page.selected.month, self._config.clock.timezone) if calendar_visible else None
+        self._calendars.sync(self._config.popups.calendar.sources if self._config.popups.calendar.enabled else (), window,
+                             start_task=app.create_background_task)
         dock_active = self.visible and self.display_mode != DockMode.HIDDEN and not self._popups.modal
         self._toolbar.sync(active=active, dock_visible=self.display_mode != DockMode.HIDDEN)
         self._system.sync(active=active and self._toolbar.owned and self._config.toolbar.needs_system,
@@ -185,6 +244,11 @@ class DockController:
             self._media.sync(active=False, config=config.media,
                              start_task=self._prompt.app.create_background_task)
         self._config = config
+        self._connections.configure(connections(config.connections, self._store.path.parent))
+        self._completion_host.configure(config.completion.enabled)
+        self._completion_appearance.configure(config.completion.menu, config.theme, enabled=config.completion.enabled)
+        if not config.completion.enabled:
+            self._completion.cancel_analysis()
         self._toolbar.configure(config.toolbar.enabled)
         self._system.sync(active=self._prompt.app.is_running and not self._prompt.app.is_done
                           and self._toolbar.owned and config.toolbar.needs_system,
@@ -203,7 +267,10 @@ class DockController:
             self._prompt.app.invalidate()
             return False
         self._store = store
+        self._connections.configure(connections(self._config.connections, store.path.parent))
         self._hub.retry_failed()
+        if self._config.completion.enabled and self._prompt.app.is_running:
+            self._completion.load()
         return True
 
     def _close(self):
@@ -212,6 +279,10 @@ class DockController:
         self._state.close()
         self._popups.close()
         self._calendar.close()
+        self._calendars.close()
+        self._completion.close()
+        self._completion_host.close()
+        self._completion_appearance.close()
         self._hub.close()
         self._audio.close()
         self._media.close()
@@ -365,8 +436,9 @@ class DockController:
             config = lambda: self._config.popups.calendar
             return config().enabled and self._popups.open(
                 CalendarPage(lambda: self._config.clock, config, self._calendar,
-                             self._prompt.app.invalidate, self._popups.dismiss, locale=lambda: self.locale),
-                panel=lambda: config().panel, enabled=lambda: config().enabled)
+                             self._prompt.app.invalidate, self._popups.dismiss, locale=lambda: self.locale,
+                             calendar=self._calendars),
+                panel=lambda: config().panel, enabled=lambda: config().enabled, opener=lambda: config().key)
         return self._host.dispatch(show)
 
     def open_weather(self, day: date | None = None) -> bool:
@@ -376,8 +448,56 @@ class DockController:
             return config().enabled and self._popups.open(
                 WeatherPage(lambda: self.weather, lambda: self._config.widgets.weather,
                             lambda: self._config.clock, day, config, self._prompt.app.invalidate, locale=lambda: self.locale),
-                panel=lambda: config().panel, enabled=lambda: config().enabled)
+                panel=lambda: config().panel, enabled=lambda: config().enabled, opener=lambda: config().key)
         return self._host.dispatch(show)
+
+    def open_completions(self) -> bool:
+        """Open a cursor-anchored form; opening it never runs a lookup."""
+        def show():
+            if not self._config.completion.enabled or not self._completion_keys_enabled() or self._popups.modal:
+                return False
+            buffer = self._prompt.default_buffer
+            document = buffer.document
+            buffer.cancel_completion()
+            buffer.set_document(document)
+            self._completion.ensure_loaded()
+            return self._popups.open(CompletionPage(self._completion, self._completion_host,
+                self._run_completion_lookup, self._prompt.app.invalidate,
+                command=document.text, locale=lambda: self.locale),
+                panel=lambda: self._config.completion.panel, enabled=lambda: self._config.completion.enabled, cursor=True,
+                opener=lambda: self._config.completion.key)
+        return self._host.dispatch(show)
+
+    def manage_completions(self) -> bool:
+        def show():
+            if not self._config.completion.enabled or not self._toggle_enabled() or self._popups.modal:
+                return False
+            self._completion.ensure_loaded()
+            return self._popups.open(CompletionManager(self._completion, self._completion_host,
+                self._prompt.app.invalidate, self._popups.dismiss, locale=lambda: self.locale),
+                panel=lambda: self._config.completion.manage.panel,
+                enabled=lambda: self._config.completion.enabled, opener=lambda: self._config.completion.manage.key)
+        return self._host.dispatch(show)
+
+    def _run_completion_lookup(self, request):
+        self._completion_host.validate(request.command)
+        self._completion.begin(request)
+        self._popups.dismiss(force=True)
+        try:
+            self._completion_host.submit(request.command)
+        except ValueError as exc:
+            self._completion.failed(str(exc))
+
+    def _completion_finished(self, result):
+        content = CompletionProgress.finished(result, self.locale, self._completion_host.label(result.prefix))
+        self._popups.update_notification(CompletionProgress.KEY, content)
+
+    def _completion_progress(self, progress):
+        if progress.phase == Phase.IDLE:
+            self._popups.remove_notification(CompletionProgress.KEY)
+        else:
+            content = CompletionProgress.content(progress, self.locale, self._completion_host.label(progress.prefix))
+            self._popups.update_notification(CompletionProgress.KEY, content, ongoing=True)
 
     def uninstall(self) -> None:
         self._host.dispatch(self._close)

@@ -1,10 +1,14 @@
 # dok 셸 dock
 
+외부 연결은 [Google Calendar 연결 안내](connections.md)를 따른다. 기본 비활성인 계정/source를 설정하고 명시적으로 OAuth 로그인하면 기존 달력에서 로컬 일정과 Google 일정을 함께 조회한다. 외부 일정은 `↗`로 구분한다. 기본 읽기 전용이며 [쓰기 권한을 켜면 생성·수정·삭제와 버전 충돌 처리](google-calendar-editing.md)를 제공한다. standalone Google 인증에는 기존 의존성 외에 `google-auth-oauthlib>=1,<2`가 필요하다.
+
 `dok`는 ish 입력 대기 화면에 음악 정보 자리와 바로가기를 표시하는 Linux 플러그인이다. ish 본체를 수정하지 않고 `prompt.set_float()`로 기존 입력 영역 위에 dock을 겹쳐 그린다.
 
 구현 코드는 `dok/`, 문서는 `docs/dok/`, 자동 테스트와 독립 미리보기는 `tests/dok/`에서 관리한다. 검증 결과는 `tests/dok/reports/`에 생성한다. 개인 스크립트인 `manual/`과 생성된 보고서인 `reports/`는 Git에 포함하지 않는다.
 
 [폴더 구조와 책임](architecture.md)에 기능별 구현, 외부 연동, 화면 조합, 설정 저장의 경계를 정리했다. 공개 import는 계속 `from dok import ...`를 사용하며 ish 진입점은 `dok/dok.py`다.
+
+[명령어 자동완성 등록](completion.md)은 프롬프트에 조회 명령을 작성하고 `Alt+O`로 여는 커서 아래 팝업에서 접두사를 편집하며 Tab으로 병합·교체를 바로 전환한다. Enter는 작성된 명령을 한 번 실행해 분석·등록하고 Esc는 취소한다. 관리 기능은 이번 범위에 포함하지 않는다.
 
 [Float dock 설계](design.md)에 배치, 표시 우선순위, 사용자 설정, 입력 처리, 재생 연동과 구현 검증 기준을 정리했다. 토글 키·명령어·이모지는 사용자가 수정하고, 너비는 고정 셀 수 또는 ish PTY 너비 비율로 지정한다. 바로가기는 등록 명령어와 현재 프롬프트 버퍼 전체를 이어 붙여 즉시 제출한다.
 
@@ -14,7 +18,7 @@
 
 ## 설치
 
-Python 3.12.14와 prompt-toolkit 3.0.53을 사용하는 ish에서 실행한다. 저장소의 `dok/` 디렉터리만 ish 설정 홈의 `plugin/script/dok/`로 복사한다. 기본 경로는 `~/ish/plugin/script/dok/`이며 `--home`을 사용하면 해당 홈 아래에 설치한다. 의존성은 `PLUGIN_META.dependencies`가 선언한다. 독립 실행 환경에서는 해당 Python에 `python -m pip install pyfiglet httpx 'dbus-fast>=5.2,<6' 'psutil>=7,<8'`로 설치한다. 플러그인 코드 교체 후 ish를 다시 시작한다.
+Python 3.12.14와 prompt-toolkit 3.0.53을 사용하는 ish에서 실행한다. 저장소의 `dok/` 디렉터리만 ish 설정 홈의 `plugin/script/dok/`로 복사한다. 기본 경로는 `~/ish/plugin/script/dok/`이며 `--home`을 사용하면 해당 홈 아래에 설치한다. 의존성은 `PLUGIN_META.dependencies`가 선언한다. 독립 실행 환경에서는 해당 Python에 `python -m pip install pyfiglet httpx 'dbus-fast>=5.2,<6' 'psutil>=7,<8' 'rich>=14'`로 설치한다. 플러그인 코드 교체 후 ish를 다시 시작한다.
 
 `.ishrc.py`에서 다음과 같이 연결한다.
 
@@ -32,7 +36,7 @@ if dok_plugin is not None:
 
 Alt+C로 월간 캘린더·일정 편집, Alt+W로 현재·시간별 날씨 상세를 연다. 캘린더는 방향키로 날짜를 선택하고 Enter로 편집, Tab으로 항목 이동, F2로 저장한다. Esc는 편집→달력→닫기 순서다. 날씨는 ←/→로 시간대, ↑/↓로 본문을 이동한다. 알림은 우측 하단에 표시하고 입력 포커스를 유지한다. 기본 자동 닫기는 표시된 시간 기준 6초이며 Alt+N은 상세 보기, Alt+X는 닫기다.
 
-키·고정/비율 크기·여백·색상은 `popups`에서 지정한다. 일반 팝업의 버튼과 휠 스크롤은 마우스 설정을 따로 켜지 않아도 지원한다. [팝업 설정과 호출 API](popups.md), [일정 저장·반복 알림](calendar.md)에 수명주기와 조작을 정리했다. 저장한 일정은 재시작 후 복원하며 알림은 ish 실행 중 확인한다. 외부 캘린더 동기화와 예약 명령 실행은 포함하지 않는다.
+키·고정/비율 크기·여백·색상은 `popups`에서 지정한다. 일반 팝업의 버튼과 휠 스크롤은 마우스 설정을 따로 켜지 않아도 지원한다. [팝업 설정과 호출 API](popups.md), [일정 저장·반복 알림](calendar.md)에 수명주기와 조작을 정리했다. 저장한 일정은 재시작 후 복원하며 알림은 ish 실행 중 확인한다. Google 일정의 RRULE 반복과 dok 알림·예약 명령 실행도 지원한다. 저장과 실행의 책임은 [일정 실행 계약](calendar-actions.md)을 따른다.
 
 ## Hub 에이전트 등록
 
@@ -43,8 +47,23 @@ Alt+C로 월간 캘린더·일정 편집, Alt+W로 현재·시간별 날씨 상�
 | `command-analysis` | 셸 명령·옵션 설명과 실패 원인 분석 |
 | `calendar` | dok에서 제공할 일정의 요약·안내 |
 | `shell-assistant` | 프롬프트·스크롤백을 참고한 셸 작업 지원 |
+| `command-options` | 명시적으로 조회한 출력에서 자동완성 추출·설명 번역 |
 
-Hub의 **`/agent → Edit`**에서 `Dok` 소속 항목의 모델과 지침을 설정한다. 최초 템플릿에는 역할별 지침과 빈 도구 목록이 들어간다. Hub는 같은 Project를 재사용하고 누락된 에이전트만 추가하며, 기존 에이전트에 저장한 설정은 보존한다. 이 단계의 연동은 등록까지다. [Hub 플러그인 API](../hub/plugin-api.md)
+최초 템플릿에는 역할별 지침과 빈 도구 목록이 들어간다. dok 설정의 `hub`에서 새로 생성되는 네 에이전트의 공통 초기 연결값을 지정할 수 있다.
+
+```jsonc
+"hub": {
+  "model": null,
+  "api_key": null,
+  "api_base": null
+}
+```
+
+모두 기본 `null`이며 해당 설정을 에이전트에 명시하지 않는다는 뜻이다. 값이 있으면 Hub의 공개 등록 API에 에이전트 `completion` 설정으로 전달한다. 모델은 공급자/모델 문자열, `api_base`는 llm 공급자 어댑터가 검증하는 HTTP/HTTPS 주소다. API 키의 명시적 빈 문자열은 그대로 전달한다. Hub는 같은 Project를 재사용하고 누락된 에이전트만 추가하며 기존 값은 덮어쓰지 않는다. **이미 생성된 에이전트는 Hub의 `/agent → Edit`에서 수정한다.** dok 설정을 바꾸거나 재시작해도 기존 에이전트가 갱신되지는 않는다. [Hub 플러그인 API](../hub/plugin-api.md)
+
+`command-options`의 실제 호출은 자동완성 등록 시에만 이루어지며, 현재 dok 언어로 설명을 번역하도록 요청한다. 다른 역할의 자동 호출 기능은 추가하지 않는다.
+
+생성 템플릿의 추론 강도는 `command-options`에 `low`, `command-analysis`·`calendar`·`shell-assistant`에 `medium`을 고정한다. dok 설정 항목으로 노출하지 않으며 온도(`temperature`)는 전달하지 않는다. 이 값 역시 새 에이전트 생성 시 적용하며 기존 Hub 에이전트는 보존한다. 사용할 모델은 해당 추론 강도를 지원해야 한다.
 
 `dock.hub_registration.state`는 같은 프롬프트에 사용 가능한 live Hub가 없으면 `unavailable`, 등록 중이면 `registering`, 완료되면 `registered`다. 실패하면 `failed`로 바뀌며 원인이 `dock.hub_registration.diagnostic`과 ish 로그에 남는다. 원인을 해결한 뒤 `dock.reload()` 또는 기존 설치 코드가 있는 `ish_reload`로 다시 시도한다.
 

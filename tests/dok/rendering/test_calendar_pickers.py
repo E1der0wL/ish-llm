@@ -30,6 +30,7 @@ class CalendarPickerTests(unittest.TestCase):
         self.page = CalendarPage(lambda: self.clock, lambda: self.config.popups.calendar, runtime)
         self.page._select(self.original.start.date())
         self.page.key("enter", "")
+        self.page.key("enter", "")  # Date -> event list -> shared editor.
 
     def open(self, field):
         self.page.field = field

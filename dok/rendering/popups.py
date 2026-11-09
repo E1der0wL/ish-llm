@@ -1,5 +1,6 @@
 """Viewport-bounded popup drawing and local keyboard/mouse interaction."""
-from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding import KeyBindings, DynamicKeyBindings, merge_key_bindings
+from prompt_toolkit.filters import Condition
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout import HSplit
 from prompt_toolkit.layout.containers import Container
@@ -11,7 +12,7 @@ from prompt_toolkit.mouse_events import MouseButton, MouseEventType
 from ..popups.models import PopupAction
 from ..core.theme import Theme, ThemeRole
 from .overlay import DockRowWindow
-from .interactive import InteractivePopup, fitted
+from .interactive import InteractivePopup, PopupChrome, fitted
 from .text import clusters, display_text, fit, fit_labels, width
 from ..locales import Locale, Message as M
 
@@ -20,7 +21,7 @@ class PopupControl(FormattedTextControl):
     def __init__(self, surface, *, focusable):
         self.surface = surface
         super().__init__(lambda: surface.fragments, focusable=focusable, show_cursor=False,
-                         key_bindings=surface.bindings if focusable else None)
+                         key_bindings=surface.key_bindings if focusable else None)
 
     def mouse_handler(self, event):
         if event.event_type == MouseEventType.SCROLL_UP:
@@ -46,6 +47,10 @@ class PopupSurface:
         self._wrapped_rows = []
         self.page = None
         self.bindings = KeyBindings()
+        self._shortcuts = ()
+        self._shortcut_bindings = KeyBindings()
+        self.key_bindings = merge_key_bindings([
+            self.bindings, DynamicKeyBindings(lambda: self._shortcut_bindings)])
         self._install_keys()
         self.control = PopupControl(self, focusable=modal)
         self.container = HSplit([DockRowWindow(self.control, always_hide_cursor=True)], modal=modal)
@@ -55,10 +60,15 @@ class PopupSurface:
         # retain their prompt-toolkit handlers.
         for key in (Keys.Any, "c-c", "c-d", "c-z", "c-l", Keys.BracketedPaste):
             self.bindings.add(key)(lambda event: None)
-        # Distinguish Escape alone from Alt chords, so an ignored Alt key
-        # cannot close the panel and insert its suffix into the shell.
-        self.bindings.add("escape")(lambda event: self._dismiss())
+        # Escape is local back navigation. At the root it stays in the panel.
+        # Unknown Alt chords must not insert their suffix into the shell.
+        self.bindings.add("escape")(lambda event: None)
         self.bindings.add("escape", Keys.Any)(lambda event: None)
+        # A bare Escape immediately followed by an Alt chord can reach the key
+        # processor as Escape, Escape, suffix. Consume the first as Back, then
+        # let the normal bindings interpret the second with its queued suffix.
+        # Otherwise the unknown-Alt guard swallows both Escape keys.
+        self.bindings.add("escape", "escape", eager=True)(self._consecutive_escape)
         for key, amount in (("up", -1), ("down", 1)):
             self.bindings.add(key)(lambda event, amount=amount: self.move_scroll(amount))
         self.bindings.add("pageup")(lambda event: self.move_scroll(-self._page_rows))
@@ -73,21 +83,39 @@ class PopupSurface:
         # Specific modal pages replace these handlers without changing host focus.
         keys = (Keys.Any, Keys.BracketedPaste, "escape", "up", "down", "left", "right",
                 "pageup", "pagedown", "home", "end", "tab", "s-tab", "enter", "c-j",
-                "backspace", "delete", "f2", "c-a", "c-e", "c-u", "c-k", "c-z", "c-y")
-        from prompt_toolkit.filters import Condition
+                "backspace", "delete", "f2", "f5", "c-a", "c-e", "c-u", "c-k", "c-z", "c-y")
         for key in keys:
             def handle(event, key=key):
                 name = key.value if isinstance(key, Keys) else key
                 name = "enter" if name in ("c-m", "c-j") else name
-                if not self.page.key(name, event.data) and name == "escape":
-                    self._dismiss()
+                self.page.key(name, event.data)
                 self._invalidate()
             self.bindings.add(key, filter=Condition(lambda: isinstance(self.page, InteractivePopup)))(handle)
+
+    def _consecutive_escape(self, event):
+        if isinstance(self.page, InteractivePopup):
+            self.page.key("escape", "")
+        event.app.key_processor.feed(event.key_sequence[-1], first=True)
+        self._invalidate()
+
+    def set_shortcuts(self, entries):
+        """Install host-owned modal shortcuts without rebuilding on every draw."""
+        entries = tuple(entries)
+        if entries == self._shortcuts:
+            return
+        bindings = KeyBindings()
+        for entry in entries:
+            bindings.add(*entry.sequence.keys, filter=Condition(entry.enabled), eager=True)(entry.handler)
+        self._shortcuts, self._shortcut_bindings = entries, bindings
 
     def reset(self):
         self.scroll = self.selected = 0
         self._wrapped_key = None
         self._wrapped_rows = []
+
+    @property
+    def painted_height(self):
+        return len(self._painted_rows)
 
     def move_scroll(self, amount, *, position=None):
         if isinstance(self.page, InteractivePopup):
@@ -126,7 +154,7 @@ class PopupSurface:
     @staticmethod
     def _wrapped(content, cells, style, theme):
         result = []
-        for row in content.rows:
+        for row in content.rows_at(cells, theme):
             current, used = [], 0
             for span in row.spans:
                 paint = style.paint(theme=theme, color=span.color or None, bold=span.bold)
@@ -141,37 +169,42 @@ class PopupSurface:
             result.append(current)
         return result
 
-    def draw(self, content, panel, rect, *, notification=False, details=None, theme: Theme = Theme(), locale=Locale()):
+    def draw(self, content, panel, rect, *, notification=False, theme: Theme = Theme(), locale=Locale(), status_hint=None):
         w, h = rect.width, rect.height
         if not w or not h:
             self.fragments = []
             self._painted_rows = []
             return
-        border = int(panel.border and w >= panel.COMPACT_WIDTH and h >= panel.COMPACT_HEIGHT + 2)
+        interactive = isinstance(self.page, InteractivePopup)
+        body_only = interactive and self.page.chrome == PopupChrome.BODY_ONLY
+        border = int(panel.border and w >= panel.COMPACT_WIDTH and h >= (3 if body_only else panel.COMPACT_HEIGHT + 2))
         inner_w, inner_h = w - border * 2, h - border * 2
         left, top, right, bottom = panel.padding.fit(inner_w, inner_h, keep_height=panel.COMPACT_HEIGHT)
         body_w, body_h = inner_w - left - right, inner_h - top - bottom
         # A small terminal can still display content and accept Escape.
-        title_rows = int(body_h >= 2)
-        interactive = isinstance(self.page, InteractivePopup)
-        status_rows = int(not notification and body_h >= 3)
-        title_padding = int(not notification and body_h >= 5)
+        title_rows = int(not body_only and body_h >= 2)
+        status_rows = int(not body_only and body_h >= 3 and (not notification or bool(status_hint)))
+        title_padding = int(not body_only and not notification and body_h >= 5)
         self._body_origin = border + left, border + title_rows + top + title_padding
-        footer_rows = int(not interactive and body_h >= (3 if notification else 6))
+        footer_rows = int(not notification and content.footer and not interactive and body_h >= 6)
         self._page_rows = max(1, body_h - title_rows - title_padding - footer_rows - status_rows)
         if not interactive:
-            key = (content.rows, body_w, panel.style, theme)
+            key = (content, body_w, panel.style, theme)
             if key != self._wrapped_key:
                 self._wrapped_key = key
                 self._wrapped_rows = self._wrapped(content, body_w, panel.style, theme)
         wrapped = (self.page.draw_body(body_w, self._page_rows, theme) if interactive else self._wrapped_rows)
+        if notification and not interactive:
+            # Notifications fit their content; a spare fixed-height body row
+            # would otherwise appear as a second bottom padding row.
+            self._page_rows = min(self._page_rows, max(1, len(wrapped)))
         self._max_scroll = 0 if interactive else max(0, len(wrapped) - self._page_rows)
         self.scroll = min(self.scroll, self._max_scroll)
         normal, edge = panel.style.paint(theme=theme), panel.style.paint(theme=theme, border=True)
         rows = []
-        self._actions = ((PopupAction(locale.text(M.DETAILS), details),) if notification and details else content.actions)
-        self._actions += (PopupAction(locale.text(M.CLOSE), self._dismiss),)
-        self.selected %= len(self._actions)
+        self._actions = (() if notification else
+                         (*content.actions, PopupAction(locale.text(M.CLOSE), self._dismiss)))
+        self.selected = self.selected % len(self._actions) if self._actions else 0
 
         def full(parts):
             used = sum(width(part[1]) for part in parts)
@@ -213,7 +246,7 @@ class PopupSurface:
         for _ in range(bottom):
             rows.append([(normal, " " * inner_w)])
         if status_rows:
-            hint = (self.page.status_text() if interactive else
+            hint = status_hint if status_hint is not None else (self.page.status_text() if interactive else
                     locale.text(M.POPUP_HINT))
             status = theme.paint(ThemeRole.MUTED, background=ThemeRole.BUTTON_BG)
             label = fit(" " + hint, inner_w, marker="…")
@@ -264,13 +297,17 @@ class PopupLayer(Container):
             notification = True
         else:
             return
-        rect = panel.fit(write_position.width, write_position.height, notification=notification)
+        anchor = self.host.anchor(screen, write_position) if not notification else None
+        rect = (panel.fit_cursor(write_position.width, write_position.height, *anchor) if anchor is not None else
+                panel.fit(write_position.width, write_position.height, notification=notification))
         if not rect.width or not rect.height:
             return
-        details = self.host.open_details if notification and self.host.notifications.current.details is not None else None
-        surface.draw(content, panel, rect, notification=notification, details=details, theme=self.host.theme, locale=self.host.locale)
-        position = WritePosition(write_position.xpos + rect.left, write_position.ypos + rect.top, rect.width, rect.height)
+        surface.draw(content, panel, rect, notification=notification, theme=self.host.theme, locale=self.host.locale,
+                     status_hint=self.host.notification_hint() if notification else self.host.status_text())
+        height = surface.painted_height if notification else rect.height
+        top = rect.top + (rect.height - height if notification else 0)
+        position = WritePosition(write_position.xpos + rect.left, write_position.ypos + top, rect.width, height)
         surface.container.write_to_screen(screen, mouse_handlers, position, parent_style, True, z_index)
         self.mouse_regions = [(position.xpos, position.xpos + rect.width, y)
-                              for y in range(position.ypos, position.ypos + rect.height)]
+                              for y in range(position.ypos, position.ypos + height)]
         self.notification_painted = notification

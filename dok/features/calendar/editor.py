@@ -12,6 +12,7 @@ from ...locales import Locale, Message as M
 
 
 class EditorField(StrEnum):
+    TARGET = "target"
     TITLE = "title"
     ALL_DAY = "all_day"
     START_DATE = "start_date"
@@ -29,6 +30,7 @@ class EditorField(StrEnum):
     ALARM_ADD = "alarm_add"
     ALARMS = "alarms"
     COMMAND = "command"
+    LOCATION = "location"
     NOTES = "notes"
     SAVE = "save"
     CANCEL = "cancel"
@@ -47,7 +49,8 @@ class EditorField(StrEnum):
         return None
 
     def translated(self, locale):
-        return locale.text({self.TITLE: M.TITLE, self.ALL_DAY: M.TIME, self.START_DATE: M.START_DATE, self.END_DATE: M.END_DATE,
+        return locale.text({self.TARGET: M.CALENDAR_TARGET, self.LOCATION: M.LOCATION,
+                self.TITLE: M.TITLE, self.ALL_DAY: M.TIME, self.START_DATE: M.START_DATE, self.END_DATE: M.END_DATE,
                 self.START_TIME: M.START_TIME, self.END_TIME: M.END_TIME,
                 self.COMMAND: M.COMMAND, self.ALARM_NUMBER: M.ALARM_NUMBER, self.ALARM_UNIT: M.ALARM_UNIT,
                 self.ALARM_ADD: M.REGISTER, self.ALARMS: M.ALARM, self.INTERVAL: M.INTERVAL,
@@ -57,7 +60,8 @@ class EditorField(StrEnum):
 
 
 class EventDraft:
-    def __init__(self, day, timezone, event=None, *, now=None):
+    def __init__(self, day, timezone, event=None, *, now=None, choose_target=False):
+        self.choose_target = choose_target
         self.original = event
         start, end = (event.start, event.end) if event else EventTiming.initial(day, timezone, now)
         self.timezone = event.timezone if event else timezone
@@ -99,8 +103,12 @@ class EventDraft:
         buffer = self.buffers[EditorField.REPEAT_COUNT]
         return Recurrence.count_display(buffer.text, buffer.cursor_position, locale)
 
+    def supports(self, field):
+        return field != EditorField.LOCATION and (field != EditorField.TARGET or self.choose_target and self.original is None)
+
     def enabled(self, field):
-        return not (self.all_day and field in (EditorField.START_TIME, EditorField.END_TIME)
+        return self.supports(field) and not (self.all_day and field in (EditorField.START_TIME, EditorField.END_TIME)
+                    or field == EditorField.DELETE and self.original is None
                     or field == EditorField.ALARM_NUMBER and not self.alarm_unit.uses_number
                     or field in (EditorField.REPEAT_END, EditorField.REPEAT_COUNT, EditorField.REPEAT_UNTIL) and self.unit == RepeatUnit.NONE
                     or field == EditorField.REPEAT_COUNT and self.repeat_end != RepeatEnd.COUNT
@@ -157,9 +165,7 @@ class EventDraft:
         text = self._temporal_text(value)
         self.buffers[field].document = Document(text, len(text))
 
-    def event(self):
-        def text(field):
-            return self.buffers[field].text
+    def boundaries(self):
         start_day, end_day = self.temporal_value(EditorField.START_DATE), self.temporal_value(EditorField.END_DATE)
         if self.all_day:
             # The editor shows inclusive dates; storage owns exclusive end times.
@@ -171,12 +177,25 @@ class EventDraft:
         else:
             start = LocalDateTime().decode(datetime.combine(start_day, self.temporal_value(EditorField.START_TIME)))
             end = LocalDateTime().decode(datetime.combine(end_day, self.temporal_value(EditorField.END_TIME)))
+        return start, end
+
+    def recurrence(self):
+        return Recurrence.from_input(self.unit, self.buffers[EditorField.INTERVAL].text, self.repeat_end,
+            self.buffers[EditorField.REPEAT_COUNT].text, self.buffers[EditorField.REPEAT_UNTIL].text)
+
+    def event_values(self):
+        start, end = self.boundaries()
+        def text(field):
+            return self.buffers[field].text
         event = CalendarEvent(title=text(EditorField.TITLE), start=start, end=end, timezone=self.timezone,
             all_day=self.all_day, location=self.original.location if self.original else "", command=text(EditorField.COMMAND),
             alarms=self.alarms,
-            repeat=Recurrence.from_input(self.unit, text(EditorField.INTERVAL), self.repeat_end,
-                                         text(EditorField.REPEAT_COUNT), text(EditorField.REPEAT_UNTIL)),
+            repeat=self.recurrence(),
             notes=text(EditorField.NOTES), holiday=self.holiday)
+        return event
+
+    def event(self):
+        event = self.event_values()
         return replace(event, id=self.original.id, revision=self.original.revision) if self.original else event
 
     def edit(self, field, key, data):

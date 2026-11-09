@@ -11,6 +11,7 @@ from prompt_toolkit.key_binding.key_bindings import KeyBindingsBase
 from prompt_toolkit.keys import Keys
 
 from ...core.records import Rule, SettingsError
+from ...locales import Message
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,6 +60,19 @@ class KeySequence:
     def to_list(self):
         return [key.value if isinstance(key, Keys) else key for key in self.keys]
 
+    def label(self) -> str:
+        keys = self.to_list()
+        alt = len(keys) > 1 and keys[0] == Keys.Escape.value
+        if alt:
+            keys = keys[1:]
+        def display(key):
+            modifiers = []
+            while key.startswith(("c-", "s-", "m-")):
+                modifiers.append({"c": "Ctrl", "s": "Shift", "m": "Alt"}[key[0]])
+                key = key[2:]
+            return "+".join((*modifiers, key.upper()))
+        return ("Alt+" if alt else "") + " ".join(display(key) for key in keys)
+
 
 class KeyRule(Rule):
     def __init__(self, *, optional=False):
@@ -83,6 +97,7 @@ class KeyRegistration:
     sequence: KeySequence
     handler: Callable
     enabled: Callable[[], bool]
+    label: Message | None = None
 
 
 class HostBindingView(KeyBindingsBase):
@@ -138,6 +153,10 @@ class OwnedBindings:
         self._previous = None
         self._layer = None
         self._entries = ()
+
+    @property
+    def entries(self):
+        return self._entries
 
     def replace(self, entries):
         candidate = KeyBindings()

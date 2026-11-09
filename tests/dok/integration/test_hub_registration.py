@@ -10,6 +10,8 @@ from unittest.mock import AsyncMock, Mock, patch
 from prompt_toolkit.input import create_pipe_input
 
 from dok import install, uninstall
+from dok.integrations.hub_config import HubConfig
+from dataclasses import replace
 from dok.integrations.hub import HubAgents, RegistrationState
 from tests.dok.support import HostPrompt, render, wait_running
 
@@ -66,6 +68,18 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         self.dock.reload()
         await render(self.prompt.app)
         register.assert_awaited_once()
+
+    async def test_registration_reads_current_creation_defaults_once(self):
+        settings = HubConfig(model="provider/test", api_key="test-key", api_base="https://example.invalid/v1")
+        self.dock.configure(replace(self.dock.config, hub=settings))
+        register = AsyncMock()
+        self.install_hub(register)
+        await self.start_prompt()
+        await wait_state(self.dock, RegistrationState.REGISTERED)
+        self.definition.assert_called_once_with(settings)
+        self.dock.configure(replace(self.dock.config, hub=HubConfig(model="provider/next")))
+        await render(self.prompt.app)
+        register.assert_awaited_once()  # Existing Agents remain owned by Hub.
 
     async def test_registration_survives_enter_and_does_not_block_next_prompt(self):
         started, release = asyncio.Event(), asyncio.Event()

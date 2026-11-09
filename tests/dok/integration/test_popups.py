@@ -128,6 +128,8 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(calls, [])
         self.assertFalse(self.task.done())
         await self.send(b"\x1b")
+        self.assertTrue(self.dock._popups.modal)  # Root Escape stays in a custom popup.
+        self.dock.close_popup()
         await until(lambda: not self.dock._popups.modal)
         self.assertIs(self.prompt.app.layout.current_control, control)
         self.assertFalse(self.prompt.app.mouse_support())
@@ -161,9 +163,10 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         expected_end = initial_end.replace(minute=min(59, initial_end.minute + 1), second=min(59, initial_end.second + 1))
         self.assertEqual(page.draft.temporal_value(EditorField.END_TIME), expected_end)
         await self.send(b"\x1bOQ")
-        await until(lambda: page.draft.original is not None and not page.busy)
-        self.assertEqual(page.draft.original.title, "Picker meeting")
-        self.assertEqual(page.draft.original.end.time(), expected_end)
+        await until(lambda: page.show_list and not page.busy)
+        saved = page.snapshot.on_day(page.selected)[0]
+        self.assertEqual(saved.title, "Picker meeting")
+        self.assertEqual(saved.end.time(), expected_end)
         self.assertEqual(self.prompt.default_buffer.document, original_prompt)
         self.dock.close_popup()
         await render(self.prompt.app)
@@ -181,6 +184,8 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotEqual(self.dock._popups.page.selected.replace(day=1), before)
         self.assertEqual(self.dock._popups.page.content().title, "Calendar")
         await self.send(b"\x1b")
+        self.assertTrue(self.dock._popups.modal)
+        await self.send(b"\x1bc")
         await until(lambda: not self.dock._popups.modal)
         await self.send(b"\x1bw")
         self.assertEqual(self.dock._popups.page.content().title, "Weather")
@@ -188,10 +193,31 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         lines = screen_lines(await render(self.prompt.app))
         self.assertTrue(any("--°" in line for line in lines), lines)
         await self.send(b"\x1b")
+        self.assertTrue(self.dock._popups.modal)
+        await self.send(b"\x1bw")
         await until(lambda: not self.dock._popups.modal)
         self.assertFalse(self.dock._popups.modal)
         self.assertFalse(self.prompt.app.mouse_support())
         self.assertEqual(self.prompt.default_buffer.text, "draft")
+
+    async def test_rapid_escape_then_opener_and_repeated_back_do_not_swallow_keys(self):
+        await self.start('preserved')
+        for opener in (b'\x1bc', b'\x1bw'):
+            await self.send(opener)
+            self.assertTrue(self.dock._popups.modal)
+            self.pipe.send_bytes(b'\x1b' + opener)
+            await until(lambda: not self.dock._popups.modal)
+        await self.send(b'\x1bc\r')
+        page = self.dock._popups.page
+        self.assertTrue(page.editing)
+        self.pipe.send_bytes(b'\x1b\x1b')
+        await until(lambda: not page.editing)
+        # An ignored Alt chord remains local after back navigation.
+        await self.send(b'\x1bx')
+        self.assertTrue(self.dock._popups.modal)
+        self.assertEqual(self.prompt.default_buffer.text, 'preserved')
+        await self.send(b'\x1bc')
+        await until(lambda: not self.dock._popups.modal)
 
     async def test_modal_mouse_blocks_click_through_and_restores_host_preference(self):
         config = self.dock.config
@@ -232,24 +258,47 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((app.ttimeoutlen, app.timeoutlen), (configured, configured))
         before = page.selected
         # Escape must remain a prefix for both a fragmented CSI and an Alt chord.
-        self.pipe.send_bytes(b"\x1b[")
-        await asyncio.sleep(.01)
-        await self.send(b"C")
+        async def split_input(prefix, suffix):
+            original_read = app.input.read_keys
+            consumed = asyncio.Event()
+            sent_suffix = False
+
+            def read_keys():
+                nonlocal sent_suffix
+                result = original_read()
+                if not sent_suffix:
+                    # Send the suffix only after a real read consumed the
+                    # prefix. A sleep-based split can exceed escape_s under
+                    # load or coalesce both writes into one terminal read.
+                    sent_suffix = True
+                    self.pipe.send_bytes(suffix)
+                else:
+                    consumed.set()
+                return result
+
+            with patch.object(app.input, "read_keys", read_keys):
+                self.pipe.send_bytes(prefix)
+                await asyncio.wait_for(consumed.wait(), 3)
+
+        await split_input(b"\x1b[", b"C")
         # Rendering and input processing are separate event-loop callbacks.
         # Wait for an observable result, while still failing if ESC closed it.
         await until(lambda: page.selected != before or not self.dock._popups.modal)
         self.assertEqual(page.selected, before + timedelta(days=1))
-        self.pipe.send_bytes(b"\x1b")
-        await asyncio.sleep(.01)
-        await self.send(b"x")
+        await split_input(b"\x1b", b"x")
         self.assertTrue(self.dock._popups.modal)
         self.assertEqual(self.prompt.default_buffer.text, "preserved")
+        await self.send(b"\r")
+        self.assertTrue(page.editing)
         started = asyncio.get_running_loop().time()
         self.pipe.send_bytes(b"\x1b")
         async with asyncio.timeout(.5):
-            await until(lambda: not self.dock._popups.modal)
+            await until(lambda: not page.editing)
         elapsed = asyncio.get_running_loop().time() - started
-        print(f"ESC pipe latency: {elapsed * 1000:.1f} ms", flush=True)
+        print(f"ESC back pipe latency: {elapsed * 1000:.1f} ms", flush=True)
+        self.assertTrue(self.dock._popups.modal)
+        await self.send(b"\x1bc")
+        await until(lambda: not self.dock._popups.modal)
         self.assertEqual((app.ttimeoutlen, app.timeoutlen), original)
         self.assertEqual(self.prompt.default_buffer.text, "preserved")
 
@@ -333,16 +382,16 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.send("Meeting 한글".encode())
         self.assertEqual(page.draft.buffers[EditorField.TITLE].text, "Meeting 한글")
         await self.send(b"\x1bOQ")  # F2
-        await until(lambda: page.draft.original is not None)
+        await until(lambda: page.show_list and not page.busy)
         self.assertEqual(self.dock._calendar.store.load().events[0].title, "Meeting 한글")
         await self.send(b"\x1b")
         await until(lambda: not page.editing)
-        await self.send(b"\x1b")
+        await self.send(b"\x1bc")
         await until(lambda: not self.dock._popups.modal)
         self.assertEqual(self.prompt.default_buffer.text, "keep this prompt")
         self.dock.open_calendar()
         await render(self.prompt.app)
-        self.assertEqual(self.dock._popups.page.snapshot.events[0].title, "Meeting 한글")
+        self.assertEqual(self.dock._popups.page.snapshot.on_day(page.selected)[0].title, "Meeting 한글")
 
     async def test_registered_reminders_save_through_real_keys_and_survive_reopen(self):
         await self.start("unchanged")
@@ -354,15 +403,16 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.send(b"\r\x1b[H\r\t\r")  # Choose start, Tab to Add, register.
         self.assertEqual(page.draft.alarms, (Reminder("minutes", 5), Reminder("start", 0)))
         await self.send(b"\x1bOQ")
-        await until(lambda: page.draft.original is not None)
-        self.assertEqual(self.dock._calendar.store.load().events[0].alarms, page.draft.alarms)
+        await until(lambda: page.show_list and not page.busy)
+        self.assertEqual(self.dock._calendar.store.load().events[0].alarms,
+                         (Reminder("minutes", 5), Reminder("start", 0)))
         await self.send(b"\x1b")
         await until(lambda: not page.editing)
-        await self.send(b"\x1b")
+        await self.send(b"\x1bc")
         await until(lambda: not self.dock._popups.modal)
         self.dock.open_calendar()
         await render(self.prompt.app)
-        await self.send(b"\r")
+        await self.send(b"\r\r")  # Calendar -> list -> edit selected event.
         self.assertEqual(self.dock._popups.page.draft.alarms, (Reminder("minutes", 5), Reminder("start", 0)))
         self.assertEqual(self.prompt.default_buffer.text, "unchanged")
 
@@ -444,11 +494,11 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         await self.send(b"Mouse event")
         # Use the fragment's public handler for the Korean save glyph; terminal
         # cell splitting is independently covered by the notification test.
-        handler = next(p[2] for p in self.dock._popups.layer.general.fragments if len(p)>2 and p[1].strip()=="Save")
+        handler = next(p[2] for p in self.dock._popups.layer.general.fragments if len(p)>2 and p[1].strip()=="* Save")
         with set_app(self.prompt.app):
             handler(MouseEvent(Point(0,0), MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
-        await until(lambda:page.draft.original is not None)
-        self.assertEqual(page.draft.original.title,"Mouse event")
+        await until(lambda: page.show_list and not page.busy)
+        self.assertEqual(page.snapshot.on_day(page.selected)[0].title,"Mouse event")
         self.assertEqual(self.prompt.default_buffer.text,"draft")
 
     async def test_notifications_wait_for_prompt_and_pause_while_modal(self):
@@ -549,7 +599,7 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.prompt.search_buffer.text, "query")
         self.assertEqual(self.prompt.default_buffer.text, "draft")
 
-    async def test_bottom_right_notification_colors_and_mouse_details(self):
+    async def test_bottom_right_notification_colors_no_footer_and_title_mouse_close(self):
         from prompt_toolkit.styles import Style
         self.dock.configure(replace(self.dock.config, theme={"colors": {"white": "#abcdef", "black": "#112233", "bright_black": "#778899"}}, dock={"mouse": {"enabled": True}}, popups={
             "notifications": {"duration_s": None, "panel": {
@@ -570,14 +620,23 @@ class PopupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         x = line.index("Message")
         attrs = Style([]).get_attrs_for_style_str(screen.data_buffer[y][x].style)
         self.assertEqual((attrs.color, attrs.bgcolor), ("abcdef", "112233"))
-        y, line = next((y, line) for y, line in enumerate(lines) if "Details" in line)
-        x = line.index("Details")
+        self.assertTrue(any("Alt+N Details" in line and "Alt+X Close" in line for line in lines))
+        self.assertEqual(self.dock._popups.layer.notification._actions, ())
+        # The body has no hidden details action after removal of its button.
         with set_app(self.prompt.app):
             self.prompt.app.renderer.mouse_handlers.mouse_handlers[y][x](MouseEvent(
                 Point(x, y), MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
         await render(self.prompt.app)
-        self.assertEqual(self.dock._popups.page.content().title, "Details")
-        self.assertTrue(self.dock._popups.modal)
+        self.assertFalse(self.dock._popups.modal)
+        self.assertEqual(self.dock.pending_notifications, 1)
+        y, line = next((y, line) for y, line in enumerate(lines) if "" in line)
+        x = line.index("")
+        with set_app(self.prompt.app):
+            self.prompt.app.renderer.mouse_handlers.mouse_handlers[y][x](MouseEvent(
+                Point(x, y), MouseEventType.MOUSE_UP, MouseButton.LEFT, frozenset()))
+        await render(self.prompt.app)
+        self.assertFalse(self.dock._popups.modal)
+        self.assertEqual(self.dock.pending_notifications, 0)
 
     async def test_foreign_focus_is_not_stolen_and_disabling_restores_prompt(self):
         other = TextArea(text="external")

@@ -1,9 +1,11 @@
 # 설정 구조
 
-설정은 `dock`, `audio`, `media`, `clock`, `widgets`, `system`, `toolbar`, `popups`로 구성한다. [전체 기본 설정과 영어 설명](config.example.jsonc)은 실제 Owner에서 생성한 JSONC다. 이전 필드명·구조·버전은 읽거나 변환하지 않는다. 이미 있는 파일은 자동으로 새 형식으로 바뀌지 않는다.
+설정은 `dock`, `audio`, `media`, `clock`, `widgets`, `system`, `toolbar`, `popups`와 외부 연결을 위한 `connections` 등으로 구성한다. [전체 기본 설정과 영어 설명](config.example.jsonc)은 실제 Owner에서 생성한 JSONC다. 이전 필드명·구조·버전은 읽거나 변환하지 않는다. 이미 있는 파일은 자동으로 새 형식으로 바뀌지 않는다.
 
 | 그룹 | 책임 |
 | --- | --- |
+| `connections.google` | Google 계정 ID·활성화·OAuth Desktop client 파일·HTTP/로그인 제한 시간. `write` 기본 false, 쓰기 권한을 켠 뒤 재로그인. `updates`는 Google 초대 대상 변경 알림 정책. [외부 연결](connections.md) |
+| `popups.calendar.sources` | 연결 ID·캘린더 ID·표시 이름·활성화·갱신 간격. 기본 빈 목록, 생성 예시는 비활성. 쓰기는 계정 설정과 Google 권한으로 허용 |
 | `language` | 기본 `null`: ish 선택 언어. `en`·`ko`로 고정 가능하며 미지원 언어는 영어. [언어와 사용자 문구](localization.md) |
 | `dock.keys` | `toggle` 키 시퀀스, 기본 Ctrl+W. 펼침 크기는 공간에 따라 자동 조절 |
 | `dock.width` | `mode: fixed/ratio`, `value` |
@@ -20,6 +22,12 @@
 | `popups` | 중앙 일반 팝업, 우측 하단 알림, 일정 편집·예약 알림과 현재/시간별 예보. [설명](popups.md) |
 | `popups.calendar.poll_s`, `idle_s` | 캘린더 열림·닫힘 중 외부 일정 파일 확인 간격, 기본 1초·30초. 저장한 알림 기한과 별개 |
 | `popups.calendar.clock_s` | 미래 알림 대기 중 가벼운 시계 변경 확인, 기본 1초. 파일 조회 없음 |
+| `completion` | 커서 아래 자동완성 등록창과 Hub 우선 분석. `completion.hub: false`는 로컬 분석만 사용 |
+| `completion.menu` | 기존·생성 자동완성 목록의 글자·설명·선택 행·스크롤바 테마. `enabled: false`면 ish 스타일 유지 |
+| `completion.manage` | Alt+M 중앙 관리 팝업의 단축키·크기·테마. 접두사와 항목 수동 편집·삭제·잠금 |
+| `toolbar.hints` | 중앙 키 안내 초기 표시 여부. 기본 false, 공간 부족 시 전체 안내 숨김 |
+| `toolbar.hint_key` | 중앙 안내 토글. 기본 F1, null로 해제. 팝업 하단 안내는 유지 |
+| `hub` | 새 dok 에이전트의 공통 초기 `model`, `api_key`, `api_base`. 기본 모두 null, 기존 Hub 에이전트는 유지 |
 
 `widgets`에는 `weather`, `weekday`, `date`, `time`, `visualizer`, `progress`, `title`, `controls`, `shortcuts`가 있다. 정보 영역의 네 위젯은 최대화에서 표시한다. 순서를 바꾸는 옵션은 추가하지 않았다.
 

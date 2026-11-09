@@ -9,7 +9,7 @@ from dataclasses import dataclass, fields
 from enum import StrEnum
 
 from .colors import HexColor
-from .records import Choice, Nested, Nullable, Record, Rule, SettingsError, setting
+from .records import Boolean, Choice, Nested, Nullable, Record, Rule, SettingsError, setting
 
 
 def palette_color(value: str, description: str):
@@ -112,6 +112,37 @@ def theme_reference(default=ThemeRole.FOREGROUND, description="Foreground"):
 
 
 @dataclass(frozen=True, slots=True)
+class MenuStyle(Record):
+    """Menu colors and selector mapping shared by completion surfaces."""
+
+    color: str = theme_reference(ThemeRole.MENU_TEXT, "Item text")
+    background: str = theme_reference(ThemeRole.BUTTON_BG, "Menu background")
+    help: str = theme_reference(ThemeRole.MUTED, "Item descriptions")
+    selected_color: str = theme_reference(ThemeRole.SELECTED_FG, "Selected item and description text")
+    selected_background: str = theme_reference(ThemeRole.SELECTED_BG, "Selected row background")
+    selected_bold: bool = setting(Boolean(), default=False, description="Render the selected item and its description in bold.")
+    scrollbar: str = theme_reference(ThemeRole.SCROLLBAR, "Scrollbar thumb")
+    scrollbar_background: str = theme_reference(ThemeRole.BUTTON_BG, "Scrollbar track")
+
+    def rules(self, theme, *, scoped_scrollbar=False):
+        normal = theme.paint(self.color, background=self.background)
+        description = theme.paint(self.help, background=self.background)
+        selected = theme.paint(self.selected_color, background=self.selected_background, bold=self.selected_bold)
+        track = theme.paint(self.scrollbar_background, background=self.scrollbar_background)
+        thumb = theme.paint(self.scrollbar, background=self.scrollbar)
+        scope = "completion-menu " if scoped_scrollbar else ""
+        return {"completion-menu": normal, "completion-menu.completion": normal,
+                "completion-menu.completion.current": selected,
+                "completion-menu.meta.completion": description,
+                "completion-menu.meta.completion.current": selected,
+                "completion-menu.multi-column-meta": description,
+                scope + "scrollbar.background": track,
+                scope + "scrollbar.background scrollbar.start": track + " nounderline",
+                scope + "scrollbar.button": thumb,
+                scope + "scrollbar.button scrollbar.end": thumb + " nounderline"}
+
+
+@dataclass(frozen=True, slots=True)
 class Theme(Record):
     colors: ThemeColors = setting(Nested(ThemeColors), factory=ThemeColors,
         description="Shared 18-color palette for dock, toolbar and popups. Shortcut RGB colors and visualizer gradients stay independent.")
@@ -147,14 +178,7 @@ class Theme(Record):
         return self.paint(foreground or ThemeRole.FOREGROUND, background=background, bold=bold)
 
     def menu_styles(self) -> dict[str, str]:
-        normal = self.paint(ThemeRole.MENU_TEXT, background=ThemeRole.BUTTON_BG)
-        selected = self.paint(ThemeRole.SELECTED_FG, background=ThemeRole.SELECTED_BG)
-        track = self.paint(ThemeRole.BUTTON_BG, background=ThemeRole.BUTTON_BG)
-        thumb = self.paint(ThemeRole.SCROLLBAR, background=ThemeRole.SCROLLBAR)
-        return {"completion-menu": normal, "completion-menu.completion": normal,
-                "completion-menu.completion.current": selected,
-                "scrollbar.background": track, "scrollbar.background scrollbar.start": track + " nounderline",
-                "scrollbar.button": thumb, "scrollbar.button scrollbar.end": thumb + " nounderline"}
+        return MenuStyle().rules(self)
 
     def button(self, foreground=ThemeRole.FOREGROUND, *, selected=False, bold=False):
         """Focus changes button text, never the surface background."""

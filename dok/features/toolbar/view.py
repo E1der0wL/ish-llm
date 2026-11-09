@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from ...rendering.text import fit, width
 from ...rendering.presentation import TextRow, TextSpan
-from ...core.theme import Theme
+from ...core.theme import Theme, ThemeRole
 from .config import Metric, RegionLayout, ToolbarConfig
 from .editor import NumberCalculator
 from ...locales import Locale
@@ -184,7 +184,7 @@ class ToolbarView:
                 count -= 1
         return self._paint(regions, gap, budget, config.background, theme)
 
-    def render(self, config: ToolbarConfig, editor, snapshot, history, now, dock_visible, columns, *, theme: Theme = Theme(), locale=Locale()):
+    def render(self, config: ToolbarConfig, editor, snapshot, history, now, dock_visible, columns, *, theme: Theme = Theme(), locale=Locale(), hints=(), show_hints=None):
         if columns <= 0:
             return []
         padding_left, columns, padding_right = config.split_width(columns)
@@ -233,6 +233,13 @@ class ToolbarView:
             if length:
                 region.parts.append(Segment(MetricFormat.graph(kind, snapshot, history, length), item.style.color))
         fragments, right_width = self._paint(right, config.separator, columns, config.background, theme)
-        middle = (background, " " * (columns - left_width - right_width))
-        return [(background, " " * padding_left), *left, middle, *fragments,
+        room = max(0, columns - left_width - right_width)
+        text = " · ".join(hints) if (config.hints if show_hints is None else show_hints) else ""
+        if width(text) > max(0, room - 2):
+            text = ""
+        before = max(0, min(room - width(text), (columns - width(text)) // 2 - left_width))
+        middle = [(background, " " * before),
+                  (theme.paint(ThemeRole.MUTED, background=config.background), text),
+                  (background, " " * max(0, room - before - width(text)))]
+        return [(background, " " * padding_left), *left, *middle, *fragments,
                 (background, " " * padding_right)]

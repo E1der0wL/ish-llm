@@ -21,6 +21,8 @@ class DockToolbar:
         self._clock_task = TaskSlot(prompt.app.invalidate)
         self._dock_visible = False
         self._windows = []
+        self._hint_default = controller.config.toolbar.hints
+        self._hints_visible = self._hint_default
 
     def _restore_controls(self):
         for window, control, previous_wrap, owned_wrap in self._windows:
@@ -51,7 +53,19 @@ class DockToolbar:
         owner = self._controller
         return self._view.render(owner.config.toolbar, self._status.read(), owner.system,
             owner.system_history, owner.config.clock.now(), self._dock_visible,
-            self._prompt.app.output.get_size().columns, theme=owner.config.theme, locale=owner.locale)
+            self._prompt.app.output.get_size().columns, theme=owner.config.theme, locale=owner.locale,
+            hints=owner.toolbar_hints(), show_hints=self.hints_visible)
+
+    @property
+    def hints_visible(self):
+        configured = self._controller.config.toolbar.hints
+        if configured != self._hint_default:
+            self._hint_default = self._hints_visible = configured
+        return self._hints_visible
+
+    def toggle_hints(self, event=None):
+        self._hints_visible = not self.hints_visible
+        self._prompt.app.invalidate()
 
     @property
     def owned(self):

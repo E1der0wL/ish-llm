@@ -42,6 +42,9 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.original_wrap = self.toolbar_window.wrap_lines
         self.dock = install(self.prompt, config_path=Path(self.directory.name) / "config.jsonc")
         self.dock.configure(DockConfig(audio={"enabled": False}, media={"enabled": False}))
+        # Completion appearance owns a separate, reversible prompt style layer.
+        # Toolbar changes must leave that installed layer untouched.
+        self.installed_style = self.prompt.style
         self.calls = 0
         def read(interfaces):
             self.calls += 1
@@ -83,7 +86,37 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(date, await self.toolbar_line())
         await until(lambda: self.calls > calls)
         self.assertEqual(self.prompt.default_buffer.text, "10 20")
-        self.assertIs(self.prompt.style, self.original_style)
+        self.assertIs(self.prompt.style, self.installed_style)
+
+    async def test_hints_follow_configured_keys_language_and_modal_area(self):
+        await self.start()
+        await until(lambda: not self.dock._completion.busy)
+        self.assertEqual(self.dock.toolbar_hints(), ())
+        self.pipe.send_bytes(b'\x1bOP')  # F1 shows center help.
+        await until(lambda: bool(self.dock.toolbar_hints()))
+        hints = ' · '.join(self.dock.toolbar_hints())
+        self.assertIn('Ctrl+W Dock', hints)
+        self.assertIn('Alt+C Calendar', hints)
+        self.assertIn('Alt+O Register', hints)
+        self.assertIn('Alt+M Manage', hints)
+        self.dock.configure(replace(self.dock.config, language='ko', completion=replace(self.dock.config.completion,
+            manage={'key': ['f8']})))
+        self.assertIn('F8 관리', ' · '.join(self.dock.toolbar_hints()))
+        self.assertTrue(self.dock.manage_completions())
+        self.assertEqual(self.dock.toolbar_hints(), (self.dock._popups.status_text(),))
+        self.assertIn('F8 닫기', self.dock._popups.status_text())
+        before = self.dock.toolbar_hints()
+        self.dock._popups.page.key('tab', '')
+        self.assertNotEqual(self.dock.toolbar_hints(), before)
+        footer = self.dock._popups.status_text()
+        self.pipe.send_bytes(b'\x1bOP')
+        await until(lambda: not self.dock.toolbar_hints())
+        self.assertEqual(self.dock._popups.status_text(), footer)
+        self.pipe.send_bytes(b'\x1bOP')
+        await until(lambda: bool(self.dock.toolbar_hints()))
+        self.pipe.send_bytes(b'\x1b[19~')  # Reconfigured Alt+M opener is now F8.
+        await until(lambda: not self.dock._popups.modal)
+        self.assertIn('F8 관리', ' · '.join(self.dock.toolbar_hints()))
 
     async def test_space_shortage_reshows_date_and_resize_keeps_right_alignment(self):
         await self.start()
@@ -126,7 +159,7 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(line.startswith('  '))
             self.assertTrue(line.endswith('   '))
             self.assertEqual(self.prompt.default_buffer.document, document)
-        self.assertIs(self.prompt.style, self.original_style)
+        self.assertIs(self.prompt.style, self.installed_style)
         self.assertIs(self.prompt.bottom_toolbar, callback)
 
     async def test_disable_uninstall_and_later_plugin_override_restore_only_owned_values(self):
@@ -147,6 +180,7 @@ class ToolbarIntegrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(self.prompt.bottom_toolbar, later)
         uninstall(self.prompt)
         self.assertIs(self.prompt.bottom_toolbar, later)
+        self.assertIs(self.prompt.style, self.original_style)
 
     async def test_prompt_completion_stops_sampling_and_next_prompt_rebaselines(self):
         await self.start()

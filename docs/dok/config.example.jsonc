@@ -857,7 +857,11 @@
     // Nonnegative blank cells at the left edge of the entire toolbar. Runtime default: 0; newly generated files: 1. Fitted to the terminal width; left padding is reserved first if both edges cannot fit.
     "pad_left": 1,
     // Nonnegative blank cells at the right edge of the entire toolbar. System metrics align immediately before this padding. Runtime default: 0; newly generated files: 1. Fitted to the width remaining after left padding.
-    "pad_right": 1
+    "pad_right": 1,
+    // Initial visibility of shortcut help in the bottom toolbar center. Hidden by default. hint_key toggles it for the current session without changing this file. The whole help line hides when it cannot fit between left fields and right metrics. Popup footers stay visible.
+    "hints": false,
+    // Toggle only the bottom toolbar center help, including while a popup is focused. Default F1; null disables the shortcut. Does not hide popup footer help.
+    "hint_key": ["f1"]
   },
   // Centered calendar/weather popups and bottom-right notifications. Focused general popups always support mouse actions; notifications follow dock.mouse.enabled.
   "popups": {
@@ -928,8 +932,8 @@
         "height": {
           // fixed counts terminal cells; ratio is a fraction of the available input area.
           "mode": "fixed",
-          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
-          "value": 7
+          // Maximum notification height. Short content shrinks the panel so only the configured body padding remains above the key-map footer.
+          "value": 10
         },
         // Space outside the panel. General popups center in the remaining input area; notifications align bottom right.
         "margin": {
@@ -942,14 +946,14 @@
           // Nonnegative left cells, fitted to the viewport.
           "left": 1
         },
-        // Space inside the panel; reduced when needed to keep content visible.
+        // Notification body padding. Defaults to one row below the title and above the key-map footer, and one cell on each side. Zero removes that padding; fitted to the available viewport.
         "padding": {
           // Nonnegative top rows, fitted to the viewport.
-          "top": 0,
+          "top": 1,
           // Nonnegative right cells, fitted to the viewport.
           "right": 1,
           // Nonnegative bottom rows, fitted to the viewport.
-          "bottom": 0,
+          "bottom": 1,
           // Nonnegative left cells, fitted to the viewport.
           "left": 1
         },
@@ -974,9 +978,9 @@
     },
     // Monthly calendar popup.
     "calendar": {
-      // Enable the monthly calendar popup. No external calendar account is connected.
+      // Enable the monthly calendar popup and local reminders. External sources and provider writes are separately opt-in.
       "enabled": true,
-      // Open the calendar. Default Alt+C; null disables this binding.
+      // Open or close the calendar. Default Alt+C; null disables this binding. Escape goes back within the popup instead of closing it.
       "key": ["escape", "c"],
       // Calendar size and appearance. null uses popups.general; the default fits both calendar and editor within the available input area.
       "panel": {
@@ -1037,13 +1041,28 @@
       // Seconds between external calendar file checks while the calendar popup is closed. Known alarms keep their exact deadlines; this is only the external-edit detection interval.
       "idle_s": 30,
       // Lightweight wall-clock recheck interval while a future alarm exists, including after suspend or a clock change. Does not reread the calendar file.
-      "clock_s": 1
+      "clock_s": 1,
+      // Calendars shown with local events. Sources reference a connections account; provider settings control optional writes. The visible month is cached. Explicit dok reminders/commands also keep their linked schedules refreshed while the popup is closed; imported text never supplies executable commands.
+      "sources": [
+        {
+          // Configured connection identifier. The selected connection must support calendar reads.
+          "connection": "google",
+          // Provider calendar identifier. Google accepts primary for the account's main calendar, or a calendar ID from its settings.
+          "calendar": "primary",
+          // Source name shown next to external events. Distinguish accounts/calendars here.
+          "label": "Google",
+          // Enable this calendar source and its explicitly configured dok actions. Editing additionally requires provider write settings and calendar permissions.
+          "enabled": false,
+          // Refresh interval for the visible month and schedules with dok reminders/commands. Hidden popups read only action-linked schedules. F5 explicitly refreshes.
+          "refresh_s": 300
+        }
+      ]
     },
     // Current, daily and hourly weather details popup.
     "weather": {
       // Enable current, daily and hourly weather details, sharing the dashboard cache.
       "enabled": true,
-      // Open weather details. Default Alt+W; null disables this binding.
+      // Open or close weather details. Default Alt+W; null disables this binding. Escape returns from buttons to hours without closing the popup.
       "key": ["escape", "w"],
       // Weather panel dimensions. null uses popups.general.
       "panel": {
@@ -1202,5 +1221,173 @@
     }
   },
   // UI language: null follows ish's selected language with English fallback. "en" selects English; "ko" selects Korean. Custom text, event content and ASCII weekday art are preserved.
-  "language": null
+  "language": null,
+  // Explicit command completion registration. Enter in the prefix/mode form runs the captured prompt command once, analyzes its output and saves the result. Stored catalogs live beside this file.
+  "completion": {
+    // Enable saved option/subcommand suggestions, registration and management popups. Never executes lookup commands automatically.
+    "enabled": true,
+    // Open or close the prefix form beneath the prompt cursor. Tab toggles merge/replace while typing continues to edit the prefix. Enter runs the captured prompt command, analyzes its output and registers it. Escape stays at this root form; the opening key cancels. Default Alt+O; null removes the binding.
+    "key": ["escape", "o"],
+    // After Enter confirms registration, use the installed Hub command-options Agent to analyze output and translate descriptions into dok's selected language. New Agent model defaults come from hub; existing Agents are edited in Hub. Local fallback preserves source descriptions. No shell tools are assigned by dok.
+    "hub": true,
+    // Hub analysis deadline in seconds. This does not limit or terminate the shell command; normal ish controls apply to it.
+    "timeout_s": 60,
+    // Completion list appearance, separate from the registration popup. Existing suggestions keep their order and precede generated suggestions; generated names are sorted case-insensitively with punctuation, including leading option dashes. Existing duplicates win.
+    "menu": {
+      // Item text. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+      "color": "menu_text",
+      // Menu background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+      "background": "button_bg",
+      // Item descriptions. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+      "help": "muted",
+      // Selected item and description text. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+      "selected_color": "selected_fg",
+      // Selected row background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+      "selected_background": "selected_bg",
+      // Render the selected item and its description in bold.
+      "selected_bold": false,
+      // Scrollbar thumb. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+      "scrollbar": "scrollbar",
+      // Scrollbar track. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+      "scrollbar_background": "button_bg",
+      // Apply dok's shared theme to the ish completion list, including existing suggestions. false keeps the host style. Menu layout and keyboard behavior stay with ish.
+      "enabled": true
+    },
+    // Cursor-anchored popup size and style. Fits below or above the prompt cursor inside the existing input area.
+    "panel": {
+      // Popup width.
+      "width": {
+        // fixed counts terminal cells; ratio is a fraction of the available input area.
+        "mode": "fixed",
+        // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+        "value": 42
+      },
+      // Popup height.
+      "height": {
+        // fixed counts terminal cells; ratio is a fraction of the available input area.
+        "mode": "fixed",
+        // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+        "value": 5
+      },
+      // Space outside the panel. General popups center in the remaining input area; notifications align bottom right.
+      "margin": {
+        // Nonnegative top rows, fitted to the viewport.
+        "top": 1,
+        // Nonnegative right cells, fitted to the viewport.
+        "right": 1,
+        // Nonnegative bottom rows, fitted to the viewport.
+        "bottom": 1,
+        // Nonnegative left cells, fitted to the viewport.
+        "left": 1
+      },
+      // Space inside the panel; reduced when needed to keep content visible.
+      "padding": {
+        // Nonnegative top rows, fitted to the viewport.
+        "top": 0,
+        // Nonnegative right cells, fitted to the viewport.
+        "right": 1,
+        // Nonnegative bottom rows, fitted to the viewport.
+        "bottom": 0,
+        // Nonnegative left cells, fitted to the viewport.
+        "left": 1
+      },
+      // Draw a box border when the viewport has room.
+      "border": true,
+      // Panel text, background and border colors.
+      "style": {
+        // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "color": "foreground",
+        // Panel background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "background": "background",
+        // Panel border. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+        "border_color": "separator"
+      }
+    },
+    // Manage prefixes and entries, including manual edits, deletion and collection locks.
+    "manage": {
+      // Open or close saved completion management. Default Alt+M; null removes this binding. Escape goes back through dropdown, editor and prefix list. Closing a changed draft asks before discarding. No lookup or model call is made.
+      "key": ["escape", "m"],
+      // Centered completion manager. Changes are staged until Save or F2; closing asks before discarding unsaved changes.
+      "panel": {
+        // Popup width.
+        "width": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 104
+        },
+        // Popup height.
+        "height": {
+          // fixed counts terminal cells; ratio is a fraction of the available input area.
+          "mode": "fixed",
+          // Positive whole cells for fixed; greater than 0 and at most 1 for ratio. Fitted to the viewport.
+          "value": 28
+        },
+        // Space outside the panel. General popups center in the remaining input area; notifications align bottom right.
+        "margin": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 1,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 1,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Space inside the panel; reduced when needed to keep content visible.
+        "padding": {
+          // Nonnegative top rows, fitted to the viewport.
+          "top": 0,
+          // Nonnegative right cells, fitted to the viewport.
+          "right": 1,
+          // Nonnegative bottom rows, fitted to the viewport.
+          "bottom": 0,
+          // Nonnegative left cells, fitted to the viewport.
+          "left": 1
+        },
+        // Draw a box border when the viewport has room.
+        "border": true,
+        // Panel text, background and border colors.
+        "style": {
+          // Foreground. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "color": "foreground",
+          // Panel background. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "background": "background",
+          // Panel border. Theme role or palette name, e.g. foreground, muted, cyan, bright_cyan. Edit RGB under theme.colors; terminal defaults are selected with null in theme.roles.
+          "border_color": "separator"
+        }
+      }
+    }
+  },
+  // Creation defaults shared by all dok-owned Hub Agents. Agent templates supply fixed reasoning effort and omit temperature. Applied only when Hub creates an absent Agent; existing Agent settings are never overwritten.
+  "hub": {
+    // Initial provider/model for newly created dok Agents. null leaves it unset. Existing Hub Agent settings are preserved; edit those in Hub.
+    "model": null,
+    // Initial API key for newly created dok Agents. null omits the override; an explicit empty string is passed through. Saved with the new Agent's completion settings.
+    "api_key": null,
+    // Initial API endpoint for newly created dok Agents. null omits the override. The llm provider adapter validates HTTP/HTTPS URLs at registration.
+    "api_base": null
+  },
+  // External data connections shared by dok features. Independent of Hub and LLMs. No account is connected automatically.
+  "connections": {
+    // Google account connections. Empty disables all Google access. Each entry declares its own ID, enabled flag and OAuth client file; credentials are never stored in this settings file.
+    "google": [
+      {
+        // Unique connection ID used by calendar sources. This is a local alias, not your Google email address.
+        "id": "google",
+        // Allow this account to be used by configured sources. Disabled by default; never opens a login browser automatically.
+        "enabled": false,
+        // Path to the Google OAuth Desktop app client JSON. Relative paths resolve beside config.jsonc; ~ uses the Linux home. Authenticate with python -m dok.connections login --config PATH --account ID. Tokens are kept separately from settings.
+        "client_file": "",
+        // HTTP request timeout in seconds for this Google connection.
+        "timeout_s": 20,
+        // Seconds to wait for the explicit browser OAuth login's localhost callback.
+        "login_s": 180,
+        // Allow creating, editing and deleting Google events. Enable then log in again to grant calendar.events permission. Actual calendar permissions are still enforced; false keeps read-only access.
+        "write": false,
+        // Google guest notifications for explicit event saves/deletes: all, externalOnly (non-Google guests), or none. This does not change dok's local reminders.
+        "updates": "all"
+      }
+    ]
+  }
 }

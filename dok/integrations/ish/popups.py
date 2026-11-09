@@ -5,11 +5,12 @@ from ...popups.models import Notification, NotificationQueue, PopupContent, Popu
 from ...rendering.popups import PopupLayer
 from ...core.theme import Theme
 from ...rendering.interactive import InteractivePopup
-from ...locales import Locale
+from ...locales import Locale, Message as M
+from .keys import KeyRegistration
 
 
 class PopupHost:
-    def __init__(self, prompt, config, theme=Theme, *, locale=Locale):
+    def __init__(self, prompt, config, theme=Theme, *, locale=Locale, shortcuts=lambda: ()):
         self._prompt, self._config = prompt, config
         self._theme = theme
         self._locale = locale
@@ -21,6 +22,9 @@ class PopupHost:
         self._timer = None
         self._closed = False
         self._input_timing = {}
+        self._anchor = None
+        self._opener = None
+        self._shortcuts = shortcuts
         self.notifications = NotificationQueue()
         self.layer = PopupLayer(self)
 
@@ -93,7 +97,35 @@ class PopupHost:
     def invalidate(self):
         self._prompt.app.invalidate()
 
-    def open(self, page: PopupPage, *, panel=None, enabled=None):
+    def status_text(self):
+        context = (self._page.status_text() if isinstance(self._page, InteractivePopup)
+                   else self.locale.text(M.POPUP_HINT))
+        # The same owner supplies the active close binding and its displayed key.
+        close_key = self._opener() if self._opener else None
+        navigation = [self.locale.text(M.ESC_BACK)]
+        if close_key is not None:
+            navigation.append(f"{close_key.label()} {self.locale.text(M.CLOSE)}")
+        return " · ".join((*navigation, context))
+
+    def _close_from_key(self, event):
+        self.dismiss()
+
+    def _sync_shortcuts(self):
+        key = self._opener() if self._opener else None
+        entries = self._shortcuts()
+        if key is not None:
+            entries = (*entries, KeyRegistration(key, self._close_from_key, self._has_page))
+        self.layer.general.set_shortcuts(entries)
+
+    def _has_page(self):
+        return self._page is not None
+
+    def notification_hint(self):
+        current = self.notifications.current
+        return self.config.notifications.status_text(details=current is not None and current.details is not None,
+                                                     locale=self.locale)
+
+    def open(self, page: PopupPage, *, panel=None, enabled=None, cursor=False, opener=None):
         if self._closed:
             return False
         if not callable(getattr(page, "content", None)):
@@ -103,7 +135,18 @@ class PopupHost:
             return False
         if isinstance(self._page, InteractivePopup):
             self._page.dispose()
+        self._release_anchor()
+        if cursor:
+            window = self._prompt.app.layout.current_window
+            control = window.content
+            if getattr(control, "buffer", None) is self._prompt.default_buffer:
+                position = self._prompt.default_buffer.cursor_position
+                previous = control.menu_position
+                callback = lambda: position
+                control.menu_position = callback
+                self._anchor = window, control, previous, callback
         self._page, self._panel, self._enabled = page, panel, enabled
+        self._opener = opener
         self.layer.general.page = page
         self.layer.general.reset()
         self.prepare()
@@ -122,6 +165,9 @@ class PopupHost:
             target = self._previous if self._previous in controls else self._prompt.default_buffer
             app.layout.focus(target)
         self._page = self._panel = self._enabled = self._previous = self._session = None
+        self._opener = None
+        self.layer.general.set_shortcuts(())
+        self._release_anchor()
         self.layer.general.page = None
         self._sync_input_timing()
         self.invalidate()
@@ -135,6 +181,35 @@ class PopupHost:
         self.invalidate()
         return True
 
+    def update_notification(self, key: str, content: PopupContent, *, ongoing=False):
+        """Update one notification in place; only finished notices expire."""
+        if self._closed or not self.config.notifications.enabled:
+            return False
+        self.notifications.add(Notification(content, None if ongoing else self.config.notifications.duration_s, key=key))
+        self.layer.notification.reset()
+        self._cancel_timer()
+        self.invalidate()
+        return True
+
+    def remove_notification(self, key: str):
+        self.notifications.remove(key)
+        self.layer.notification.reset()
+        self._cancel_timer()
+        self.invalidate()
+
+    def _release_anchor(self):
+        if self._anchor is not None:
+            _, control, previous, callback = self._anchor
+            if control.menu_position is callback:
+                control.menu_position = previous
+            self._anchor = None
+
+    def anchor(self, screen, position):
+        if self._anchor is not None:
+            point = screen.get_menu_position(self._anchor[0])
+            return point.x - position.xpos, point.y - position.ypos
+        return None
+
     def dismiss_notification(self):
         self.notifications.dismiss()
         self.layer.notification.reset()
@@ -146,7 +221,7 @@ class PopupHost:
         if self.notification_visible and current.details is not None:
             details = current.details
             self.dismiss_notification()
-            self.open(details)
+            self.open(details, opener=lambda: self.config.notifications.details_key)
 
     def prepare(self):
         app = self._prompt.app
@@ -161,6 +236,7 @@ class PopupHost:
             self._session = app.future
             app.layout.focus(self.layer.general.control)
         self._sync_input_timing()
+        self._sync_shortcuts()
         if not self.config.notifications.enabled:
             self.notifications.clear()
         active = (app.is_running and not app.is_done and self._editing() and self._page is None

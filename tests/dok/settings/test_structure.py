@@ -104,7 +104,7 @@ class StructureTests(unittest.TestCase):
 
     def test_generated_root_and_widget_order_matches_display(self):
         data = Jsonc.loads(Jsonc.dumps(DockConfig()))
-        self.assertEqual(list(data), ["dock", "audio", "clock", "widgets", "media", "system", "toolbar", "popups", "theme", "language"])
+        self.assertEqual(list(data), ["dock", "audio", "clock", "widgets", "media", "system", "toolbar", "popups", "theme", "language", "completion", "hub", "connections"])
         # Adding theme settings must not shift existing positional constructors.
         self.assertEqual(DockConfig({"width": {"value": 90}}).dock.width.value, 90)
         self.assertEqual(

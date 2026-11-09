@@ -86,7 +86,11 @@ class WeatherDetailsTests(unittest.TestCase):
         self.assertIn("Location not configured", text)
         self.assertIn("--%",text)
         self.assertIn("--°",text)
-        self.assertFalse(page.key("escape", ""))
+        page.key("tab", "")
+        self.assertTrue(page.status_text().startswith("Buttons"))
+        self.assertTrue(page.key("escape", ""))
+        self.assertTrue(page.status_text().startswith("Time"))
+        self.assertTrue(page.key("escape", ""))  # Root stays open.
 
     def test_graph_constant_values_and_missing_values_do_not_invent_connections(self):
         flat = WeatherPage.graph([2,2,2],8,5)

@@ -78,7 +78,7 @@ class TerminalTests(unittest.TestCase):
             until(b"\x1b[?1006h", start)
             start = len(received)
             started = time.monotonic()
-            os.write(master, b"\x1b")
+            os.write(master, b"\x1bc")
             popup_state(False, .5)
             calendar_latency = time.monotonic() - started
             until(b"\x1b[?1006l", start)
@@ -89,11 +89,11 @@ class TerminalTests(unittest.TestCase):
             until(b"\x1b[?1006h", start)
             start = len(received)
             started = time.monotonic()
-            os.write(master, b"\x1b")
+            os.write(master, b"\x1bw")
             popup_state(False, .5)
             weather_latency = time.monotonic() - started
             until(b"\x1b[?1006l", start)
-            print(f"ESC PTY latency: calendar={calendar_latency*1000:.1f} ms, weather={weather_latency*1000:.1f} ms", flush=True)
+            print(f"Popup close-key PTY latency: calendar={calendar_latency*1000:.1f} ms, weather={weather_latency*1000:.1f} ms", flush=True)
             os.write(master, b"\x17")  # Ctrl+W: hide.
             os.write(master, b"\x17")  # Ctrl+W: reopen at the available size.
             os.write(master, b"status\x1b1")

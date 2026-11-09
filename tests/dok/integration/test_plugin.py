@@ -23,7 +23,7 @@ class PluginTests(unittest.TestCase):
                 timeout=30,
                 env=dict(
                     os.environ,
-                    PYTHONPATH=os.pathsep.join((str(scripts), str(root / 'ish.platform/src')))
+                    PYTHONPATH=os.pathsep.join((str(scripts), str(root / 'ish.platform/src'), os.environ.get('PYTHONPATH', '')))
                 )
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

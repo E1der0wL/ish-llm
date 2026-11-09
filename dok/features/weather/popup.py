@@ -35,7 +35,7 @@ class WeatherPanel(PopupPanel):
 @dataclass(frozen=True, slots=True)
 class WeatherPopupConfig(Record):
     enabled: bool = setting(Boolean(), default=True, description="Enable current, daily and hourly weather details, sharing the dashboard cache.")
-    key: KeySequence | None = setting(KeyRule(optional=True), default=("escape", "w"), description="Open weather details. Default Alt+W; null disables this binding.")
+    key: KeySequence | None = setting(KeyRule(optional=True), default=("escape", "w"), description="Open or close weather details. Default Alt+W; null disables this binding. Escape returns from buttons to hours without closing the popup.")
     panel: WeatherPanel | None = setting(Nullable(Nested(WeatherPanel)), factory=WeatherPanel, description="Weather panel dimensions. null uses popups.general.")
     font: str = setting(FontRule(), default="future", description="pyfiglet font for current temperature; plain text is used when the art cannot fit.")
     hour_width: int = setting(Number(minimum=1, integer=True), default=8, description="Width of each hourly column, fitted to the viewport.")
@@ -111,7 +111,8 @@ class WeatherPage(InteractivePopup):
 
     def key(self, key, data):
         if key == "escape":
-            return False
+            self._buttons = False
+            return True
         if key in ("tab", "s-tab"):
             self._buttons = not self._buttons
         elif self._buttons and key in ("left", "right"):

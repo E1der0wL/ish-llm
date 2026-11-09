@@ -7,6 +7,7 @@ from typing import ClassVar
 from ..core.theme import Theme, ThemeRole, theme_reference
 from ..core.records import Boolean, Choice, Nested, Nullable, Number, POSITIVE_SECONDS, Record, setting
 from ..integrations.ish.keys import KeyRule, KeySequence
+from ..locales import Locale, Message as M
 
 
 class DimensionMode(StrEnum):
@@ -69,7 +70,8 @@ class NotificationWidth(PopupDimension):
 
 @dataclass(frozen=True, slots=True)
 class NotificationHeight(PopupDimension):
-    value: int | float = setting(Number(), default=7)
+    value: int | float = setting(Number(), default=10,
+        description="Maximum notification height. Short content shrinks the panel so only the configured body padding remains above the key-map footer.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,6 +95,12 @@ class PopupInsets(Record):
 
 @dataclass(frozen=True, slots=True)
 class PopupMargin(PopupInsets):
+    top: int = setting(Number(minimum=0, integer=True), default=1)
+    bottom: int = setting(Number(minimum=0, integer=True), default=1)
+
+
+@dataclass(frozen=True, slots=True)
+class NotificationInsets(PopupInsets):
     top: int = setting(Number(minimum=0, integer=True), default=1)
     bottom: int = setting(Number(minimum=0, integer=True), default=1)
 
@@ -143,11 +151,26 @@ class PopupPanel(Record):
     def from_dict(cls, value):
         return super(PopupPanel, cls).from_dict(value.to_dict() if isinstance(value, PopupPanel) else value)
 
+    def fit_cursor(self, width: int, height: int, x: int, y: int) -> PopupRect:
+        """Fit below the anchor, or above when that offers more usable rows."""
+        left, top, right, bottom = self.margin.fit(width, height, keep_width=self.COMPACT_WIDTH, keep_height=self.COMPACT_HEIGHT)
+        available_w, available_h = max(0, width - left - right), max(0, height - top - bottom)
+        w, wanted = self.width.resolve(available_w), self.height.resolve(available_h)
+        y = max(top, min(top + available_h - 1, y))
+        below, above = max(0, top + available_h - y - 1), max(0, y - top)
+        down = below >= wanted or below >= above
+        h = min(wanted, below if down else above)
+        if h < self.COMPACT_HEIGHT:
+            return self.fit(width, height)
+        return PopupRect(max(left, min(x, left + available_w - w)), y + 1 if down else y - h, w, h)
+
 
 @dataclass(frozen=True, slots=True)
 class NotificationPanel(PopupPanel):
     width: NotificationWidth = setting(Nested(NotificationWidth), factory=NotificationWidth)
     height: NotificationHeight = setting(Nested(NotificationHeight), factory=NotificationHeight)
+    padding: NotificationInsets = setting(Nested(NotificationInsets), factory=NotificationInsets,
+        description="Notification body padding. Defaults to one row below the title and above the key-map footer, and one cell on each side. Zero removes that padding; fitted to the available viewport.")
 
 
 @dataclass(frozen=True, slots=True)
@@ -160,3 +183,7 @@ class NotificationConfig(Record):
         description="Dismiss the visible notification. Default Alt+X; null disables this binding.")
     details_key: KeySequence | None = setting(KeyRule(optional=True), default=("escape", "n"),
         description="Open details for the visible notification. Default Alt+N; null disables this binding.")
+
+    def status_text(self, *, details=False, locale=Locale()):
+        entries = ((self.details_key if details else None, M.DETAILS), (self.dismiss_key, M.CLOSE))
+        return " · ".join(f"{key.label()} {locale.text(label)}" for key, label in entries if key is not None)

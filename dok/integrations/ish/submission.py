@@ -74,3 +74,7 @@ class ShortcutSubmission:
         if not self._ready(empty=True):
             return CommandResult.SKIPPED
         return CommandResult.SUBMITTED if self._submit(command) else CommandResult.FAILED
+
+    def execute_lookup(self, command: str) -> bool:
+        """An explicit popup action submits the displayed command through normal validation."""
+        return self._ready() and self._submit(command)

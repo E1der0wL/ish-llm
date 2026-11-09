@@ -10,6 +10,8 @@ import tempfile
 
 from .models import CalendarEvent, LocalDateTime, ReminderOccurrence
 from .commands import CommandOccurrence
+from .actions import ActionSettings, ActionBinding, ActionCatalog
+from .scheduler import CalendarScheduler
 
 
 class CalendarConflict(ValueError):
@@ -46,10 +48,12 @@ class CalendarCheck:
     due: tuple[ReminderOccurrence, ...] = ()
     next_at: datetime | None = None
     commands: tuple[CommandOccurrence, ...] = ()
+    actions: ActionCatalog = ActionCatalog()
 
 
 class CalendarStore:
-    VERSION = 3
+    VERSION = 4
+    COMBINED_VERSION = 3
     MULTI_ALARM_VERSION = 2
     SINGLE_ALARM_VERSION = 1
     FILENAME = "calendar.json"
@@ -57,12 +61,13 @@ class CalendarStore:
     EVENTS_FIELD = "events"
     RECEIPTS_FIELD = "reminders"
     COMMANDS_FIELD = "commands"
+    ACTIONS_FIELD = "actions"
+    EXTERNAL_FIELD = "external_actions"
 
     def __init__(self, directory: Path):
         self.path = Path(directory) / self.FILENAME
-        self._cached: tuple[str, CalendarSnapshot, dict[str, str], dict[str, str]] | None = None
-        self._plan = None
-        self._command_watches: dict[str, datetime] = {}
+        self._cached: tuple[str, CalendarSnapshot, dict[str, str], dict[str, str], ActionCatalog] | None = None
+        self._scheduler = CalendarScheduler()
 
     @contextmanager
     def _locked(self):
@@ -76,29 +81,38 @@ class CalendarStore:
             text = self.path.read_text(encoding="utf-8")
         except FileNotFoundError:
             self._cached = None
-            return CalendarSnapshot(), {}, {}
+            return CalendarSnapshot(), {}, {}, ActionCatalog()
         cached = self._cached
         if cached is not None and text == cached[0]:
-            return cached[1], cached[2].copy(), cached[3].copy()
+            return cached[1], cached[2].copy(), cached[3].copy(), cached[4]
         # Keep checking exact file content under the lock so external writes,
         # deletion and corrupt data are observed even with unchanged file stats.
         self._cached = None
         data = json.loads(text)
         if (not isinstance(data, dict) or type(data.get(self.VERSION_FIELD)) is not int
-                or data[self.VERSION_FIELD] not in (self.VERSION, self.MULTI_ALARM_VERSION, self.SINGLE_ALARM_VERSION)):
+                or data[self.VERSION_FIELD] not in (self.VERSION, self.COMBINED_VERSION, self.MULTI_ALARM_VERSION, self.SINGLE_ALARM_VERSION)):
             raise ValueError("Unsupported calendar storage")
         expected = {self.VERSION_FIELD, self.EVENTS_FIELD, self.RECEIPTS_FIELD}
-        if data[self.VERSION_FIELD] == self.VERSION:
+        if data[self.VERSION_FIELD] >= self.COMBINED_VERSION:
             expected.add(self.COMMANDS_FIELD)
+        if data[self.VERSION_FIELD] == self.VERSION:
+            expected.update((self.ACTIONS_FIELD, self.EXTERNAL_FIELD))
         if set(data) != expected:
             raise ValueError("Unsupported calendar storage fields")
         single_alarm = data[self.VERSION_FIELD] == self.SINGLE_ALARM_VERSION
         decode = CalendarEvent.from_single_alarm if single_alarm else CalendarEvent.from_dict
         events = tuple(decode(item) for item in data[self.EVENTS_FIELD])
+        bindings = ActionCatalog()
+        if data[self.VERSION_FIELD] == self.VERSION:
+            actions = data[self.ACTIONS_FIELD]
+            if not isinstance(actions, dict) or set(actions) != {event.id for event in events}:
+                raise ValueError("Calendar action identifiers do not match schedules")
+            events = tuple(ActionSettings.from_dict(actions[event.id]).apply(event) for event in events)
+            bindings = ActionCatalog(tuple(ActionBinding.from_dict(item) for item in data[self.EXTERNAL_FIELD]))
         if len({item.id for item in events}) != len(events):
             raise ValueError("Duplicate calendar event identifiers")
         receipts = data[self.RECEIPTS_FIELD]
-        commands = data[self.COMMANDS_FIELD] if data[self.VERSION_FIELD] == self.VERSION else {}
+        commands = data[self.COMMANDS_FIELD] if data[self.VERSION_FIELD] >= self.COMBINED_VERSION else {}
         for values in (receipts, commands):
             if not isinstance(values, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in values.items()):
                 raise ValueError("Invalid calendar delivery receipts")
@@ -109,11 +123,17 @@ class CalendarStore:
             receipts = {event.reminder_key(alarm): receipts[key] for event in events
                         for alarm in event.alarms if (key := event.reminder_series) in receipts}
         snapshot = cached[1] if cached is not None and events == cached[1].events else CalendarSnapshot(events)
-        self._cached = text, snapshot, receipts.copy(), commands.copy()
-        return snapshot, receipts, commands
+        self._cached = text, snapshot, receipts.copy(), commands.copy(), bindings
+        return snapshot, receipts, commands, bindings
 
-    def _write(self, snapshot, receipts, commands):
-        data = {self.VERSION_FIELD: self.VERSION, self.EVENTS_FIELD: [item.to_dict() for item in snapshot.events],
+    def _write(self, snapshot, receipts, commands, bindings):
+        schedules, actions = [], {}
+        for event in snapshot.events:
+            schedule, settings = ActionSettings.split(event.to_dict())
+            schedules.append(schedule)
+            actions[event.id] = settings.to_dict()
+        data = {self.VERSION_FIELD: self.VERSION, self.EVENTS_FIELD: schedules,
+                self.ACTIONS_FIELD: actions, self.EXTERNAL_FIELD: [item.to_dict() for item in bindings.bindings],
                 self.RECEIPTS_FIELD: receipts, self.COMMANDS_FIELD: commands}
         name = None
         try:
@@ -139,7 +159,7 @@ class CalendarStore:
 
     def save(self, event: CalendarEvent):
         with self._locked():
-            snapshot, receipts, commands = self._read()
+            snapshot, receipts, commands, bindings = self._read()
             previous = snapshot.get(event.id)
             if (previous.revision if previous else 0) != event.revision:
                 raise CalendarConflict("Event changed elsewhere. Reload before saving.")
@@ -149,12 +169,12 @@ class CalendarStore:
                 commands.pop(previous.command_key, None)
                 for alarm in previous.alarms:
                     receipts.pop(previous.reminder_key(alarm), None)
-            self._write(result, receipts, commands)
+            self._write(result, receipts, commands, bindings)
             return result, saved
 
     def delete(self, event: CalendarEvent):
         with self._locked():
-            snapshot, receipts, commands = self._read()
+            snapshot, receipts, commands, bindings = self._read()
             previous = snapshot.get(event.id)
             if previous is None or previous.revision != event.revision:
                 raise CalendarConflict("Event changed elsewhere. Reload before deleting.")
@@ -162,7 +182,7 @@ class CalendarStore:
             commands.pop(previous.command_key, None)
             for alarm in previous.alarms:
                 receipts.pop(previous.reminder_key(alarm), None)
-            self._write(result, receipts, commands)
+            self._write(result, receipts, commands, bindings)
             return result
 
     def claim_due(self, now):
@@ -170,55 +190,42 @@ class CalendarStore:
         check = self.check(now)
         return check.snapshot, tuple(item.event for item in check.due)
 
-    def reset_command_watch(self):
-        """Arm only future starts when a command scheduler begins/restarts."""
-        self._command_watches.clear()
-        self._plan = None
-
-    def check(self, now, deliver=True, commands=False):
-        """Read external changes and reuse the next deadline until it is reached.
-
-        The store owns receipts and plan invalidation. No consumer reads a receipt
-        dictionary or interprets the file to decide which reminder is pending.
-        """
-        now = now.astimezone(timezone.utc)
+    def load_actions(self):
         with self._locked():
-            snapshot, receipts, command_receipts = self._read()
-            command_events = tuple(event for event in snapshot.events if commands and event.command.strip())
-            self._command_watches = {event.command_key: self._command_watches.get(event.command_key, now)
-                                     for event in command_events}
-            def plan_key():
-                return (snapshot, tuple(sorted(receipts.items())), tuple(sorted(command_receipts.items())),
-                        tuple(sorted(self._command_watches.items())), CalendarEvent.recurrence_context(), deliver, commands)
-            key = plan_key()
-            plan = self._plan
-            if plan is not None and plan[0] == key and now >= plan[1] and (plan[2] is None or now < plan[2]):
-                return CalendarCheck(snapshot, next_at=plan[2])
-            due, future, command_due = [], [], []
-            if deliver:
-                for event in snapshot.events:
-                    for alarm in event.alarms:
-                        occurrence = event.latest_due(now, alarm)
-                        if occurrence and occurrence.stamp > receipts.get(event.reminder_key(alarm), ""):
-                            receipts[event.reminder_key(alarm)] = occurrence.stamp
-                            due.append(occurrence)
-                        following = event.next_due(now, alarm)
-                        if following is not None:
-                            future.append(following)
-            for event in command_events:
-                occurrence = CommandOccurrence.latest(event, now)
-                if (occurrence and occurrence.at > self._command_watches[event.command_key]
-                        and occurrence.stamp > command_receipts.get(event.command_key, "")):
-                    # Persist admission before submitting or reporting a busy skip.
-                    command_receipts[event.command_key] = occurrence.stamp
-                    command_due.append(occurrence)
-                following = CommandOccurrence.next_at(event, now)
-                if following is not None:
-                    future.append(following)
-            if due or command_due:
-                self._write(snapshot, receipts, command_receipts)
-            next_at = min(future) if future else None
-            key = plan_key()
-            self._plan = key, now, next_at
-            return CalendarCheck(snapshot, tuple(sorted(due, key=lambda item: item.at)), next_at,
-                                 tuple(sorted(command_due, key=lambda item: item.at)))
+            return self._read()[3]
+
+    def save_actions(self, binding):
+        with self._locked():
+            snapshot, receipts, commands, catalog = self._read()
+            previous = catalog.get(binding.link)
+            if (previous.revision if previous else 0) != binding.revision:
+                if previous is not None and previous.revision == binding.revision + 1 and previous.settings == binding.settings:
+                    return catalog, previous  # A durable replace may have preceded a failed fsync acknowledgement.
+                raise CalendarConflict("Execution settings changed elsewhere. Reload before saving.")
+            saved = replace(binding, revision=binding.revision + 1)
+            catalog = ActionCatalog(tuple(item for item in catalog.bindings if item.link.identity != binding.link.identity) + (saved,))
+            self._write(snapshot, receipts, commands, catalog)
+            return catalog, saved
+
+    def delete_actions(self, link):
+        with self._locked():
+            snapshot, receipts, commands, catalog = self._read()
+            catalog = ActionCatalog(tuple(item for item in catalog.bindings if item.link.identity != link.identity
+                and not (item.link.source == link.source and item.link.series == link.event)))
+            self._write(snapshot, receipts, commands, catalog)
+            return catalog
+
+    def reset_command_watch(self):
+        self._scheduler.reset()
+
+    def check(self, now, deliver=True, commands=False, external=(), expected_actions=ActionCatalog()):
+        """Atomically admit actions before effects; planning is owned by the scheduler."""
+        with self._locked():
+            snapshot, receipts, command_receipts, catalog = self._read()
+            if catalog != expected_actions:
+                external = ()  # Re-resolve changed local bindings before admitting effects.
+            plan = self._scheduler.plan(snapshot.events + tuple(external), now, receipts, command_receipts,
+                                        deliver=deliver, commands=commands)
+            if plan.reminders or plan.commands:
+                self._write(snapshot, receipts, command_receipts, catalog)
+            return CalendarCheck(snapshot, plan.reminders, plan.next_at, plan.commands, catalog)

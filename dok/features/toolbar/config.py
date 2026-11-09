@@ -10,6 +10,7 @@ from ...features.clock.config import ClockFormat, ClockSchedule
 from ...rendering.text import fit, width
 from .editor import EditorSnapshot, InputField, NumberCalculator, NumberScope, NumberSummary
 from ...locales import Locale, Message
+from ...integrations.ish.keys import KeyRule, KeySequence
 
 
 VALUE_WIDTH = Number(minimum=1, integer=True)
@@ -327,6 +328,13 @@ class ToolbarConfig(Record):
         description="Nonnegative blank cells at the left edge of the entire toolbar. Runtime default: 0; newly generated files: 1. Fitted to the terminal width; left padding is reserved first if both edges cannot fit.")
     pad_right: int = setting(GAP_COLUMNS, default=0,
         description="Nonnegative blank cells at the right edge of the entire toolbar. System metrics align immediately before this padding. Runtime default: 0; newly generated files: 1. Fitted to the width remaining after left padding.")
+    hints: bool = setting(Boolean(), default=False,
+        description="Initial visibility of shortcut help in the bottom toolbar center. Hidden by default. hint_key toggles it for the current session without changing this file. The whole help line hides when it cannot fit between left fields and right metrics. Popup footers stay visible.")
+    hint_key: KeySequence | None = setting(KeyRule(optional=True), default=("f1",),
+        description="Toggle only the bottom toolbar center help, including while a popup is focused. Default F1; null disables the shortcut. Does not hide popup footer help.")
+
+    def keys(self):
+        return (self.hint_key,) if self.hint_key is not None else ()
 
     @classmethod
     def initial(cls):

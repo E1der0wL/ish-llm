@@ -22,6 +22,7 @@ from .features.shortcuts.config import Separator, Shortcut, ShortcutsConfig
 from .features.weather.config import WeatherConfig, WeatherLocation, WeatherIcons
 from .features.weather.models import TemperatureUnit, WeatherSnapshot
 from .integrations.ish.keys import KeySequence
+from .integrations.hub_config import HubConfig
 from .settings.config import DockConfig, DockSettings, DockKeys, Width, WidthMode
 from .settings.store import ConfigStore
 from .settings.popups import PopupSettings
@@ -29,6 +30,10 @@ from .popups.config import PopupPanel, PopupDimension, PopupInsets, PopupStyle, 
 from .popups.models import PopupContent, PopupAction, PopupPage
 from .features.calendar.config import CalendarConfig
 from .features.weather.popup import WeatherPopupConfig
+from .connections import ConnectionState, ConnectionStatus
+from .settings.connections import ConnectionsConfig
+from .integrations.google.config import GoogleAccount
+from .features.calendar.contracts import CalendarSource
 
 
 def install(prompt, *, config_path=None):
@@ -42,13 +47,14 @@ def uninstall(prompt):
     return uninstall_plugin(prompt)
 
 __all__ = [
+    "ConnectionsConfig", "GoogleAccount", "CalendarSource", "ConnectionState", "ConnectionStatus",
     "Language", "Locale",
     "Theme", "ThemeColors", "ThemeRoles", "ThemeColor", "ThemeRole",
     "PopupSettings", "PopupPanel", "PopupDimension", "PopupInsets", "PopupStyle", "NotificationConfig",
     "PopupContent", "PopupAction", "PopupPage", "CalendarConfig", "WeatherPopupConfig",
     "SystemConfig", "SystemSnapshot", "ToolbarConfig", "ToolbarDate", "InputConfig", "InputItem",
     "NumbersConfig", "SystemDisplay", "GraphConfig", "InputField", "NumberScope", "NumberSummary",
-    "MediaConfig", "PlayerState", "MouseConfig",
+    "MediaConfig", "PlayerState", "MouseConfig", "HubConfig",
     "install", "uninstall", "ConfigStore", "DockConfig", "Width", "WidthMode",
     "KeySequence", "Shortcut", "SettingsError", "PlaybackSnapshot", "PlaybackStatus",
     "AudioConfig", "AudioSnapshot", "AudioStatus",

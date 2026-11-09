@@ -57,6 +57,13 @@ class PopupContractsTests(unittest.TestCase):
         self.assertEqual(DockConfig.from_dict(Jsonc.loads(Jsonc.dumps(config))), config)
         jsonschema.validate(config.to_dict(), DockConfig.schema())
         self.assertEqual(config.popups.general.style.color, "foreground")
+        self.assertEqual((config.popups.notifications.panel.padding.top,
+                          config.popups.notifications.panel.padding.bottom), (1, 1))
+        self.assertEqual(config.popups.notifications.panel.height.value, 10)
+        partial = DockConfig(popups={"notifications": {"panel": {"padding": {"left": 3}}}})
+        self.assertEqual((partial.popups.notifications.panel.padding.top,
+                          partial.popups.notifications.panel.padding.bottom), (1, 1))
+        self.assertEqual((config.popups.general.padding.top, config.popups.general.padding.bottom), (0, 0))
         self.assertFalse(config.dock.mouse.enabled)
         with self.assertRaises(SettingsError):
             DockConfig(popups={"calendar": {"key": ["c-w"]}})

@@ -2,7 +2,7 @@
 import asyncio
 import calendar
 from datetime import date
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 from ...locales import Locale, Message as M
 
 from ...core.theme import ThemeRole, ThemeColor
@@ -10,7 +10,9 @@ from ...popups.models import PopupAction, PopupContent
 from ...popups.config import PopupRect
 from ...rendering.interactive import InteractivePopup, part, fitted, centered, cropped, button, click
 from ...rendering.presentation import TextRow
+from ...rendering.message_form import MessageForm
 from ...rendering.text import fit, width
+from ...rendering.picker import PickerOverlay
 from .editor import EditorField, EventDraft
 from .models import CalendarEvent, RepeatUnit
 from .reminders import ReminderUnit
@@ -18,6 +20,11 @@ from .picker_view import DatePicker, TimePicker
 from .selection import DateSelection
 from .recurrence import RepeatEnd
 from .store import CalendarSnapshot
+from .contracts import CalendarEntry
+from .external_view import detail_rows
+from .remote_view import RemoteEditor
+from .form_layout import CalendarFormLayout
+from .form_view import EventForm
 from ...locales.messages import WEEKDAYS
 
 
@@ -37,19 +44,35 @@ class Confirmation(StrEnum):
         return locale.text(M.DELETE_SERIES if self == self.DELETE else M.SAVE_CHANGES)
 
 
+class DayListFocus(IntEnum):
+    EVENTS = 0
+    ADD = 1
+    EDIT = 2
+    DELETE = 3
+
+    def move(self, amount):
+        choices = tuple(type(self))
+        return choices[(choices.index(self) + amount) % len(choices)]
+
+
 class CalendarPage(InteractivePopup):
     WEEKDAYS = tuple(day[:3] for day in WEEKDAYS)
     EVENT_ROWS = 4
     EDITOR_PADDING = 1
-    TIME_ARROW = ""
-    TIME_GAP = 3
-    ALARM_ROWS = 3
-    PICKER_BORDER = 1
-    PICKER_MARKER = " "
+    TIME_ARROW = CalendarFormLayout.TIME_ARROW
+    TIME_GAP = CalendarFormLayout.TIME_GAP
+    ALARM_ROWS = EventForm.ALARM_ROWS
+    PICKER_BORDER = PickerOverlay.BORDER
+    PICKER_MARKER = CalendarFormLayout.PICKER_MARKER
 
-    def __init__(self, clock, config, runtime=None, invalidate=lambda: None, dismiss=lambda: None, *, locale=Locale):
+    def __init__(self, clock, config, runtime=None, invalidate=lambda: None, dismiss=lambda: None, *, locale=Locale, calendar=None):
         self._clock, self._config, self.runtime = clock, config, runtime
         self._locale = locale
+        self._calendar = calendar
+        self._external = None
+        self._external_scroll = 0
+        self._external_region = None
+        self._remote = self._remote_region = None
         self._invalidate, self._dismiss = invalidate, dismiss
         self.selected = clock().now().date()
         self._month = self.selected.replace(day=1)
@@ -71,21 +94,67 @@ class CalendarPage(InteractivePopup):
         self._field_columns = {}
         self._empty_snapshot = CalendarSnapshot()
         self._month_cache = None
-        self._alarm_offset = 0
+        self._form = EventForm()
+        self._message = MessageForm()
+        self._message_region = None
         self._alarm_region = None
         self._picker = None
         self._picker_field = None
         self._picker_rect = None
+        self._list_region = None
+        self._list_offset = 0
+        self._list_action = DayListFocus.EVENTS
+        self._list_id = None
 
     @property
     def snapshot(self):
+        if self._calendar is not None:
+            return self._calendar.snapshot
         return self.runtime.snapshot if self.runtime else self._empty_snapshot
+
+    def _selected_external(self):
+        if self._external is not None:
+            return self.snapshot.get(self._external)
+        if self.draft is None and not self.show_list:
+            events = self.snapshot.on_day(self.selected)
+            event = events[min(self.event_index, len(events) - 1)] if events else None
+            return event if isinstance(event, CalendarEntry) else None
+        return None
+
+    @property
+    def show_list(self):
+        return self.draft is None and self._remote is None and self._external is None and bool(self.snapshot.on_day(self.selected))
+
+    def _can_choose_target(self):
+        return self._calendar is not None and bool(self._calendar.edits.destinations)
+
+    def _enter_right(self):
+        if self.show_list:
+            self.editing = True
+        else:
+            self._begin()
+        self._invalidate()
+
+    def _back_to_day(self):
+        self.draft, self._external = None, None
+        self.editing = bool(self.snapshot.on_day(self.selected))
+        self._list_action = DayListFocus.EVENTS
+        self._invalidate()
 
     @property
     def busy(self):
-        return self._task is not None and not self._task.done()
+        return self._task is not None and not self._task.done() or self._remote is not None and self._remote.busy
 
     def _guard(self, action):
+        if self.busy:
+            return
+        if self._remote is not None:
+            def switch():
+                self._end_remote()
+                action()
+                self._invalidate()
+            self._remote.leave(switch)
+            return
         if self.draft and self.draft.dirty:
             self.confirm, self._pending, self.confirm_index = Confirmation.SAVE, action, 0
         else:
@@ -93,6 +162,8 @@ class CalendarPage(InteractivePopup):
         self._invalidate()
 
     def request_close(self):
+        if self._remote is not None:
+            return self._remote.request_close(self._dismiss)
         if self.busy:
             return False
         self._cancel_picker()
@@ -102,8 +173,10 @@ class CalendarPage(InteractivePopup):
         return True
 
     def dispose(self):
+        if self._remote is not None:
+            self._remote.dispose()
         self._picker = None
-        if self.busy:
+        if self._task is not None and not self._task.done():
             self._task.cancel()
 
     def _select(self, day):
@@ -111,6 +184,9 @@ class CalendarPage(InteractivePopup):
             self.selected, self._month = day, day.replace(day=1)
             self.draft, self.event_index, self._scroll = None, 0, 0
             self.editing = False
+            self._external, self._external_scroll = None, 0
+            self._list_offset, self._list_action = 0, DayListFocus.EVENTS
+            self._list_id = None
         self._guard(change)
 
     def _move(self, amount):
@@ -121,31 +197,60 @@ class CalendarPage(InteractivePopup):
     def _today(self):
         self._select(self._clock().now().date())
 
-    def _begin(self, *, new=False):
+    def _end_remote(self):
+        if self._remote is not None:
+            self._remote.dispose()
+        self._remote, self._external, self.draft = None, None, None
+        self.editing = bool(self.snapshot.on_day(self.selected))
+        self._invalidate()
+
+    def _remote_form(self):
+        def local():
+            self._end_remote()
+            self._begin(new=True, local=True)
+        return RemoteEditor(self._calendar.edits, self.selected, self._clock, self._config, self._locale,
+                            self._invalidate, self._end_remote, local, self._picker_day_role)
+
+    def _begin(self, *, new=False, local=False, delete=False):
+        self._external, self._external_scroll = None, 0
         if self.draft is None or new:
-            events = self.snapshot.on_day(self.selected)
+            events = self._list_events()
             event = self.snapshot.get(events[min(self.event_index, len(events) - 1)].id) if events and not new else None
-            self.draft = EventDraft(self.selected, getattr(self._clock(), "timezone", None), event, now=self._clock().now())
+            if isinstance(event, CalendarEntry):
+                self._external, self.editing = event.id, True
+                if self._calendar is not None and self._calendar.edits.editable(event.id):
+                    self._remote = self._remote_form()
+                    self._remote.load(self._calendar.edits.source_for(event.id), event.id[2], delete=delete)
+                self._invalidate()
+                return
+            self.draft = EventDraft(self.selected, getattr(self._clock(), "timezone", None), event,
+                                    now=self._clock().now(), choose_target=self._can_choose_target())
         self.editing, self.field = True, EditorField.TITLE
+        if delete and self.draft.original is not None:
+            self.confirm, self.confirm_index = Confirmation.DELETE, 1
         self._invalidate()
 
     def _new(self):
         self._guard(lambda: self._begin(new=True))
 
     def _focus(self, field):
-        if not self.editing:
+        if self.busy:
+            return
+        if not self.editing or self.draft is None:
             self._begin()
-        if not self.draft.enabled(field):
+        if self.draft is None or not self.draft.enabled(field):
             return
         self.field = field
+        self._form.reveal_focus()
         self._invalidate()
 
     def _next_field(self, amount):
         fields = self.draft.fields()
         self.field = fields[(fields.index(self.field) + amount) % len(fields)]
+        self._form.reveal_focus()
 
     def _save(self, *, delete=False):
-        if self.busy or self.runtime is None:
+        if self.busy or self.runtime is None or self.draft is None or self._external is not None:
             return
         try:
             event = self.draft.original if delete else self.draft.event()
@@ -168,6 +273,8 @@ class CalendarPage(InteractivePopup):
                 pending, self._pending, self.confirm = self._pending, None, None
                 if pending:
                     pending()
+                else:
+                    self._back_to_day()
             except Exception as exc:
                 self.error = str(exc) or type(exc).__name__
                 self.confirm, self._pending = None, None
@@ -176,14 +283,18 @@ class CalendarPage(InteractivePopup):
         self._task = asyncio.create_task(save())
 
     def _activate(self):
+        if self.busy:
+            return
         field = self.field
-        if field.temporal_type is not None:
+        if field == EditorField.TARGET:
+            # Destination selection precedes editing. Never discard an existing draft silently.
+            self._guard(self._choose_destination)
+        elif field.temporal_type is not None:
             self._open_picker(field)
         elif field == EditorField.SAVE:
             self._save()
         elif field == EditorField.CANCEL:
-            self.draft = None
-            self.editing = False
+            self._guard(self._back_to_day)
         elif field == EditorField.DELETE and self.draft.original:
             self.confirm, self.confirm_index = Confirmation.DELETE, 1
         elif field == EditorField.ALL_DAY:
@@ -207,6 +318,11 @@ class CalendarPage(InteractivePopup):
                 self.error = str(exc)
         else:
             self._next_field(1)
+
+    def _choose_destination(self):
+        self.draft = None
+        self._remote, self.editing = self._remote_form(), True
+        self._invalidate()
 
     def _cancel_picker(self):
         self._picker = self._picker_field = self._picker_rect = None
@@ -258,13 +374,27 @@ class CalendarPage(InteractivePopup):
 
     def _scroll_alarms(self, amount):
         self._focus(EditorField.ALARMS)
-        self._alarm_offset = max(0, min(max(0, len(self.draft.alarms) - self.ALARM_ROWS),
-                                        self._alarm_offset + amount))
-        self.draft.select_alarm(max(self._alarm_offset, min(self.draft.alarm_index,
-                                                          self._alarm_offset + self.ALARM_ROWS - 1)))
+        self._form.alarm_offset = max(0, min(max(0, len(self.draft.alarms) - self.ALARM_ROWS),
+                                        self._form.alarm_offset + amount))
+        self.draft.select_alarm(max(self._form.alarm_offset, min(self.draft.alarm_index,
+                                                          self._form.alarm_offset + self.ALARM_ROWS - 1)))
         self._invalidate()
 
     def scroll_at(self, x, y, amount):
+        if self.confirm:
+            if self._message_region is not None and self._message_region.contains(x, y):
+                self._message.scroll(amount)
+                self._invalidate()
+            return True
+        if self._list_region is not None and self._list_region.contains(x, y) and self.show_list:
+            self._list_select(self.event_index + amount)
+            return True
+        if self._remote is not None and self._remote_region is not None and self._remote_region.contains(x, y):
+            return self._remote.scroll_at(x - self._remote_region.left, y - self._remote_region.top, amount)
+        if self._external_region is not None and self._external_region.contains(x, y):
+            self._external_scroll = max(0, self._external_scroll + amount)
+            self._invalidate()
+            return True
         if self._picker is not None:
             if self._picker_rect is not None and self._picker_rect.contains(x, y):
                 self._picker.scroll_at(x - self._picker_rect.left, y - self._picker_rect.top, amount)
@@ -275,13 +405,20 @@ class CalendarPage(InteractivePopup):
         return False
 
     def key(self, key, data):
+        if key == "f5" and self._calendar is not None:
+            self._calendar.refresh()
+            return True
+        if self._remote is not None:
+            return self._remote.key(key, data)
         if self.busy:
             return True
         if self._picker is not None:
             return self._picker.key(key, data)
         if self.confirm:
             choices = 2 if self.confirm == Confirmation.DELETE else 3
-            if key in ("tab", "right", "s-tab", "left"):
+            if self._message.key(key):
+                pass
+            elif key in ("tab", "right", "s-tab", "left"):
                 self.confirm_index = (self.confirm_index + (-1 if key in ("s-tab", "left") else 1)) % choices
             elif key == "escape":
                 self.confirm, self._pending = None, None
@@ -318,7 +455,7 @@ class CalendarPage(InteractivePopup):
                         self.event_index, self.draft = self.menu_index, None
                         self._begin()
                 self.dropdown = None
-                if key in ("tab", "s-tab"):
+                if key in ("tab", "s-tab") and self.draft is not None:
                     self._next_field(-1 if key == "s-tab" else 1)
             return True
         if key in ("scroll-up", "scroll-down"):
@@ -326,8 +463,23 @@ class CalendarPage(InteractivePopup):
             self._scroll = max(0, self._scroll + change)
             return True
         if self.editing:
+            if self.show_list:
+                self._list_key(key, data)
+                return True
+            if self.draft is None and self._external is None:
+                self._begin(new=True)
+            if self._external is not None:
+                if key == "escape":
+                    self.editing, self._external = False, None
+                elif data == "n":
+                    self._new()
+                elif data == "e":
+                    self.dropdown, self.menu_index = "events", 0
+                elif key in ("up", "down", "pageup", "pagedown"):
+                    self._external_scroll = max(0, self._external_scroll + {"up": -1, "down": 1, "pageup": -8, "pagedown": 8}[key])
+                return True
             if key == "escape":
-                self.editing = False
+                self._guard(self._back_to_day)
             elif key == "f2":
                 self._save()
             elif key in ("tab", "s-tab"):
@@ -355,23 +507,30 @@ class CalendarPage(InteractivePopup):
         elif key == "home":
             self._today()
         elif key in ("enter", "tab") or data == " ":
-            self._begin()
+            self._enter_right()
         elif data == "n":
             self._new()
         elif data == "e":
-            self._guard(lambda: setattr(self, "dropdown", "events"))
+            self._enter_right()
         elif key == "escape":
             return False
         return True
 
     def content(self):
         locale = self._locale()
-        return PopupContent(M.CALENDAR.value, (TextRow.plain(locale.text(M.CALENDAR), ""),), (
+        return PopupContent(locale.text(M.CALENDAR), (TextRow.plain(locale.text(M.CALENDAR), ""),), (
             PopupAction(locale.text(M.PREVIOUS_MONTH), lambda: self._move(-1)), PopupAction(locale.text(M.TODAY), self._today),
             PopupAction(locale.text(M.NEXT_MONTH), lambda: self._move(1))))
 
     def status_text(self):
+        return self._status_text()
+
+    def _status_text(self):
         locale = self._locale()
+        if self._remote is not None:
+            return self._remote.status_text()
+        if self.confirm and not self.busy:
+            return self._message.status_text(locale)
         message = self.error or (self.runtime.error if self.runtime else "")
         if message:
             return locale.text(M.ERROR_HINT, message=message)
@@ -379,11 +538,15 @@ class CalendarPage(InteractivePopup):
             return locale.text(M.SAVING)
         if self._picker is not None:
             return self._picker.status_text(locale)
-        if self.confirm:
-            return locale.text(M.CONFIRM_HINT)
         if self.dropdown:
             return locale.text(M.MENU_HINT)
         if not self.editing:
+            return locale.text(M.CALENDAR_HINT)
+        if self.show_list:
+            return locale.text(M.CALENDAR_LIST_HINT)
+        if self._external is not None:
+            return locale.text(M.CALENDAR_EXTERNAL_HINT)
+        if self.draft is None:
             return locale.text(M.CALENDAR_HINT)
         buffer = self.draft.buffer(self.field)
         action = locale.text(M.OPEN_PICKER if self.field.temporal_type is not None else M.ALARM_LIST_HINT if self.field == EditorField.ALARMS else M.MULTILINE_HINT
@@ -424,7 +587,9 @@ class CalendarPage(InteractivePopup):
                     if selected and offset == 0:
                         selected_row = len(rows)
                     role = CalendarColors.role(weekday, holiday=any(e.holiday for e in events))
-                    text = f" {day.day:02}" + (" •" if day == today else "") if offset == 0 else " " + events[offset - 1].title if offset <= len(events) else ""
+                    event = events[offset - 1] if 0 < offset <= len(events) else None
+                    caption = event.caption if isinstance(event, CalendarEntry) else event.title if event else ""
+                    text = f" {day.day:02}" + (" •" if day == today else "") if offset == 0 else " " + caption
                     if offset == self.EVENT_ROWS and len(events) > self.EVENT_ROWS:
                         text = " " + locale.text(M.MORE_EVENTS, count=len(events) - self.EVENT_ROWS + 1)
                     if offset:
@@ -437,208 +602,183 @@ class CalendarPage(InteractivePopup):
         self._month_cache = key, result
         return result
 
+    def _list_events(self):
+        events = self.snapshot.on_day(self.selected)
+        if events:
+            self.event_index = next((index for index, event in enumerate(events) if event.id == self._list_id),
+                                    max(0, min(self.event_index, len(events) - 1)))
+            self._list_id = events[self.event_index].id
+        else:
+            self.event_index, self._list_id = 0, None
+        return events
+
+    def _list_select(self, index):
+        events = self.snapshot.on_day(self.selected)
+        self.event_index = max(0, min(len(events) - 1, index))
+        self._list_id = events[self.event_index].id if events else None
+        self.editing, self._list_action = True, DayListFocus.EVENTS
+        self._invalidate()
+
+    def _list_editable(self):
+        events = self._list_events()
+        if not events:
+            return False
+        event = events[min(self.event_index, len(events) - 1)]
+        return not isinstance(event, CalendarEntry) or self._calendar is not None and self._calendar.edits.editable(event.id)
+
+    def _list_edit(self, *, delete=False):
+        if self.busy or not self._list_editable():
+            return
+        self._begin(delete=delete)
+
+    def _list_key(self, key, data):
+        events = self._list_events()
+        if key == "escape":
+            self.editing = False
+        elif key in ("up", "down", "pageup", "pagedown", "home", "end"):
+            self._list_select(0 if key == "home" else len(events) - 1 if key == "end" else
+                self.event_index + {"up": -1, "down": 1, "pageup": -4, "pagedown": 4}[key])
+        elif key in ("tab", "s-tab"):
+            self._list_action = self._list_action.move(-1 if key == "s-tab" else 1)
+        elif key == "delete":
+            self._list_edit(delete=True)
+        elif data == "n":
+            self._new()
+        elif data == "e":
+            self._list_edit()
+        elif key == "enter" or data == " ":
+            if self._list_action == DayListFocus.ADD:
+                self._new()
+            elif self._list_action == DayListFocus.DELETE:
+                self._list_edit(delete=True)
+            elif self._list_editable():
+                self._list_edit()
+            else:
+                self._begin()  # Read-only external details remain readable.
+        self._invalidate()
+
+    def _list_rows(self, cells, height, theme):
+        locale, bg = self._locale(), ThemeRole.EDITOR_BG
+        p = lambda text, role=ThemeRole.FOREGROUND, **kw: part(theme, text, role, **{"background": bg, **kw})
+        fill = lambda items=(): fitted(items, cells, theme, background=bg)
+        events = self._list_events()
+        self.event_index = min(self.event_index, len(events) - 1)
+        editable = self._list_editable()
+        header = [fill(), fill([p(locale.text(M.CALENDAR_EVENT_LIST), ThemeRole.MUTED)]), fill()]
+        actions = [button(theme, locale.text(M.CALENDAR_ADD_EVENT), role=ThemeRole.SAVE,
+                          selected=self.editing and self._list_action == DayListFocus.ADD, action=self._new), p("   "),
+                   button(theme, locale.text(M.CALENDAR_EDIT),
+                          selected=self.editing and self._list_action == DayListFocus.EDIT,
+                          role=ThemeRole.FOREGROUND if editable else ThemeRole.MUTED,
+                          action=self._list_edit if editable else None), p("   "),
+                   button(theme, locale.text(M.DELETE),
+                          selected=self.editing and self._list_action == DayListFocus.DELETE,
+                          role=ThemeRole.DELETE if editable else ThemeRole.MUTED,
+                          action=(lambda: self._list_edit(delete=True)) if editable else None)]
+        footer = [fill(), centered(actions, cells, theme, background=bg), fill()]
+        room = max(0, height - len(header) - len(footer))
+        items = []
+        for index, event in enumerate(events):
+            active = index == self.event_index
+            role, background = (ThemeRole.SELECTED_FG, ThemeRole.SELECTED_BG) if active else (ThemeRole.FOREGROUND, ThemeRole.INPUT_BG)
+            select = lambda index=index: self._list_select(index)
+            title = fit(("› " if active else "  ") + event.title, cells)
+            items.append(fill([p(title + " " * max(0, cells - width(title)), role, background=background, action=select)]))
+            stamp = locale.text(M.ALL_DAY) if event.all_day else event.start.strftime("%H:%M") + " – " + event.end.strftime("%H:%M")
+            source = event.source if isinstance(event, CalendarEntry) else locale.text(M.CALENDAR_LOCAL)
+            text = fit("  " + stamp + " · " + source, cells)
+            items.append(fill([p(text + " " * max(0, cells - width(text)), role if active else ThemeRole.MUTED,
+                                 background=background, action=select)]))
+            items.append(fill())
+        target = self.event_index * 3
+        self._list_offset = max(0, min(self._list_offset, target))
+        self._list_offset = max(self._list_offset, target + min(2, room) - room)
+        visible = items[self._list_offset:self._list_offset + room]
+        return (header + visible + [fill() for _ in range(room - len(visible))] + footer)[:height]
+
     def _editor_rows(self, cells, height, theme):
+        if height <= 0:
+            return []
         padding = min(self.EDITOR_PADDING, max(0, (cells - 1) // 2))
         content_width = cells - 2 * padding
-        rows = self._editor_content_rows(content_width, height, theme)
+        heading = (None if self.confirm else self._remote.heading_date if self._remote is not None else
+                   None if self._selected_external() is not None or self._external is not None else self.selected)
+        header = CalendarFormLayout.heading(heading, content_width, theme)
+        content_height = max(0, height - CalendarFormLayout.HEADER_ROWS)
+        if not content_height:
+            self._field_rows, self._field_columns = {}, {}
+        rows = self._editor_content_rows(content_width, content_height, theme) if content_height else []
+        self._field_rows = {field: row + CalendarFormLayout.HEADER_ROWS for field, row in self._field_rows.items()}
         self._field_columns = {field: column + padding for field, column in self._field_columns.items()}
         if self._alarm_region is not None:
             region = self._alarm_region
-            self._alarm_region = PopupRect(region.left + padding, region.top, region.width, region.height)
+            self._alarm_region = PopupRect(region.left + padding, region.top + CalendarFormLayout.HEADER_ROWS, region.width, region.height)
         space = part(theme, " " * padding, background=ThemeRole.EDITOR_BG)
-        return [[space, *fitted(row, content_width, theme, background=ThemeRole.EDITOR_BG), space] for row in rows]
+        return [[space, *fitted(row, content_width, theme, background=ThemeRole.EDITOR_BG), space] for row in [header, *rows]]
 
     def _editor_content_rows(self, cells, height, theme):
         locale = self._locale()
-        background = ThemeRole.EDITOR_BG
-        p = lambda text, role=ThemeRole.FOREGROUND, **kw: part(theme, text, role, **{"background": background, **kw})
-        fill = lambda parts: fitted(parts, cells, theme, background=background)
-        center = lambda parts: centered(parts, cells, theme, background=background)
+        if self.confirm:
+            self._field_rows, self._field_columns = {}, {}
+            return self._confirmation_rows(cells, height, theme)
+        if self.show_list:
+            self._field_rows, self._field_columns = {}, {}
+            return self._list_rows(cells, height, theme)
+        if self._remote is not None:
+            self._field_rows, self._field_columns = {}, {}
+            return self._remote.draw(cells, height, theme)
+        external = self._selected_external()
+        if external is not None or self._external is not None:
+            self._field_rows, self._field_columns = {}, {}
+            return detail_rows(external, cells, height, theme, locale,
+                               getattr(self._clock(), "timezone", None), self._external_scroll)
         draft = self.draft
         if draft is None:
-            snapshot = self.snapshot
-            preview_key = (snapshot, self.selected, self.event_index, getattr(self._clock(), "timezone", None))
-            if preview_key != self._preview_key:
-                self._preview_key = preview_key
-                events = snapshot.on_day(self.selected)
-                self._preview = EventDraft(self.selected, preview_key[-1],
-                    snapshot.get(events[min(self.event_index, len(events) - 1)].id) if events else None,
-                    now=self._clock().now())
+            key = (self.selected, getattr(self._clock(), "timezone", None), self._can_choose_target())
+            if key != self._preview_key:
+                self._preview_key = key
+                self._preview = EventDraft(self.selected, key[1], now=self._clock().now(), choose_target=key[2])
             draft = self._preview
-        rows = [fill([p(self.selected.isoformat(), ThemeRole.TITLE, bold=True)]), fill([])]
-        self._field_rows = {}
-        self._field_columns = {}
+        def select_alarm(index):
+            self._focus(EditorField.ALARMS)
+            self.draft.select_alarm(index)
+            self._invalidate()
+        def remove_alarm(index):
+            self._focus(EditorField.ALARMS)
+            self.draft.remove_alarm(index)
+            self._invalidate()
+        def activate(field):
+            self._focus(field)
+            self._activate()
+        rows = self._form.draw(draft, self.selected, self.field, self.editing, cells, height, theme, locale,
+            focus=self._focus, activate=activate, open_picker=self._open_picker, changed=self._invalidate,
+            target_label=locale.text(M.CALENDAR_LOCAL) if self._can_choose_target() else "",
+            on_alarm_select=select_alarm, on_alarm_remove=remove_alarm)
+        self._field_rows, self._field_columns = self._form.field_rows, self._form.field_columns
+        self._alarm_region = self._form.alarm_region
+        return rows
 
-        def text_input(field, size, *, role=ThemeRole.FOREGROUND, multiline_rows=1):
-            enabled = draft.enabled(field)
-            buffer = draft.alarm_number if field == EditorField.ALARM_NUMBER else draft.buffer(field)
-            active = enabled and self.editing and self.field == field
-            action = (lambda field=field: self._focus(field)) if enabled else None
-            self._field_rows[field] = len(rows)
-            text, pos = (draft.repeat_count_display(locale) if field == EditorField.REPEAT_COUNT else
-                         (buffer.text, buffer.cursor_position))
-            if active:
-                text = text[:pos] + "▏" + text[pos:]
-            lines = text.split("\n")
-            cursor_line = buffer.document.cursor_position_row if active else 0
-            start = max(0, cursor_line - multiline_rows + 1)
-            result = []
-            for line in lines[start:start + multiline_rows]:
-                if active and "▏" in line:
-                    while width(line[:line.index("▏") + 1]) > size and line.index("▏") > 0:
-                        line = line[1:]
-                result.append([p(fit(line, size, marker=""), role,
-                                 background=ThemeRole.INPUT_BG, action=action)])
-            result += [[] for _ in range(multiline_rows - len(result))]
-            # The input background includes all empty cells, with the same click target.
-            for row in result:
-                used = sum(width(item[1]) for item in row)
-                row.append(p(" " * max(0, size - used), role, background=ThemeRole.INPUT_BG,
-                             action=action))
-            return result
-
-        def control(field, label, role=ThemeRole.FOREGROUND):
-            self._field_rows[field] = len(rows)
-            def action():
-                self._focus(field)
-                self._activate()
+    def _confirmation_rows(self, cells, height, theme):
+        labels = (M.DELETE, M.CANCEL) if self.confirm == Confirmation.DELETE else (M.SAVE, M.DISCARD, M.CANCEL)
+        choices = []
+        for index, label in enumerate(labels):
+            def choose(index=index):
+                self.confirm_index = index
+                self.key("enter", "")
                 self._invalidate()
-            return button(theme, label, role=role, selected=self.editing and self.field == field, action=action)
-
-        def temporal(field, size, column, role=ThemeRole.FOREGROUND):
-            self._field_rows[field], self._field_columns[field] = len(rows), column
-            def choose():
-                self._focus(field)
-                self._open_picker(field)
-            selected = self.editing and self.field == field
-            label = fit(draft.temporal_label(field) + self.PICKER_MARKER, size, marker="")
-            remaining = max(0, size - width(label))
-            label = " " * (remaining // 2) + label + " " * (remaining - remaining // 2)
-            return p(label, ThemeRole.TITLE if selected else role,
-                     background=ThemeRole.INPUT_BG, action=choose)
-
-        def section(field):
-            rows.append(fill([p("─" * cells, ThemeRole.SEPARATOR)]))
-            rows.append(fill([p(field.translated(locale), ThemeRole.MUTED)]))
-
-        rows.append(fill([p(EditorField.TITLE.translated(locale), ThemeRole.MUTED)]))
-        rows.extend(text_input(EditorField.TITLE, cells))
-        section(EditorField.ALL_DAY)
-        rows.append(center([control(EditorField.ALL_DAY, ("● " if draft.all_day else "○ ") + locale.text(M.ALL_DAY))]))
-        rows.append(fill([]))
-        padding = min(2, max(0, (cells - 1) // 2))
-        room = max(1, cells - 2 * padding)
-        arrow = self.TIME_ARROW if draft.all_day else ""
-        space = max(0, self.TIME_GAP - width(arrow))
-        arrow = " " * (space // 2) + arrow + " " * (space - space // 2)
-        side = max(1, (room - width(arrow)) // 2)
-        label_width = width(draft.temporal_label(EditorField.START_DATE) + self.PICKER_MARKER)
-        # ISO dates and HH:MM:SS have the same cell parity. Leave odd spare
-        # cells outside the pair so both labels have equal internal padding.
-        if side > label_width and (side - label_width) % 2:
-            side -= 1
-        spare = max(0, room - side * 2 - width(arrow))
-        before, after = padding + spare // 2, padding + spare - spare // 2
-        date_role = ThemeColor.COMMENT if draft.all_day else ThemeRole.FOREGROUND
-        rows.append(fill([p(" " * before), temporal(EditorField.START_DATE, side, before, date_role),
-                          p(arrow, date_role), temporal(EditorField.END_DATE, side,
-                                                       before + side + width(arrow), date_role), p(" " * after)]))
-        if not draft.all_day:
-            rows.append(center([p(self.TIME_ARROW, ThemeRole.MUTED)]))
-            rows.append(fill([p(" " * before), temporal(EditorField.START_TIME, side, before), p(" " * self.TIME_GAP),
-                              temporal(EditorField.END_TIME, side, before + side + self.TIME_GAP), p(" " * after)]))
-        section(EditorField.INTERVAL)
-        repeat = control(EditorField.REPEAT, draft.unit.translated(locale) + self.PICKER_MARKER)
-        holiday = control(EditorField.HOLIDAY, ("● " if draft.holiday else "○ ") + locale.text(M.HOLIDAY))
-        number_width = max(1, cells - width(repeat[1]) - width(holiday[1]) - 4)
-        self._field_columns[EditorField.REPEAT] = number_width + 2
-        rows.append(fill([*text_input(EditorField.INTERVAL, number_width)[0], p("  "), repeat, p("  "), holiday]))
-        if draft.unit != RepeatUnit.NONE:
-            rows.append(fill([]))
-            ending = control(EditorField.REPEAT_END, draft.repeat_end.translated(locale) + self.PICKER_MARKER)
-            value_width = max(1, cells - width(ending[1]) - 2)
-            self._field_columns[EditorField.REPEAT_END] = value_width + 2
-            value = (text_input(EditorField.REPEAT_COUNT, value_width)[0] if draft.repeat_end == RepeatEnd.COUNT else
-                     [temporal(EditorField.REPEAT_UNTIL, value_width, 0)])
-            rows.append(fill([*value, p("  "), ending]))
-        section(EditorField.ALARMS)
-        unit = control(EditorField.ALARM_UNIT, draft.alarm_unit.translated(locale) + " ")
-        add = control(EditorField.ALARM_ADD, locale.text(M.REGISTER), ThemeRole.SAVE)
-        number_width = max(1, cells - width(unit[1]) - width(add[1]) - 4)
-        self._field_columns[EditorField.ALARM_UNIT] = number_width + 2
-        number_role = ThemeRole.FOREGROUND if draft.alarm_unit.uses_number else ThemeColor.COMMENT
-        rows.append(fill([*text_input(EditorField.ALARM_NUMBER, number_width, role=number_role)[0], p("  "), unit, p("  "), add]))
-        rows.append(fill([]))
-        self._field_rows[EditorField.ALARMS] = len(rows)
-        alarm_top = len(rows)
-        self._alarm_offset = max(0, min(self._alarm_offset, draft.alarm_index, max(0, len(draft.alarms) - self.ALARM_ROWS)))
-        if draft.alarm_index >= self._alarm_offset + self.ALARM_ROWS:
-            self._alarm_offset = draft.alarm_index - self.ALARM_ROWS + 1
-        first_alarm = self._alarm_offset
-        scrollbar = int(len(draft.alarms) > self.ALARM_ROWS)
-        list_width = max(0, cells - scrollbar)
-        thumb_size = max(1, self.ALARM_ROWS * self.ALARM_ROWS // max(1, len(draft.alarms)))
-        thumb_top = (self.ALARM_ROWS - thumb_size) * first_alarm // max(1, len(draft.alarms) - self.ALARM_ROWS)
-        def alarm_row(parts, index):
-            row = fitted(parts, list_width, theme, background=ThemeRole.INPUT_BG)
-            if scrollbar:
-                row.append(p("█" if thumb_top <= index - first_alarm < thumb_top + thumb_size else " ",
-                             ThemeRole.SCROLLBAR, background=ThemeRole.BUTTON_BG))
-            return fill(row)
-        for index in range(first_alarm, first_alarm + self.ALARM_ROWS):
-            if index >= len(draft.alarms):
-                rows.append(alarm_row([p(locale.text(M.NO_ALARMS), ThemeRole.MUTED, background=ThemeRole.INPUT_BG)]
-                                      if not draft.alarms and index == 0 else [], index))
-                continue
-            def select_alarm(index=index):
-                self._focus(EditorField.ALARMS)
-                self.draft.select_alarm(index)
-                self._invalidate()
-            def remove_alarm(index=index):
-                self._focus(EditorField.ALARMS)
-                self.draft.remove_alarm(index)
-                self._invalidate()
-            selected = self.editing and self.field == EditorField.ALARMS and index == draft.alarm_index
-            remove = p(" " + locale.text(M.DELETE) + " ", ThemeRole.DELETE,
-                       background=ThemeRole.INPUT_BG, action=remove_alarm)
-            label = ("› " if selected else "  ") + draft.alarms[index].label(locale)
-            label_width = max(0, list_width - width(remove[1]) - 1)
-            label = fit(label, label_width)
-            rows.append(alarm_row([p(label + " " * max(0, label_width - width(label)),
-                                     ThemeRole.TITLE if selected else ThemeRole.FOREGROUND,
-                                     background=ThemeRole.INPUT_BG, action=select_alarm),
-                                   p(" ", background=ThemeRole.INPUT_BG), remove], index))
-        section(EditorField.COMMAND)
-        rows.extend(text_input(EditorField.COMMAND, cells))
-        section(EditorField.NOTES)
-        footer_height = min(3, max(0, height - 1))
-        memo_height = max(1, height - footer_height - len(rows))
-        rows.extend(text_input(EditorField.NOTES, cells, multiline_rows=memo_height))
-        content_height = max(1, height - footer_height)
-        focus_row = self._field_rows.get(self.field, 0) if self.editing else 0
-        start = min(max(0, len(rows) - content_height), max(0, focus_row - content_height + 2))
-        visible = [fill(row) for row in rows[start:start + content_height]]
-        while len(visible) < content_height:
-            visible.append(fill([]))
-        self._field_rows = {field: row - start for field, row in self._field_rows.items()}
-        alarm_visible_top = max(0, alarm_top - start)
-        alarm_visible_end = min(content_height, alarm_top - start + self.ALARM_ROWS)
-        self._alarm_region = PopupRect(0, alarm_visible_top, cells, max(0, alarm_visible_end - alarm_visible_top))
-        buttons = []
-        for field, role in ((EditorField.SAVE, ThemeRole.SAVE), (EditorField.CANCEL, ThemeRole.FOREGROUND), (EditorField.DELETE, ThemeRole.DELETE)):
-            if buttons:
-                buttons.append(p("   "))
-            buttons.append(control(field, field.translated(locale), role))
-        footer = [fill([]), center(buttons), fill([])]
-        if footer_height == 1:
-            footer = [center(buttons)]
-        elif footer_height == 2:
-            footer = [center(buttons), fill([])]
-        return (visible + footer[:footer_height])[:height]
+            choices.append(PopupAction(self._locale().text(label), choose))
+        details = [TextRow.plain(self.error, ThemeRole.ERROR)] if self.error else []
+        return self._message.draw(TextRow.plain(self.confirm.message(self._locale()), ThemeRole.WARNING),
+            cells, height, theme, details=details, actions=choices, selected=self.confirm_index,
+            heading=None, background=ThemeRole.EDITOR_BG)
 
     def draw_body(self, columns, rows, theme):
+        self._message_region = None
         self._alarm_region = None
         self._picker_rect = None
+        self._external_region = None
+        self._remote_region = None
+        self._list_region = None
         if columns <= 0 or rows <= 0:
             return []
         padding = int(rows > 1)
@@ -650,21 +790,21 @@ class CalendarPage(InteractivePopup):
         if columns <= 0 or rows <= 0:
             return []
         p = lambda text, role=ThemeRole.FOREGROUND, **kw: part(theme, text, role, **kw)
-        if self.confirm:
-            labels = (M.DELETE, M.CANCEL) if self.confirm == Confirmation.DELETE else (M.SAVE, M.DISCARD, M.CANCEL)
-            choices = []
-            for index, label in enumerate(labels):
-                def choose(index=index):
-                    self.confirm_index = index
-                    self.key("enter", "")
-                    self._invalidate()
-                choices += [button(theme, self._locale().text(label), selected=index == self.confirm_index, action=choose), p(" ")]
-            return [fitted([p(self.confirm.message(self._locale()), ThemeRole.WARNING)], columns, theme), centered(choices, columns, theme), fitted([p(self.error, ThemeRole.ERROR)], columns, theme)][:rows]
         split = columns >= 70
         left_w = (columns - 3) * 2 // 3 if split else columns
         right_w = columns - left_w - 3 if split else columns
         left, selected_row = self._month_rows(left_w, theme) if split or not self.editing else ([], 0)
         right = self._editor_rows(right_w, rows, theme) if split or self.editing else []
+        if self.confirm and (split or self.editing):
+            self._message_region = PopupRect(left_w + 3 if split else 0, CalendarFormLayout.HEADER_ROWS,
+                right_w, max(0, rows - CalendarFormLayout.HEADER_ROWS))
+        if self.show_list and (split or self.editing):
+            self._list_region = PopupRect(left_w + 3 if split else 0, CalendarFormLayout.HEADER_ROWS, right_w, max(0, rows - CalendarFormLayout.HEADER_ROWS))
+        if self._remote is not None and (split or self.editing):
+            padding = min(self.EDITOR_PADDING, max(0, (right_w - 1) // 2))
+            self._remote_region = PopupRect((left_w + 3 if split else 0) + padding, CalendarFormLayout.HEADER_ROWS, right_w - padding * 2, max(0, rows - CalendarFormLayout.HEADER_ROWS))
+        elif (split or self.editing) and (self._external is not None or self._selected_external() is not None):
+            self._external_region = PopupRect(left_w + 3 if split else 0, CalendarFormLayout.HEADER_ROWS, right_w, max(0, rows - CalendarFormLayout.HEADER_ROWS))
         if split and self._alarm_region is not None:
             region = self._alarm_region
             self._alarm_region = PopupRect(left_w + 3 + region.left, region.top, region.width, region.height)
@@ -674,16 +814,18 @@ class CalendarPage(InteractivePopup):
         body = []
         for index in range(available):
             l = left[index + left_start] if index + left_start < len(left) else []
+            if self.confirm:
+                l = [item[:2] for item in l]
             r = right[index] if index < len(right) else []
             body.append([*fitted(l, left_w, theme), p(" │ ", ThemeRole.SEPARATOR), *fitted(r, right_w, theme, background=ThemeRole.EDITOR_BG)] if split else fitted(r if self.editing else l, columns, theme))
         if self._picker is not None:
             return self._draw_picker(body, columns, rows, theme, left_w + 3 if split else 0)
         if self.dropdown:
-            choices = ([item.title for item in self._dropdown_choices()] if self.dropdown == "events" else
+            choices = ([item.caption if isinstance(item, CalendarEntry) else item.title for item in self._dropdown_choices()] if self.dropdown == "events" else
                        [item.translated(self._locale()) for item in self._dropdown_choices()])
             choices = choices or [self._locale().text(M.NO_EVENTS)]
             self.menu_index = min(self.menu_index, len(choices) - 1)
-            size = min(len(choices), max(1, rows - 1))
+            size = min(len(choices), max(1, rows - CalendarFormLayout.HEADER_ROWS))
             start = max(0, min(self.menu_index - size + 1, len(choices) - size))
             menu_w = min(columns, max(12, max(width(label) for label in choices) + 3))
             origin = left_w + 3 if split else 0
@@ -691,7 +833,7 @@ class CalendarPage(InteractivePopup):
             field_x = self._field_columns.get(menu_field, 0)
             anchor_x = min(max(0, columns - menu_w), origin + field_x)
             anchor_y = self._field_rows.get(menu_field, 0) + 1 if menu_field else 2
-            anchor_y = max(0, min(rows - size, anchor_y))
+            anchor_y = max(min(CalendarFormLayout.HEADER_ROWS, rows - size), min(rows - size, anchor_y))
             for index, label in enumerate(choices[start:start + size]):
                 selected = index + start == self.menu_index
                 def choose(index=index):
@@ -708,28 +850,12 @@ class CalendarPage(InteractivePopup):
         return body[:rows]
 
     def _draw_picker(self, body, columns, rows, theme, origin):
-        picker = self._picker
-        edge = self.PICKER_BORDER if min(columns, rows) > 2 * self.PICKER_BORDER else 0
-        cells, height = min(columns, picker.WIDTH + edge * 2), min(rows, picker.HEIGHT + edge * 2)
-        menu = picker.draw(cells - edge * 2, height - edge * 2, theme, self._locale())
-        if edge:
-            border = lambda text: part(theme, text, ThemeRole.SEPARATOR, background=ThemeRole.BUTTON_BG)
-            menu = [[border("┌" + "─" * (cells - edge * 2) + "┐")],
-                    *[[border("│"), *line, border("│")] for line in menu],
-                    [border("└" + "─" * (cells - edge * 2) + "┘")]]
-        height = len(menu)
-        x = min(max(0, columns - cells), origin + self._field_columns.get(self._picker_field, 0))
-        anchor = self._field_rows.get(self._picker_field, 0)
-        y = anchor + 1 if anchor + 1 + height <= rows else anchor - height
-        y = max(0, min(rows - height, y))
-        self._picker_rect = PopupRect(x + edge, y + edge, cells - edge * 2, height - edge * 2)
-        # Outside clicks cancel the temporary selection without activating a
-        # covered editor/calendar control on that same click.
-        dismiss = click(self._cancel_picker)
-        body = [[(item[0], item[1], dismiss) for item in line] for line in body]
-        for index, line in enumerate(menu):
-            target = y + index
-            body[target] = [*cropped(body[target], 0, x, theme),
-                            *fitted(line, cells, theme, background=ThemeRole.BUTTON_BG),
-                            *cropped(body[target], x + cells, columns - x - cells, theme)]
-        return body[:rows]
+        heading_rows = min(CalendarFormLayout.HEADER_ROWS, rows)
+        if rows <= heading_rows:
+            return body
+        title = [[(item[0], item[1], click(self._cancel_picker)) for item in row] for row in body[:heading_rows]]
+        content, rect = PickerOverlay.draw(body[heading_rows:], columns, rows - heading_rows, self._picker,
+            (origin + self._field_columns.get(self._picker_field, 0), self._field_rows.get(self._picker_field, 0) - heading_rows),
+            theme, self._locale(), self._cancel_picker)
+        self._picker_rect = PopupRect(rect.left, rect.top + heading_rows, rect.width, rect.height)
+        return [*title, *content][:rows]

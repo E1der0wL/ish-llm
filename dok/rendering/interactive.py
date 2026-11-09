@@ -1,14 +1,21 @@
 """Interactive popup contract and cell-aware fragment building helpers."""
 from prompt_toolkit.mouse_events import MouseButton, MouseEventType
+from enum import StrEnum
 
 from .text import fit, width, clusters
-from ..locales import Locale, Message
 from ..core.theme import ThemeRole
+
+
+class PopupChrome(StrEnum):
+    FULL = "full"
+    BODY_ONLY = "body_only"
 
 
 class InteractivePopup:
     """A page owns local editing; the host retains one modal focus control."""
+    chrome = PopupChrome.FULL
     def key(self, key: str, data: str) -> bool:
+        """Handle local input. Escape is back; returning false never closes the host."""
         return False
 
     def request_close(self) -> bool:
@@ -16,7 +23,7 @@ class InteractivePopup:
 
     def status_text(self) -> str:
         """Current area's key map, resolved again on every redraw."""
-        return Locale().text(Message.ESC_CLOSE)
+        return ""
 
     def draw_body(self, columns, rows, theme):
         raise NotImplementedError

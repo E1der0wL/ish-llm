@@ -10,6 +10,7 @@ from ...core.records import Boolean, Nested, Nullable, Number, Record, Rule, Seq
 from ..clock.config import TimezoneRule
 from .reminders import Reminder
 from .recurrence import Recurrence, RepeatUnit
+from .actions import ActionSettings
 
 
 class LocalDateTime(Rule):
@@ -35,7 +36,7 @@ class LocalDateTime(Rule):
 
 
 @dataclass(frozen=True, slots=True)
-class CalendarEvent(Record):
+class CalendarEvent(ActionSettings):
     title: str = setting(Text(nonblank=True, single_line=True), description="Event title.")
     start: datetime = setting(LocalDateTime(), description="Local start date and time.")
     end: datetime = setting(LocalDateTime(), description="Local end date and time, after start. All-day end is exclusive.")
@@ -44,11 +45,13 @@ class CalendarEvent(Record):
     timezone: str | None = setting(Nullable(TimezoneRule()), default=None, description="IANA timezone; null uses system local rules at the event date. Ambiguous times use the first occurrence.")
     all_day: bool = setting(Boolean(), default=False, description="All-day event, with midnight boundaries.")
     location: str = setting(Text(single_line=True), default="", description="Event location.")
-    alarms: tuple[Reminder, ...] = setting(Sequence(Nested(Reminder)), default=(), description="Reminder offsets from every occurrence's local start. Empty disables reminders; equivalent offsets are delivered once.")
     repeat: Recurrence = setting(Nested(Recurrence), factory=Recurrence, description="Repeating schedule.")
     notes: str = setting(Text(), default="", description="Multiline event notes.")
     holiday: bool = setting(Boolean(), default=False, description="Mark this user-registered event's dates as holidays.")
-    command: str = setting(Text(single_line=True), default="", description="Shell command submitted through an idle empty ish prompt at each occurrence start. Empty disables execution.")
+
+    @property
+    def delivery_once(self):
+        return False
 
     def localize(self, value: datetime):
         aware = value.replace(tzinfo=ZoneInfo(self.timezone)) if self.timezone else value.astimezone()
@@ -64,7 +67,7 @@ class CalendarEvent(Record):
             raise SettingsError("End must be after start")
         if self.all_day and (self.start.time() != datetime.min.time() or self.end.time() != datetime.min.time()):
             raise SettingsError("All-day events need midnight start and exclusive end")
-        object.__setattr__(self, "alarms", Reminder.ordered(self.alarms))
+        ActionSettings._check(self)
         for value in (self.start, self.end):
             self.localize(value)
         for alarm in self.alarms:

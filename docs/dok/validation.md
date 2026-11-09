@@ -1,5 +1,86 @@
 # dok 구현 검증
 
+## 내부 확인·오류 공통 폼 확정 후 검증 (2026-11-09)
+
+사용자가 [r2 UI](../../tests/dok/reports/message-forms-ui-20261109-r2/)를 확정한 뒤
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 dok 전용 회귀를 실행했다.
+**459건 발견, 453건 통과, 실패·오류 0건, 선택 Hub/llm 연동 6건 건너뜀**이다.
+[검증 요약](../../tests/dok/reports/dok-5uoq3ft0/summary.md),
+[로그](../../tests/dok/reports/dok-5uoq3ft0/dok.txt),
+[소스 일치](../../tests/dok/reports/dok-5uoq3ft0/workspace-verification.json).
+unittest 68.289초, 실행기 69.513초이며 결과 문서 갱신 전 288개 파일이 스냅샷과 일치했다.
+
+제목 예약 행, 자동완성의 한 줄 제목 바 여백, 하단 고정 버튼·여백, 본문 스크롤,
+Unicode 줄바꿈, 좁은 화면의 클릭 대상, 취소 시 초안 보존, 언어 전환과 기존 알림을 검증했다.
+ESC 뒤로가기 pipe 지연은 114.6ms, PTY 닫기 키는 캘린더 14.5ms·날씨 12.7ms였다.
+첫 실행에서는 예전 “확인” 접두 문구를 기대하던 언어 테스트 한 건이 실패했다.
+승인된 공통 문구의 Owner 선언과 실제 언어 전환을 검증하도록 해당 테스트를 갱신했고,
+제품 코드나 UI를 추가 변경하지 않은 상태에서 최종 전체 dok 테스트가 통과했다.
+ish 본체·llm·hub 수정, llm/hub 전체 회귀, 실제 Google 요청, WSL 개인 설치본·설정 적용,
+커밋·업로드는 하지 않았다.
+
+## 일정 저장·dok 실행 분리와 공통 제목 행 확정 후 검증 (2026-11-09)
+
+사용자가 [r5 UI](../../tests/dok/reports/calendar-shared-actions-ui-20261109-r5/)를 확정한 뒤 Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 dok 전용 회귀를 실행했다. **452건 발견, 446건 통과, 실패·오류 0건, 선택 Hub/llm 연동 6건 건너뜀**이다. 캘린더·Google·입력·마우스 검사는 모두 실행했다. llm/hub 전체 회귀는 실행하지 않았다.
+
+[검증 요약](../../tests/dok/reports/dok-3s4ygts0/summary.md), [로그](../../tests/dok/reports/dok-3s4ygts0/dok.txt), [결과](../../tests/dok/reports/dok-3s4ygts0/results.json), [소스 일치](../../tests/dok/reports/dok-3s4ygts0/workspace-verification.json). unittest 72.917초, 실행기 74.265초. 검증 직후 286개 파일이 스냅샷과 일치했고, 이후 제품·테스트 코드는 바꾸지 않고 결과 문서만 갱신했다.
+
+저장/실행 데이터 분리, 기존 일정 보존, Google RRULE·종료 조건·불투명 규칙 보존, 전체 반복 원본과 ETag 사용, 알림/명령어의 별도 저장과 부분 실패 재시도, 비표시 상태 조회, 실패·비활성화 시 후보 철회, 중복 방지·미래 명령 감시·바쁜 프롬프트 건너뛰기·재시작을 검증했다. 공통 제목 행 고정, 로컬/Google 폼, 별표, 삭제 확인, 선택기·마우스 좌표와 좁은 화면도 포함했다.
+
+첫 실행의 좌표 기대값을 새 본문 좌표 계약에 맞췄고, 검토에서 외부 알림 시간대 표시·불필요한 월간 재조회·종일 일정 시간대 조회 권한을 보완했다. 두 번째 실행에서 드러난 now()-전용 시계 계약 문제도 고쳤다. 실패 로그는 [1차](../../tests/dok/reports/dok-zx_q_hs9/dok.txt), [2차](../../tests/dok/reports/dok-78_1ur00/dok.txt)에 보존했다. 승인한 UI 모양은 유지했다.
+
+ESC 입력 파이프 117.2ms, Linux PTY 닫기 키 캘린더 12.4ms·날씨 12.2ms였다. 실제 Windows Terminal의 물리 입력 검증은 아니다. Google 요청은 모의 HTTP로 검사했으며 실제 계정 접근·로그인·개인 WSL 배포/설정 수정·커밋·업로드는 하지 않았다. ish 본체·llm·hub 코드도 수정하지 않았다.
+
+## Google Calendar·공통 편집·일정 목록 UI 확정 후 검증 (2026-11-09)
+
+사용자가 날짜/목록 제목 사이 한 줄 여백과 하단 `추가 · 편집 · 삭제` UI를 확정한 뒤 Linux Python 3.12.14에서 dok 전용 테스트를 실행했다. 최종 **430건 발견, 424건 통과, 실패·오류 0건, 6건 건너뜀**이다. 건너뛴 항목은 독립 dok 스냅샷에 포함하지 않은 Hub·llm을 필요로 하는 선택 연동 검사이며, 캘린더와 Google 테스트는 모두 실행했다. llm/hub 전체 회귀는 실행하지 않았다.
+
+[검증 요약](../../tests/dok/reports/dok-6n64g7zf/summary.md), [로그](../../tests/dok/reports/dok-6n64g7zf/dok.txt), [결과](../../tests/dok/reports/dok-6n64g7zf/results.json), [소스 일치 기록](../../tests/dok/reports/dok-6n64g7zf/workspace-verification.json). unittest 87.490초, 실행기 92.717초. 문서 갱신 전 소스 278개가 해시 검증 스냅샷과 일치했다.
+
+검증에는 날짜별 목록/편집 전환, 고정 하단 버튼과 Tab 순서, 저장/삭제 후 목록 복귀, 갱신 시 선택 유지, 공통 날짜·시간 선택기, 실제 키 입력과 마우스 저장, 로컬 알림 유지, Google 인증·scope·권한·페이지 조회·생성/PATCH/삭제·ETag 충돌·초안 재적용·불확실 결과 재전송 차단을 포함했다. Google 요청은 MockTransport와 가짜 공급자를 사용했다. ESC 입력 파이프 지연은 127.7ms, Linux PTY 팝업 닫기 키 지연은 캘린더 13.6ms·날씨 11.4ms였다. 실제 Windows Terminal의 물리 입력 측정은 아니다.
+
+[첫 실행](../../tests/dok/reports/dok-gzg_zmtp/dok.txt)에서는 이전 저장 후 화면, 저장 버튼 별표 이전 명칭, 이동한 폼 상태와 새 설정 그룹을 기대하는 테스트가 실패했다. 승인한 화면 동작에 맞춰 테스트를 갱신하면서 저장·재열기·알림 보존·프롬프트 보존 검증을 유지했다. 테스트 시계는 asyncio의 전역 시계를 변경하지 않도록 격리했고, 별도 OAuth 의존성 경로를 단독 배포 하위 프로세스에도 전달했다. 제품 UI를 바꾸거나 실패 검증을 제거하지 않았다.
+
+OAuth 테스트 의존성은 `/home/user/.cache/ish-dok-validation-20261109-a7e4/packages`에 별도 설치했다. 실제 Google 로그인/요청, WSL 개인 ish 설치본·설정 변경, 커밋·업로드는 하지 않았다. ish 본체·llm·hub 코드도 수정하지 않았다. 아래 UI 검토 대기 기록은 화면 확정 전의 진행 기록이다.
+
+## 캘린더 일정 목록·공통 편집 UI 검토 대기 (2026-11-09)
+
+후속 시안은 날짜와 목록 제목 사이에 한 줄을 추가하고 하단 버튼을 `추가 · 편집 · 삭제` 순으로 통합했다. Tab 순서도 화면 순서를 따른다. [수정한 목록 화면](../../tests/dok/reports/calendar-list-actions-ui-20261109/)을 별도로 생성했으며 테스트는 계속 UI 확정을 기다린다.
+
+연결 상태/새로고침 상단 행을 제거하고, 일정이 있는 날짜는 목록, 없는 날짜는 편집 폼을 표시하도록 변경했다. 목록의 선택·편집·삭제·하단 고정 추가 버튼, 저장/삭제 후 복귀, 갱신 시 일정 ID 선택 유지, 공통 `EventForm`을 통한 로컬·Google 편집을 구현했다. 쓰기 권한·ETag 충돌·불확실 결과 정책은 유지한다.
+
+[실제 렌더러 스크린샷](../../tests/dok/reports/calendar-list-ui-20261109/)은 `tests/dok/manual/calendar_list_preview.py`의 합성 일정으로 생성했다. 실제 Google 요청과 WSL 개인 설정/설치 변경은 하지 않았다. 테스트 전 UI 확인 요청에 따라 **이번 변경과 앞선 Google 연동 테스트는 아직 실행하지 않았다**. 목록 전환·고정 버튼·갱신 선택·외부 삭제 확인·공통 선택기 경로 테스트를 준비했으며 UI 확정 후 dok 범위에서 실행한다. 아래 과거 통과 기록은 이번 변경의 검증 근거가 아니다.
+
+## Google Calendar 편집 UI 검토 대기 (2026-11-09)
+
+읽기 전용 연동에 선택적 쓰기 capability, 저장할 캘린더 선택, 생성·수정·삭제, ETag 충돌 비교·재적용, 불확실 결과 재조회 경로를 추가했다. [편집 설계와 동작](google-calendar-editing.md), [실제 렌더러 시안](../../tests/dok/reports/google-calendar-edit-ui-20261109/). 샘플 캘린더와 합성 충돌만 사용했으며 실제 Google 요청·인증·개인 WSL 배포는 하지 않았다.
+
+사용자의 테스트 전 화면 확인 요청에 따라 **아직 테스트를 실행하지 않았다**. HTTP MockTransport 기반 생성·PATCH 변경 필드·버전 헤더·삭제 회차·권한·412·타임아웃·강제 취소, 초안 재적용, 저장 위치와 중복 요청 차단을 검증하는 테스트를 준비했다. 기존 조회 테스트와 로컬 일정·자동완성 입력/선택기 공통 코드도 UI 확정 후 dok 범위에서 함께 검증한다. 이전 통과 기록은 이번 변경의 검증 결과가 아니다.
+
+## 외부 연결·Google Calendar UI 검토 대기 (2026-11-09)
+
+공통 연결 레지스트리, Google OAuth Desktop 인증 CLI, 월 단위 읽기 전용 Calendar 어댑터와 로컬 조회 조합을 구현했다. `tests/dok/manual/google_calendar_preview.py`가 샘플 데이터와 실제 렌더러로 [달력·외부 상세·일정 목록·로컬 편집·미인증 화면](../../tests/dok/reports/google-calendar-ui-20261109/)을 생성한다. 실제 Google 인증·조회와 개인 WSL 설치본 변경은 수행하지 않았다.
+
+이번 변경의 테스트는 UI 확정 전이므로 **아직 실행하지 않았다**. 아래 기존 384개 통과 기록은 이전 변경 검증이며 이번 외부 연동의 통과 증거가 아니다. 준비한 dok 테스트는 설정/schema/지연 연결, 페이지 처리와 부분 실패, 토큰 재인증·scope·private 저장, 읽기 전용 분리, 월 변경 취소, 숨김 중 조회 중단, 성공 TTL과 실패 재시도를 대상으로 한다. 확정 후 Linux Python 3.12.14에서 dok만 실행한다. llm/hub 전체 회귀 테스트는 범위 밖이다.
+
+## 팝업 뒤로가기·변경 표시·중앙 안내 토글 검증 (2026-11-09)
+
+`tests/dok/manual/popup_navigation_preview.py`로 실제 PopupSurface와 기능 렌더러를 사용해 [화면 시안](../../tests/dok/reports/popup-navigation-ui-20261109/)을 생성했다. 자동완성 변경 별표, 별도 변경 상태 행 제거, ESC의 내부 뒤로가기와 열기 키로 닫기, 기본 숨김인 bottom-toolbar 중앙 안내의 F1 토글을 반영했다. 팝업 하단 안내와 우측 알림 닫기 키는 유지한다. 설정 예시는 Owner 선언에서 재생성했다.
+
+사용자가 UI를 확정한 뒤 Linux Python 3.12.14의 독립 소스 스냅샷에서 **dok 384개 전부 통과, 건너뜀 0개**였다. unittest 76.989초, 실행기 78.570초. 검증 문서 갱신 전 소스 247개가 스냅샷과 일치했다. [검증 요약](../../tests/dok/reports/dok-ocy0aypj/summary.md), [로그](../../tests/dok/reports/dok-ocy0aypj/dok.txt), [결과](../../tests/dok/reports/dok-ocy0aypj/results.json), [소스 일치 확인](../../tests/dok/reports/dok-ocy0aypj/workspace-verification.json).
+
+첫 실행에서는 날씨 ESC와 변경 별표 전의 버튼 이름을 기대하는 테스트를 확인했다. 승인한 동작에 맞춰 기대값을 수정하면서 버튼 위치·취소·저장 실패 검증은 유지했다. 별도로 ESC 직후 Alt 닫기 키의 두 Escape 신호가 미등록 Alt 차단 바인딩에 함께 소비되는 문제를 재현했다. 첫 Escape만 뒤로가기로 처리하고 두 번째 키는 기존 키 처리 큐 앞에 돌려 정상 Alt 바인딩과 조합하게 보완했다. 연속 ESC와 ESC→Alt 닫기를 함께 검증했다. [첫 실행 기록](../../tests/dok/reports/dok-iek00sjm/dok.txt)은 보존했다.
+
+ESC 뒤로가기 pipe 지연은 106.9ms, 실제 Linux PTY 닫기 키 지연은 캘린더 13.8ms·날씨 18.2ms였다. 이는 테스트 환경 측정이며 Windows Terminal의 실제 마우스·물리 키보드 지연 측정은 아니다. F1 기본 숨김/토글·모달 중 토글·팝업 하단 안내 유지·좁은 중앙 공간 숨김·변경 키 닫기·별표 원복/저장 실패/성공·프롬프트 보존도 통과했다. ish 본체·llm·hub 코드와 WSL 개인 설치·설정은 수정하지 않았고 llm/hub 전체 회귀 테스트, 커밋, 업로드는 실행하지 않았다.
+
+## 자동완성 관리·키 안내 UI 확정 후 검증 (2026-11-08)
+
+사용자가 드롭다운 왼쪽 정렬까지 포함한 화면을 확정한 뒤 Linux Python 3.12.14의 독립 소스 스냅샷에서 **dok 381개 전부 통과, 건너뜀 0개**였다. unittest 80.554초, 실행기 81.981초. 기록 갱신 전 소스 247개가 스냅샷과 일치했다. [검증 요약](../../tests/dok/reports/dok-8c56cix8/summary.md), [로그](../../tests/dok/reports/dok-8c56cix8/dok.txt), [결과](../../tests/dok/reports/dok-8c56cix8/results.json), [소스 해시](../../tests/dok/reports/dok-8c56cix8/snapshot.json).
+
+관리 팝업의 Alt+M·초안 편집·잠금·저장 충돌·닫기 확인, 실제 프롬프트 보존, 보조 버튼·고정 하단 버튼·언어와 키 안내, 알림 높이·한 줄 여백·클릭 영역, 기본 설정 폼을 검증했다. ESC 응답은 입력 파이프 163.9ms, PTY 캘린더 113.8ms·날씨 111.1ms였다. 첫 실행의 옛 버튼 명칭 기대값과 후속 실행의 sleep 기반 분할 입력 주입을 테스트에서 보완했다. 승인된 제품 UI는 변경하지 않았다.
+
+llm/hub 전체 회귀, 실제 모델 호출, 개인 WSL 설치본·설정 적용, 커밋·업로드는 수행하지 않았다. 이 작업에서 ish 본체·llm·hub 코드를 수정하지 않았다.
+
 2026-11-01 기준. 구현은 `dok/`, 문서는 `docs/dok/`, 검증 코드는 `tests/dok/`에 있다. ish 본체는 수정하지 않았다.
 
 ## 최초 구현 검증
@@ -458,3 +539,31 @@ Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 *
 Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 330개 테스트 전부 통과, 건너뜀 0개**였다. unittest 69.910초, 실행기 73.183초. [로그](../../tests/dok/reports/dok-tas5j82u/dok.txt), [소스 스냅샷](../../tests/dok/reports/dok-tas5j82u/snapshot.json), [결과](../../tests/dok/reports/dok-tas5j82u/results.json), [현재 소스 일치 기록](../../tests/dok/reports/dok-tas5j82u/current-source-verification.json).
 
 선택 날짜의 정각 기본값·자정 넘김·Python 마지막 날짜 경계, 시작 날짜/시각을 반복 선택한 뒤의 종료 값 보존, 하루 종일 모드의 독립 날짜 선택, 기존 일정의 분·초·마이크로초 보존을 확인했다. ish 본체·llm·hub, WSL 개인 설치본·설정·일정은 변경하지 않았고 llm/hub 전체 회귀 테스트와 커밋·업로드는 하지 않았다.
+
+## 자동완성 등록·정렬·테마·Rich 진행 알림 (2026-11-08)
+
+사용자가 [하단 빈 줄을 제거한 최종 진행 화면](../../tests/dok/reports/completion-menu-ui-20261108-rich-v4/completion-progress.png)을 확정한 뒤 Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 359개 전부 통과, 건너뜀 0개**였다. unittest 89.747초, 실행기 93.019초. [로그](../../tests/dok/reports/dok-i866sp1k/dok.txt), [결과](../../tests/dok/reports/dok-i866sp1k/results.json), [소스 해시](../../tests/dok/reports/dok-i866sp1k/snapshot.json), [상세 검증 기록](../../tests/dok/reports/dok-i866sp1k/summary.md).
+
+등록창의 Enter/Tab/Esc, 명시한 조회의 단일 제출·출력 식별, 병합/교체·충돌·실패 시 기존 데이터 보존, Hub 설명 번역 요청과 로컬 폴백을 확인했다. 기존 자동완성을 한 번만 조회하고 먼저 표시하며 생성 후보만 정렬·중복 제거하는지 검증했다. 메뉴 설정의 Owner/schema/JSONC 일치, 테마 변경과 비활성화·외부 플러그인 스타일 보존, Calendar/캘린더 제목 전환도 포함했다. 진행 상태는 하나의 알림을 갱신하며 완료 후에만 만료한다. Rich 막대는 내부 너비를 채우고 하단 버튼/빈 줄을 남기지 않으며, 작은 화면과 실제 클릭 영역도 일치했다.
+
+첫 실행의 [로그](../../tests/dok/reports/dok-g4ppadk4/dok.txt)는 359개 중 3개 실패였다. 테스트 환경의 Rich 15.0.0을 불필요하게 배제한 `<15` 의존성 상한을 제거했다. 기존 툴바의 스타일 동등성 검사 두 개는 자동완성 스타일 계층을 보존하는 계약으로 갱신하고, 플러그인 해제 후 원래 스타일 복원도 확인했다. 승인 후 UI 모양은 바꾸지 않았다.
+
+ESC 응답은 입력 파이프 **104.3ms**, PTY 캘린더 **116.4ms**·날씨 **115.5ms**였다. Hub 공개 API 검사는 임시 워크스페이스와 모의 분석 응답으로 실행했으며 실제 모델 호출이나 사용자 Windows Terminal의 물리 입력 재검증은 아니다. ish 본체·llm·hub는 수정하지 않았고 llm/hub 전체 회귀 테스트, WSL 개인 설치본·설정 적용, 커밋·업로드는 수행하지 않았다.
+
+## 공통 알림 하단 버튼 제거와 위·아래 여백 (2026-11-08)
+
+사용자가 [일정 알림](../../tests/dok/reports/notification-padding-20261108/reminder.png)과 [진행 알림](../../tests/dok/reports/notification-padding-20261108/progress.png) UI를 확정한 뒤 Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 359개 전부 통과, 건너뜀 0개**였다. unittest 86.694초, 실행기 90.471초. [로그](../../tests/dok/reports/dok-zwlfvy2p/dok.txt), [결과](../../tests/dok/reports/dok-zwlfvy2p/results.json), [소스 해시](../../tests/dok/reports/dok-zwlfvy2p/snapshot.json), [검증 요약](../../tests/dok/reports/dok-zwlfvy2p/summary.md).
+
+PopupSurface가 공통 알림의 하단 버튼과 숨겨진 버튼 동작을 제거한다. NotificationInsets가 위·아래 기본 1행을 선언하고, NotificationHeight는 본문 공간을 유지하는 기본 9행을 선언한다. 기존 설정 경로의 검증·schema·생성 JSONC·렌더링이 이 Owner를 공유하며 부분 설정도 새 기본 여백을 유지한다. 일반 팝업의 버튼과 기본 여백은 유지했다. 승인 후 제품·테스트 코드를 추가 수정하지 않았다.
+
+진행 바 내부 너비·위아래 여백·실제 높이와 마우스 영역, 일반 알림의 버튼 부재·본문 클릭 무동작·제목 닫기 아이콘, Alt+N 상세보기·Alt+X 닫기, 알림 중 프롬프트 입력·만료·일시 숨김을 확인했다. ESC 응답은 입력 파이프 **114.4ms**, PTY 캘린더 **122.8ms**·날씨 **122.5ms**였다. 물리 Windows Terminal 입력을 다시 측정한 결과는 아니다.
+
+ish 본체·llm·hub는 수정하지 않았고 llm/hub 전체 회귀 테스트, 실제 모델 호출, 개인 WSL 설치본·설정 적용, 커밋·업로드는 하지 않았다.
+
+## 자동완성 특수문자 포함 정렬 (2026-11-08)
+
+Catalog.ordered_suggestions()에서 선행 하이픈을 제거하던 처리를 없애 전체 이름의 casefold 결과와 원문을 비교한다. `--alpha`, `--beta`, `-a`, `-b` 순으로 표시하며, 하위 명령어와 옵션 값에도 같은 Owner API를 사용한다. 기존 사용자/ish 후보의 순서와 우선권, 저장 목록과 설명은 유지한다. 기본 설정 파일의 영어 설명도 갱신했다.
+
+Linux Python 3.12.14의 해시 검증된 Linux 파일시스템 스냅샷에서 **dok 359개 전부 통과, 건너뜀 0개**였다. unittest 73.757초, 실행기 75.129초. 하이픈 개수, 대소문자 동률, 이름 내부의 `-`·`.`·`:`·`_`, 옵션 값의 `+`와 하이픈, 공백/등호 값 입력, 상속된 후보의 설명 우선권과 저장 원본 보존을 확인했다. [검증 요약](../../tests/dok/reports/dok-2ua6qbh9/summary.md), [로그](../../tests/dok/reports/dok-2ua6qbh9/dok.txt), [결과](../../tests/dok/reports/dok-2ua6qbh9/results.json), [소스 해시](../../tests/dok/reports/dok-2ua6qbh9/snapshot.json).
+
+ish 본체·llm·hub와 개인 WSL 설치본·설정은 변경하지 않았으며 llm/hub 전체 회귀, 실제 모델 호출, 커밋·업로드는 실행하지 않았다.
