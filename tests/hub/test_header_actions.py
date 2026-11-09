@@ -59,7 +59,11 @@ class HeaderBarTests(unittest.IsolatedAsyncioTestCase):
                     rect = app.renderer._last_screen.visible_windows_to_write_positions[header.restart.window]
                     pipe.send_text(f"\x1b[<0;{rect.xpos+2};{rect.ypos+1}M\x1b[<0;{rect.xpos+2};{rect.ypos+1}m")
                     await eventually(lambda: len(restarted) == count + 1)
-                self.assertTrue(view.profile_bar.presets.caption().endswith(""))
+                # The indicator is a separate symbol so truncating a translated
+                # caption cannot remove it. Check the rendered button content.
+                with set_app(app):
+                    caption = ''.join(part[1] for part in view.profile_bar.presets.button._get_text_fragments())
+                self.assertTrue(caption.rstrip().endswith(""))
                 with set_app(app):
                     header.minimize.handler()
                 self.assertFalse(view.visible)

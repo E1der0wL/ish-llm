@@ -11,9 +11,7 @@ class RenderSection:
 class TranscriptLayout:
     ABSENT = None
     MIN_WIDTH = 1
-    HORIZONTAL_MARGIN = 4
     EMPTY = ""
-    INDENT = "  "
     SPACE = " "
     NEWLINE = "\n"
     PAD = False
@@ -24,8 +22,9 @@ class TranscriptLayout:
     TEXT_FENCE_CLOSE = "\n```"
 
     @classmethod
-    def inner_width(cls, width):
-        return max(cls.MIN_WIDTH, width - cls.HORIZONTAL_MARGIN)
+    def content_width(cls, width):
+        # The containing page and Window margins already own all outer spacing.
+        return max(cls.MIN_WIDTH, width)
 
 
 class TranscriptPresentation:

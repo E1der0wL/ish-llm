@@ -9,12 +9,12 @@ from prompt_toolkit.layout.dimension import Dimension
 from ..config.theme_style import ThemeSelector, ThemeStyle
 from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from ..asset.icon import IconSet
-from .controls import Button
+from .controls import IconButton
 from .actions import bind_button_navigation
 from .focus import focus_control
 
 
-class AuxiliaryButton(Button):
+class AuxiliaryButton(IconButton):
     """Compact icon action with an explicitly transparent terminal background."""
 
     WIDTH = 3

@@ -46,7 +46,8 @@ class ConversationTests(unittest.TestCase):
         body = next(line for line in lines if any("짧은 메시지" in text for _, text in line))
         text = "".join(text for _, text in body)
         self.assertGreater(get_cwidth(text[:text.index("짧은")]), 80)
-        self.assertEqual(get_cwidth(text), 98)
+        # The caller has already removed page padding and scrollbar margins.
+        self.assertEqual(get_cwidth(text), 100)
         block = [(style, text) for style, text in body if "hub.user-block" in style]
         self.assertLess(sum(get_cwidth(text) for _, text in block), 20)
         self.assertEqual(theme.style().get_attrs_for_style_str(block[0][0]).bgcolor, theme.user_background[1:])
@@ -79,7 +80,7 @@ class ConversationTests(unittest.TestCase):
             for line in lines:
                 visible = "".join(fragment[1] for fragment in line)
                 if visible.strip():
-                    self.assertEqual(get_cwidth(visible), width - 2)
+                    self.assertEqual(get_cwidth(visible), width)
 
     def test_assistant_and_user_markdown(self):
         source = "### Heading\n**bold** and `inline`\n\n- item\n\n```python\nprint('hi')\n```\n\n| Key | Value |\n| --- | --- |\n| a | b |"

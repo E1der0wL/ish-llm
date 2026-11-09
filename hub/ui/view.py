@@ -80,7 +80,6 @@ class HubView:
     CURSOR_ANCHORED = True
     MODAL = True
     SIDEBAR_WIDTH_DIVISOR = 2
-    UNFOCUSED_PREFIX = "  "
     AGENT_SEPARATOR = ", "
     INPUT_SEQUENCE_TIMEOUT = 0.02
 
@@ -542,20 +541,6 @@ class HubView:
 
     def shortcut_bar(self):
         return ShortcutBar(lambda: self.bindings.hints(), self._columns)
-
-    def _focus_heading(self, control, text):
-        focused = self.visible and get_app().layout.current_control == control
-        return [
-            (
-                ThemeSelector.FOCUSED.style if focused else HubView.NO_STYLE,
-                (
-                    icon.SELECTED + HubView.HEADING_SEPARATOR
-                    if focused
-                    else HubView.UNFOCUSED_PREFIX
-                )
-                + text,
-            )
-        ]
 
     @property
     def active_page(self):

@@ -11,7 +11,7 @@ from prompt_toolkit.filters import Condition
 from prompt_toolkit.layout import ConditionalContainer, Float, FloatContainer, Window
 from prompt_toolkit.layout.screen import WritePosition
 from prompt_toolkit.formatted_text import to_formatted_text, fragment_list_width, fragment_list_to_text
-from prompt_toolkit.mouse_events import MouseEventType
+from prompt_toolkit.mouse_events import MouseButton, MouseEventType
 
 from .controls import Button, RadioList, ScrollbarMargin, ScrollablePane
 from .mouse_contract import MouseBinding
@@ -50,7 +50,14 @@ class CompletionChoices(RadioList):
             style = self.CURRENT if index == self._selected_index else self.NORMAL
 
             def clicked(event, row=index):
-                if event.event_type == MouseEventType.MOUSE_UP:
+                if (event.event_type == MouseEventType.MOUSE_MOVE
+                        and event.button == MouseButton.NONE):
+                    # Hover changes only the pending keyboard row. Commit and
+                    # cancellation still belong to the containing dropdown.
+                    if self._selected_index != row:
+                        self._selected_index = row
+                        get_app().invalidate()
+                elif event.event_type == MouseEventType.MOUSE_UP:
                     self._selected_index = row
                     self._handle_enter()
 
@@ -79,7 +86,6 @@ class DropdownBox(FloatContainer):
     MENU_LAYER = 400
     BASE_LAYER = 0
     MIN_CAPTION_WIDTH = 1
-    CAPTION_RESERVED_WIDTH = 4
     CAPTION_SEPARATOR = " "
     FIRST_CHOICE = 0
 
@@ -96,8 +102,8 @@ class DropdownBox(FloatContainer):
         self.items, self.value, self.placeholder = items, value, placeholder
         self.icons = icons
         self.on_change, self.expanded = on_change, self.CLOSED
-        self.width = width
-        self.button = Button(self.caption, handler=self.open, width=width)
+        self.button = Button(self.caption, handler=self.open, width=width,
+                             right_symbol=self.indicator)
         self.choices = CompletionChoices([(self.ABSENT, self.EMPTY_LABEL)], self.rendered_width)
         self.choices.window.height = self.CHOICE_ROWS
         keys = ShortcutRegistry.require(self.choices.control)
@@ -142,6 +148,10 @@ class DropdownBox(FloatContainer):
     @property
     def control(self):
         return self.button.control
+
+    @property
+    def width(self):
+        return self.button.width
 
     @property
     def controls(self):
@@ -206,20 +216,14 @@ class DropdownBox(FloatContainer):
         super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
 
     def caption(self):
-        from ..ui.output.labels import ellipsize
-
         label = next(
             (label for key, label in self.values() if key == self.value),
             self.placeholder,
         )
-        return (
-            ellipsize(
-                label,
-                max(self.MIN_CAPTION_WIDTH, self.rendered_width() - self.CAPTION_RESERVED_WIDTH),
-            )
-            + self.CAPTION_SEPARATOR
-            + self.icons().dropdown
-        )
+        return label
+
+    def indicator(self):
+        return self.CAPTION_SEPARATOR + self.icons().dropdown
 
     def open(self):
         values = self.values()

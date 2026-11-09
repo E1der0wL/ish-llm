@@ -15,7 +15,7 @@ def render_trace_item(item, width, theme, language, *, resources=None):
     if item.kind in (TraceItem.TOOL, TraceItem.QUESTION):
         from .execution_preview import render_execution_preview
         return render_execution_preview(item, width, theme, language, resources=resources)
-    inner = TranscriptLayout.inner_width(width)
+    inner = TranscriptLayout.content_width(width)
     console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
     segment_style = resources.style if resources is not None else _segment_style
     if item.kind == TraceItem.SUMMARY:
@@ -29,8 +29,7 @@ def render_trace_item(item, width, theme, language, *, resources=None):
             (
                 (
                     ThemeSelector.MUTED.style,
-                    TranscriptLayout.INDENT
-                    + TranscriptLayout.EMPTY.join(s.text for s in row),
+                    TranscriptLayout.EMPTY.join(s.text for s in row),
                 ),
             )
             for row in rows
@@ -53,7 +52,6 @@ def render_trace_item(item, width, theme, language, *, resources=None):
     )
     return tuple(
         (
-            (TranscriptLayout.EMPTY, TranscriptLayout.INDENT),
             *_trim_right(
                 [
                     (segment_style(s.style, theme.code_background), s.text)

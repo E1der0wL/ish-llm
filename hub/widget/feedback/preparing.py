@@ -344,4 +344,9 @@ class PreparingResponse:
             MessageRole.ASSISTANT,
             ReasoningMessage.ROLE,
         ):
+            if key == SessionIdentity.current(self.view).to_tuple():
+                self.view.output.handoff_message(
+                    self.PREPARING_ID.format(session_id=SessionIdentity(key).session_id),
+                    following[0].id,
+                )
             self.finish(key)

@@ -782,7 +782,7 @@ MESSAGES = {
 
 
 
-    MessageKey.SETTINGS_TITLE: "설정", MessageKey.SETTINGS_GLOBAL: "전역 설정", MessageKey.SETTINGS_PROJECTS: "프로젝트",
+    MessageKey.SETTINGS_TITLE: "설정", MessageKey.SETTINGS_GLOBAL: "전역", MessageKey.SETTINGS_PROJECTS: "프로젝트",
 
     MessageKey.SETTINGS_PROFILE: "프로필", MessageKey.SETTINGS_APPEARANCE: "모양", MessageKey.SETTINGS_MAIN: "메인 설정",
 

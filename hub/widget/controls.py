@@ -5,8 +5,12 @@ from time import monotonic
 from prompt_toolkit.layout import ScrollablePane as PTKScrollablePane
 from prompt_toolkit.layout.margins import ScrollbarMargin as PTKScrollbarMargin
 from prompt_toolkit.layout.margins import ConditionalMargin
+from prompt_toolkit.layout.margins import Margin
 from prompt_toolkit.layout.menus import CompletionsMenu as PTKCompletionsMenu
 from prompt_toolkit.layout.screen import Char
+from prompt_toolkit.layout.controls import FormattedTextControl
+from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.utils import get_cwidth
 from prompt_toolkit.widgets import Button as PTKButton
 from prompt_toolkit.widgets import (
     RadioList as PTKRadioList,
@@ -37,6 +41,21 @@ def _arrows(window) -> None:
     for margins in (window.left_margins, window.right_margins):
         for index, margin in enumerate(margins):
             margins[index] = shared(margin)
+
+
+class SpacingMargin(Margin):
+    """Reserve layout cells before a scrollbar, outside rendered content."""
+
+    WIDTH = 1
+    NO_STYLE = ""
+    SPACE = " "
+    NEWLINE = "\n"
+
+    def get_width(self, get_ui_content):
+        return self.WIDTH
+
+    def create_margin(self, window_render_info, width, height):
+        return [(self.NO_STYLE, (self.SPACE * width + self.NEWLINE) * height)]
 
 
 @MouseBinding.register_interactive
@@ -211,6 +230,22 @@ class ScrollablePane(PTKScrollablePane):
             )
 
 
+class ButtonContent(FormattedTextControl):
+    """Clip the caption to this render's allocation, not the previous frame."""
+
+    UNALLOCATED = None
+
+    def __init__(self, *args, **kwargs):
+        self.allocated_width = self.UNALLOCATED
+        super().__init__(*args, **kwargs)
+
+    def create_content(self, width, height):
+        if width != self.allocated_width:
+            self.allocated_width = width
+            self._fragment_cache.clear()
+        return super().create_content(width, height)
+
+
 class Button(PTKButton):
     SPACE = ' '
     TEXT_STYLE = 'class:button.text'
@@ -222,6 +257,18 @@ class Button(PTKButton):
     NO_SYMBOL = ""
     SHOW_CURSOR = False
     ACTIVATION_FEEDBACK_SECONDS = 0.15
+    HORIZONTAL_PADDING = 1
+    MINIMUM_WIDTH = 1
+
+    @property
+    def width(self):
+        return max(self._minimum_width, get_cwidth(self.text)
+                   + get_cwidth(self.left_symbol) + get_cwidth(self.right_symbol)
+                   + self.HORIZONTAL_PADDING * 2)
+
+    @width.setter
+    def width(self, value):
+        self._minimum_width = value
 
     @property
     def text(self):
@@ -231,8 +278,17 @@ class Button(PTKButton):
     def text(self, value):
         self._text = value
 
+    @property
+    def right_symbol(self):
+        return self._right_symbol() if callable(self._right_symbol) else self._right_symbol
+
+    @right_symbol.setter
+    def right_symbol(self, value):
+        self._right_symbol = value
+
     def _get_text_fragments(self):
         from prompt_toolkit.mouse_events import MouseButton, MouseEventType
+        from .summary import clipped_line
 
         def activate(event):
             if event.button == MouseButton.LEFT:
@@ -247,21 +303,33 @@ class Button(PTKButton):
         elif monotonic() < self._pressed_until:
             text_style += Button.SPACE + ThemeSelector.BUTTON_PRESSED.style
 
-        # WindowAlign.CENTER is the sole alignment owner. Never pre-pad to the
-        # preferred width: the parent may allocate a different number of cells.
+        width = self.control.allocated_width
+        if width is ButtonContent.UNALLOCATED:
+            width = self.width
+        padding = min(self.HORIZONTAL_PADDING, width // 2)
+        label_width = max(0, width - padding * 2
+                          - get_cwidth(self.left_symbol) - get_cwidth(self.right_symbol))
+        # WindowAlign.CENTER alone aligns the caption. These spaces are content
+        # padding, not padding to the preferred/previously rendered width.
         return [
-            (self.ARROW_STYLE, self.left_symbol, activate),
+            (self.ARROW_STYLE, self.SPACE * padding + self.left_symbol, activate),
             (self.CURSOR_POSITION, ""),
-            (text_style, self.text, activate),
-            (self.ARROW_STYLE, self.right_symbol, activate),
+            (text_style, clipped_line(self.text, label_width), activate),
+            (self.ARROW_STYLE, self.right_symbol + self.SPACE * padding, activate),
         ]
 
-    def __init__(self, *args, focusable=True, enabled=True, **kwargs):
+    def __init__(self, *args, focusable=True, enabled=True, expand_width=True, **kwargs):
         self._pressed_until = self.NEVER_PRESSED
         self.enabled = to_filter(enabled)
         kwargs.setdefault(self.LEFT_SYMBOL, self.NO_SYMBOL)
         kwargs.setdefault(self.RIGHT_SYMBOL, self.NO_SYMBOL)
         super().__init__(*args, **kwargs)
+        self.control = ButtonContent(self._get_text_fragments,
+                                     key_bindings=self.control.key_bindings, focusable=True)
+        self.window.content = self.control
+        self.window.width = lambda: Dimension(
+            min=self.MINIMUM_WIDTH, preferred=self.width,
+            max=None if expand_width else self.width)
         self.control.focusable = to_filter(focusable) & self.enabled
         self.control.show_cursor = self.SHOW_CURSOR
         ControlRole.register(self.control, ControlRole.BUTTON)
@@ -313,6 +381,21 @@ class Button(PTKButton):
         # action and expires equally for Enter, Space and a mouse activation.
         if app.is_running:
             app.loop.call_later(self.ACTIVATION_FEEDBACK_SECONDS, app.invalidate)
+
+
+class IconButton(Button):
+    """A fixed cell allocation with the same interaction and style as Button."""
+
+    WIDTH = 3
+    HORIZONTAL_PADDING = 0
+
+    @Button.width.getter
+    def width(self):
+        return self._minimum_width
+
+    def __init__(self, *args, width=WIDTH, **kwargs):
+        super().__init__(*args, width=width, **kwargs)
+        self.window.width = lambda: Dimension.exact(self.width)
 
 
 class ChoiceBinding:

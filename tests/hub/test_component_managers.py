@@ -108,7 +108,12 @@ class RecordManagerTests(unittest.IsolatedAsyncioTestCase):
                 view.composer.text = "/skill"
                 view.composer.buffer.cancel_completion()
                 pipe.send_text("\r")
-                await eventually(lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy)
+                # Opening reads the backend catalog; only the input and
+                # completion assertions below use the short UI deadline.
+                await backend_ready(
+                    lambda: isinstance(view._dialog, RecordManager) and not view._dialog.busy,
+                    "record manager catalog load",
+                )
                 popup = view._dialog
                 pipe.send_text("my-")
                 await eventually(lambda: popup.path.buffer.complete_state is not None)

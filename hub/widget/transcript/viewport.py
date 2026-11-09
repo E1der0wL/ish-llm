@@ -74,7 +74,7 @@ class TranscriptViewport:
     def deferred(message, index, blocks, width, theme, renderers):
         from .message_cache import Frame
 
-        inner = TranscriptLayout.inner_width(width)
+        inner = TranscriptLayout.content_width(width)
         height = max(2, message.text.count('\n') + len(message.text) // inner + 3)
         identifier = TranscriptIdentity.message(message, index)
         anchors = [TranscriptAnchor(identifier, 0)]

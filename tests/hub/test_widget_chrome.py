@@ -123,9 +123,9 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 drawn = "\n".join("".join(content.data_buffer[y][x].char for x in range(132)) for y in range(40))
                 self.assertNotIn(view.t("settings_main"), drawn)
                 self.assertIn("", drawn.splitlines()[0])
-                self.assertIn(f"{NERD.settings} 전역 설정", drawn)
+                self.assertIn(f"{NERD.settings} 전역", drawn)
                 self.assertIn(f"{NERD.project} 프로젝트", drawn)
-                for heading in (f"{NERD.settings} 전역 설정", f"{NERD.project} 프로젝트"):
+                for heading in (f"{NERD.settings} 전역", f"{NERD.project} 프로젝트"):
                     self.assertTrue(next(row for row in drawn.splitlines() if heading in row).startswith(" " + heading))
                 positions = content.visible_windows_to_write_positions
                 field = screen.page.form.fields[("display_name",)].input.window

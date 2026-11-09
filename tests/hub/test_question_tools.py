@@ -139,7 +139,10 @@ class QuestionToolTests(unittest.IsolatedAsyncioTestCase):
                 await backend_ready(lambda: view.question.item is not None, 'question ready')
                 await until(lambda: any(item.status == "waiting_input" for item in view.toasts.items))
                 self.assertIn(view.t.status("waiting_input"), view.sessions[view.selected].status)
-                self.assertIn(view.t.status("waiting_input") + " • " + view.question.item["request"]["title"], view.notice)
+                self.assertEqual(view.notice, "")
+                with set_app(app):
+                    self.assertIn(view.icons.question + " " + view.t("session_list_input_required"),
+                                  view.output.heading())
                 self.assertIs(app.layout.current_control, view.composer.control)
                 self.assertIn("Which output?", view.question.details.text)
                 self.assertIn("1. Markdown", view.question.text())

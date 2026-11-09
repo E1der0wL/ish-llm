@@ -13,7 +13,7 @@ from prompt_toolkit.utils import get_cwidth
 
 from ..sidebar import SidebarItem, SidebarList
 from ..clipboard import copy_text
-from ..controls import Button
+from ..controls import IconButton
 from ...ui.output.labels import ellipsize
 from ...ui.input.registry import ShortcutRegistry
 from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
@@ -98,7 +98,7 @@ class TagBar:
         self.window = Window(
             self.control, wrap_lines=TagBar.WRAP, style=ThemeSelector.SIDEBAR.style
         )
-        self.collapse = Button(
+        self.collapse = IconButton(
             lambda: view.icons.collapse, handler=self.close, width=TagBar.COLLAPSE_WIDTH
         )
         ShortcutRegistry.require(self.collapse.control).add(

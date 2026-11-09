@@ -28,7 +28,7 @@ class InputField(VSplit):
             if input is not self.ABSENT
             else TextArea(text=text, multiline=self.MULTILINE, height=self.ROWS)
         )
-        self.button = Button(button_text, handler=on_action, width=button_width)
+        self.button = Button(button_text, handler=on_action, width=button_width, expand_width=False)
         super().__init__([self.input, self.button], padding=self.GAP)
 
     @property

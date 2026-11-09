@@ -212,6 +212,56 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.mouse(0, *self.at(field.input.window), release=True)
         self.assertFalse(field.editing)
 
+    async def test_settings_dropdown_cancel_commit_and_saved_form_keep_other_fields_clickable(self):
+        screen = self.view.settings
+        with set_app(self.app):
+            self.view.toggle_settings()
+        for section, choice, first, second in (
+            ('appearance', 'mode', 'background', 'foreground'),
+            ('appearance', 'icon_style', 'background', 'foreground'),
+            ('general', 'language', 'display_name', 'email'),
+        ):
+            with self.subTest(section=section, choice=choice), set_app(self.app):
+                screen.choose(section)
+                page = screen.page
+                menu = page.form.fields[(choice,)].input
+                self.app.layout.focus(menu.control)
+                await self.paint()
+                menu.open()
+                await self.paint()
+                self.pipe.send_text('\x1b')
+                await eventually(lambda: not menu.is_open())
+                menu.open()
+                await self.paint()
+                self.pipe.send_text('\x1b[B\r')
+                await eventually(lambda: not menu.is_open())
+                # Exercise the same form replacement used after saving, without
+                # touching the developer's real preference store.
+                page.accept_saved(page.form.values())
+                if section == 'general':
+                    # Editor and workspace-root live far apart in this page;
+                    # use adjacent visible text fields after language save.
+                    screen.choose('profile')
+                page = screen.page
+                first_field, second_field = (page.form.fields[(key,)] for key in (first, second))
+                self.app.layout.focus(first_field.input)
+                await self.paint()
+                first_field.begin()
+                await self.paint()
+                # Bring both adjacent fields into the visible viewport.
+                self.app.layout.focus(second_field.input)
+                await self.paint()
+                self.app.layout.focus(first_field.input)
+                first_field.begin()
+                await self.paint()
+                for field in (second_field, first_field, second_field):
+                    await self.mouse(0, *self.at(field.input.window))
+                    await self.mouse(0, *self.at(field.input.window), release=True)
+                    self.assertIs(self.app.layout.current_control, field.input.control)
+                    self.assertFalse(first_field.editing)
+                await self.mouse(0, *self.at(second_field.input.window))
+                await self.mouse(0, *self.at(second_field.input.window), release=True)
+                self.assertTrue(second_field.editing)
     async def test_agent_field_uses_same_click_activation_and_essential_controls(self):
         from hub.widget.forms.definition_manager import DefinitionManager
         from hub.backend.project.management_values import EditorRecord

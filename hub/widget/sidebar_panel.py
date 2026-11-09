@@ -1,6 +1,6 @@
 """Two sidebar categories share a draggable boundary and fixed profile footer."""
 
-from prompt_toolkit.layout import HSplit
+from prompt_toolkit.layout import HSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.application.current import get_app
 from .focus_region import FocusRegion
@@ -14,6 +14,7 @@ class SidebarPanel(HSplit):
     SECTION_COUNT = 2
     FIRST = 0
     SECOND = 1
+    CATEGORY_GAP = 1
 
     def __init__(
         self, sections, profile, *, width, fraction, resize, controls=()
@@ -35,9 +36,11 @@ class SidebarPanel(HSplit):
             else sections
         )
         self.profile = profile
+        self.category_gap = Window(height=self.CATEGORY_GAP)
         self.fraction, self.resize = fraction, resize
         self.geometry = self.ABSENT
-        super().__init__([*self.sections, profile], width=width)
+        super().__init__([self.sections[self.FIRST], self.category_gap,
+                          self.sections[self.SECOND], profile], width=width)
 
     def _focused(self, index):
         return get_app().layout.current_control in self.controls[index]
@@ -47,7 +50,7 @@ class SidebarPanel(HSplit):
         # Propagating them through HSplit would prevent a smaller terminal from
         # allocating this panel, so write_to_screen could never resize it.
         minimum = (self.profile.preferred_height(width, max_available_height).min
-                   + self.MIN_SECTION_ROWS * self.SECTION_COUNT)
+                   + self.MIN_SECTION_ROWS * self.SECTION_COUNT + self.CATEGORY_GAP)
         return Dimension(min=min(minimum, max_available_height), preferred=max_available_height)
 
     def drag_handler(self, point):
@@ -78,6 +81,9 @@ class SidebarPanel(HSplit):
         available = max(self.SECTION_COUNT, total - profile_height)
         minima = [max(self.MIN_SECTION_ROWS, section.preferred_height(width, available).min)
                   for section in self.bodies]
+        gap = min(self.CATEGORY_GAP, max(0, available - sum(minima)))
+        self.category_gap.height = Dimension.exact(gap)
+        available -= gap
         if sum(minima) > available:
             minima = [max(self.MIN_COMPRESSED_ROWS, available // self.SECTION_COUNT)] * self.SECTION_COUNT
         minimum, maximum = minima[self.FIRST], available - minima[self.SECOND]

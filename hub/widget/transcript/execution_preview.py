@@ -70,11 +70,11 @@ class ExecutionPreview:
 
 
 def render_execution_preview(item, width, theme, language, *, resources=None):
-    inner = TranscriptLayout.inner_width(width)
+    inner = TranscriptLayout.content_width(width)
     console = resources.console(inner, theme) if resources else make_console(inner, theme)
     details = dict(item.details)
     rows = (ExecutionPreview.question(item, details, inner, console, theme, language)
             if item.kind == TraceItem.QUESTION
             else ExecutionPreview.tool(item, details, inner, console, language))
-    return tuple(((ThemeSelector.MUTED.style, TranscriptLayout.INDENT + row),) for row in rows) + (
+    return tuple(((ThemeSelector.MUTED.style, row),) for row in rows) + (
         TranscriptLayout.BLANK_LINE,)

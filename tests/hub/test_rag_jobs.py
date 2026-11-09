@@ -440,7 +440,12 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     app.layout.focus(popup.retry_button)
                 pipe.send_text("\r")
-                await wait_for(lambda: not popup.busy and popup.selected == "retry")
+                # Retry includes ingestion and durable generation publication,
+                # not only the button's UI response.
+                await backend_ready(
+                    lambda: not popup.busy and popup.selected == "retry",
+                    "RAG checkpoint retry completion",
+                )
                 self.assertEqual(calls, ["Saved chunk", "Retry chunk", "Retry chunk"])
                 self.assertEqual(popup.last_job["ingestion"]["checkpoint_reuse"], 1)
                 self.assertFalse(view.progress.active)

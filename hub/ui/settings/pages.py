@@ -131,6 +131,7 @@ class Page:
             lambda: max(
                 self.MINIMUM_ACTION_WIDTH, self.screen.main_width() - self.ACTION_INSET
             ),
+            equal_width=True,
         )
         for field in self.all_fields():
             field.enabled = lambda: not self.screen.busy

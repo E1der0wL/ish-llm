@@ -147,11 +147,19 @@ class RoutingTests(IsolatedAsyncioTestCase):
                 await runtime.close()
 
     async def test_language_guidance_is_transient_and_no_translation_call(self):
-        request = CompletionRequest({}, [], 1)
+        from llm.components.processing import CompletionMessage
+        from llm.core.model_protocol import ModelMessage
+        original = CompletionMessage(ModelMessage('user', '줄 번호 표시도 추가해줘.'), 'u')
+        request = CompletionRequest({}, [original], 1)
         async for _ in LanguageSession('ko').prepare(request):
             self.fail('Language guidance must not invoke a model')
-        self.assertIn('(ko)', request.messages[0].message.text)
-        self.assertIn('reasoning summaries', request.messages[0].message.text)
+        guidance = request.messages[0]
+        self.assertIn('Korean (ko)', guidance.message.text)
+        self.assertIn('thinking/reasoning channel', guidance.message.text)
+        self.assertIn('unless the user explicitly', guidance.message.text)
+        self.assertIsNone(guidance.source_id)
+        self.assertIs(request.messages[1], original)
+        self.assertEqual(original.message.text, '줄 번호 표시도 추가해줘.')
 
     async def test_decision_dispatch_receipt_replay_and_failure_do_not_resume_or_replace(self):
         native = NS(steer=AsyncMock(return_value=NS(id='s')), redirect=AsyncMock(return_value=NS(id='r')),

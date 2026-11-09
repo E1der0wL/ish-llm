@@ -24,7 +24,6 @@ class LoopOutput(EngineOutput):
     ABSENT = None
     MIN_HEIGHT = 1
     FLEX_WEIGHT = 1
-    HEADING_SEPARATOR = "  •  "
     OBJECT_INDENT = 2
     MESSAGE_MARGIN = 1
     ANCHOR_OFFSET = 0
@@ -59,11 +58,7 @@ class LoopOutput(EngineOutput):
         )
 
     def heading(self):
-        session = self.view.sessions[self.view.selected]
-        return self.view._focus_heading(
-            self.transcript.control,
-            session.title + LoopOutput.HEADING_SEPARATOR + session.status,
-        )
+        return self.view._session_control.heading(self.header)
 
     @property
     def floating_dialog(self):
@@ -123,6 +118,9 @@ class LoopOutput(EngineOutput):
 
     def set_messages(self, messages, position=ABSENT):
         self.transcript.set_messages(messages, position)
+
+    def handoff_message(self, source_id, target_id):
+        self.transcript.control.handoff_message(source_id, target_id)
 
     def update_messages(self, messages, *, auto_scroll=ABSENT):
         control = self.transcript.control

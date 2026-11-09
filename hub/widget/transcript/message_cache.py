@@ -15,7 +15,6 @@ from typing import NamedTuple
 from pathlib import Path
 from types import MappingProxyType
 from prompt_toolkit.formatted_text.utils import fragment_list_width
-from prompt_toolkit.utils import get_cwidth
 from ...ui.output import OutputParser, RenderContext
 from ...ui.output.streaming import StreamingParse
 from ...ui.message_changes import unchanged_prefix
@@ -62,6 +61,7 @@ class Frame:
     objects: Sequence
     max_width: int
     starts: object = None
+    header_heights: object = field(default_factory=lambda: MappingProxyType({}))
 
     def __post_init__(self):
         if self.starts is Frame.ABSENT:
@@ -273,7 +273,7 @@ class MessageRenderCache:
                 entries.append(frame)
                 continue
             render_context = RenderContext(
-                TranscriptLayout.inner_width(width),
+                TranscriptLayout.content_width(width),
                 theme,
                 language,
                 Path(root),
@@ -323,11 +323,11 @@ class MessageRenderCache:
                     lines,
                     tuple(anchors),
                     tuple(objects),
-                    # The canonical assistant block layout only prefixes INDENT
-                    # and appends blank MESSAGE_GAP rows. Reuse each block's
+                    # The canonical assistant block layout only appends blank
+                    # MESSAGE_GAP rows. Reuse each block's
                     # measured cells instead of rescanning all old code/table
                     # characters on every streamed suffix or clock update.
-                    max((item.width + get_cwidth(TranscriptLayout.INDENT)
+                    max((item.width
                          for item in used_blocks.values() if item.lines),
                         default=MessageRenderCache.NO_WIDTH)
                     if used_blocks else max(map(fragment_list_width, lines),
@@ -440,6 +440,7 @@ class MessageRenderCache:
                         ),
                         trace_width,
                     ),
+                    header_heights=MappingProxyType({identifier: len(header)}),
                 )
             retained[identifier] = CachedMessage(
                 source=message, source_index=index, renderer_version=renderer_version,
@@ -489,12 +490,14 @@ class MessageRenderCache:
             Joined(self._prefix.objects, tail.objects),
             max(self._prefix.max_width, tail.max_width),
             ChainMap(tail.starts, self._prefix.starts),
+            ChainMap(tail.header_heights, self._prefix.header_heights),
         )
         return self._frame
 
     @staticmethod
     def _assemble(entries, messages, start, offset=ORIGIN):
         parts, anchors, objects = [], [], []
+        header_heights = {}
         maximum = MessageRenderCache.NO_WIDTH
         for index, frame in enumerate(entries, start):
             if (
@@ -506,6 +509,7 @@ class MessageRenderCache:
                 parts.append(TranscriptLayout.MESSAGE_GAP)
                 offset += len(TranscriptLayout.MESSAGE_GAP)
             parts.append(frame.lines)
+            header_heights.update(frame.header_heights)
             anchors.extend(TranscriptAnchor(name, row + offset) for name, row in frame.anchors)
             objects.extend(
                 replace(
@@ -517,7 +521,8 @@ class MessageRenderCache:
             )
             offset += len(frame.lines)
             maximum = max(maximum, frame.max_width)
-        return Frame(Joined(*parts), tuple(anchors), tuple(objects), maximum)
+        return Frame(Joined(*parts), tuple(anchors), tuple(objects), maximum,
+                     header_heights=MappingProxyType(header_heights))
 
     def render(self, *args, **kwargs):
         frame = self.prepare(*args, **kwargs)

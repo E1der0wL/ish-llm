@@ -104,9 +104,10 @@ class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
                 widths = {bar.button_width(button) for button in buttons}
                 self.assertEqual(widths, {28})
                 self.assertEqual([len(row) for row in bar.rows()], [1, 1, 1])
-                # Tabs and non-footer callers keep their independently requested widths.
+                # Other callers keep independent natural widths, including
+                # translated captions that outgrow the requested minimum.
                 ordinary = ActionBar(buttons, lambda: 100)
-                self.assertEqual([ordinary.button_width(button) for button in buttons], [6, 8, 18])
+                self.assertEqual([ordinary.button_width(button) for button in buttons], [6, 28, 18])
         finally:
             view.close()
 

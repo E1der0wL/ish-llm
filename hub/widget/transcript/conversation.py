@@ -29,6 +29,7 @@ from ...asset.icon import for_style
 from bisect import bisect_right
 import asyncio
 from copy import copy
+from dataclasses import replace
 from time import perf_counter
 from pathlib import Path
 from prompt_toolkit.application.current import get_app
@@ -53,7 +54,7 @@ from ...config.theme import HubTheme
 from ...locales import Language
 from ...config.profile import UserProfile
 from ...config.view_state import ReadingPosition
-from ..controls import ScrollbarMargin
+from ..controls import ScrollbarMargin, SpacingMargin
 from ..output.selection import SelectableControl
 from ...config.theme_style import ThemeSelector, ThemeStyle
 from ...ui.input.keys import KeyName
@@ -79,7 +80,7 @@ def render_messages(
     resources=None,
 ):
     """Return already-wrapped fragment lines using terminal-cell widths."""
-    inner = TranscriptLayout.inner_width(width)
+    inner = TranscriptLayout.content_width(width)
     t = language or Language(icons=for_style(theme.icon_style))
     console = resources.console(inner, theme) if resources is not None else make_console(inner, theme)
     segment_style = resources.style if resources is not None else _segment_style
@@ -144,7 +145,7 @@ def render_messages(
                 [
                     (
                         TranscriptLayout.EMPTY,
-                        TranscriptLayout.INDENT + TranscriptLayout.SPACE * pad,
+                        TranscriptLayout.SPACE * pad,
                     ),
                     *((ThemeStyle.joined(header_style, segment_style(segment.style)), segment.text)
                       for segment in segments if not segment.control),
@@ -258,7 +259,7 @@ def render_messages(
                 ),
             )
             block_width = body_width + TranscriptPresentation.SIDES * inset
-            padding = TranscriptLayout.INDENT + TranscriptLayout.SPACE * max(
+            padding = TranscriptLayout.SPACE * max(
                 TranscriptPresentation.ORIGIN, inner - block_width
             )
             blank = [
@@ -292,10 +293,7 @@ def render_messages(
                 )
             lines.append(blank)
         else:
-            lines.extend(
-                [(TranscriptLayout.EMPTY, TranscriptLayout.INDENT), *fragments]
-                for fragments in body
-            )
+            lines.extend(body)
         lines.extend([list(row) for row in TranscriptLayout.MESSAGE_GAP])
         if section == RenderSection.ALL and message.tools:
             lines.extend(render_tool_history(message.tools, width, theme, t, resources=resources))
@@ -400,6 +398,8 @@ class ConversationControl(SelectableControl):
         self._lines = [list(TranscriptLayout.BLANK_LINE)]
         self._anchors = []
         self._anchor_starts = {}
+        self._header_heights = {}
+        self._header_handoffs = {}
         self.objects = []
         self._pending_position = ConversationControl.ABSENT
         self.on_position_changed = ConversationControl.ABSENT
@@ -446,7 +446,6 @@ class ConversationControl(SelectableControl):
                           and (m.phase == InterruptFeedback.PHASE or m.status in self.LIVE_HEADER_STATES))
             self._messages = value
             self._urgent_indices = urgent
-            self._urgent_messages = tuple(urgent.values())
             self._message_revision = (
                 getattr(
                     self,
@@ -516,7 +515,17 @@ class ConversationControl(SelectableControl):
             )
             self._max_width = frame.max_width
             self._anchor_starts = frame.starts
+            self._header_heights = frame.header_heights
             self._cache_key = key
+            if position is not None:
+                target = next((target for target, source in self._header_handoffs.items()
+                               if source == position.message_id and target in frame.starts), None)
+                if target is not None:
+                    position = replace(position, message_id=target)
+                    if self.restoring:
+                        self._pending_position = position
+            if key == self._requested_key and key.message_revision == self._message_revision:
+                self._header_handoffs.clear()
             if (
                 position is not ConversationControl.ABSENT
                 and not self.follow_tail
@@ -732,12 +741,23 @@ class ConversationControl(SelectableControl):
     def is_focusable(self) -> bool:
         return ConversationControl.FOCUSABLE
 
+    def handoff_message(self, source_id, target_id):
+        """Bridge an explicitly identified local header until its frame arrives."""
+        if source_id and target_id and source_id != target_id:
+            self._header_handoffs[target_id] = source_id
+
     def _urgent_headers(self):
         """Paint live execution headers while the Markdown frame is pending."""
         headers, extra = {}, []
         if self._cache_key == self._requested_key:
             return headers, extra
-        for message in self._urgent_messages:
+        urgent = dict(self._urgent_indices)
+        if self._header_handoffs:
+            urgent.update((i, message) for i, message in enumerate(self.messages)
+                          if message.id in self._header_handoffs)
+        last_existing = next((i for i in range(len(self.messages) - 1, -1, -1)
+                              if TranscriptIdentity.message(self.messages[i], i) in self._anchor_starts), -1)
+        for index, message in sorted(urgent.items()):
             rows = render_messages(
                 (message,),
                 self._width,
@@ -745,13 +765,22 @@ class ConversationControl(SelectableControl):
                 self.language,
                 section=RenderSection.HEADER,
             )
-            start = self._anchor_starts.get(message.id)
+            anchor = message.id
+            if anchor not in self._anchor_starts:
+                anchor = self._header_handoffs.get(anchor, anchor)
+            start = self._anchor_starts.get(anchor)
             if start is ConversationControl.ABSENT:
-                extra.extend(rows)
+                # An insertion before an existing message must wait for its
+                # proper geometry, rather than flash below later queued input.
+                if index > last_existing:
+                    extra.extend(rows)
+                    extra.extend(TranscriptLayout.MESSAGE_GAP)
             else:
-                # Keep the existing body and row geometry intact. The durable
-                # frame handles reflow; immediate feedback uses its first row.
-                headers[start] = rows[0]
+                # Replace the complete old header slot without overwriting its
+                # body. Shorter labels must not leave old wrapped rows behind.
+                for offset in range(self._header_heights.get(anchor, 1)):
+                    headers[start + offset] = (rows[offset] if offset < len(rows)
+                                               else TranscriptLayout.BLANK_LINE)
         return headers, extra
 
     def create_content(self, width: int, height: int) -> UIContent:
@@ -892,6 +921,8 @@ class ConversationControl(SelectableControl):
         self._lines = [list(TranscriptLayout.BLANK_LINE)]
         self._anchors = []
         self._anchor_starts = {}
+        self._header_heights = {}
+        self._header_handoffs.clear()
         self.objects = []
         self.restore_position(position)
 
@@ -917,7 +948,7 @@ class ConversationView:
                 top=ConversationView.SCROLL_OFFSET,
                 bottom=ConversationView.SCROLL_OFFSET,
             ),
-            right_margins=[ScrollbarMargin(display_arrows=ConversationView.ARROWS)],
+            right_margins=[SpacingMargin(), ScrollbarMargin(display_arrows=ConversationView.ARROWS)],
         )
 
     def __pt_container__(self):

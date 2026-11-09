@@ -17,6 +17,7 @@ from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from ...locales.keys import MessagePattern
 from ..mouse_contract import MouseBinding
 from ..mouse import ScrollbarGeometry
+from ..captions import Caption
 from .draft import NodePosition
 
 
@@ -53,7 +54,6 @@ class GraphCanvas(UIControl):
     KEY_LABELS = {KeyName.CONTROL_Z: 'Ctrl+Z', KeyName.CONTROL_Y: 'Ctrl+Y'}
     SELECT_KEYS = '←↓↑→'
     SCROLL_KEYS = 'Alt+←↓↑→/PgUp/PgDn/Home/End'
-    HELP_LINE = '{label}  •  {description}'
     NEWLINE = '\n'
     CARRIAGE_RETURN = '\r'
     SPACE = ' '
@@ -102,7 +102,7 @@ class GraphCanvas(UIControl):
         self._help.append((label, description))
 
     def help_text(self, translate):
-        return self.NEWLINE.join(self.HELP_LINE.format(label=label, description=translate(description))
+        return self.NEWLINE.join(Caption(label, details=(translate(description),)).render()
                                  for label, description in self._help)
 
     def is_focusable(self):

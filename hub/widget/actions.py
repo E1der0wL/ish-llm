@@ -7,7 +7,6 @@ from hub.ui.input.registry import ShortcutRegistry
 from prompt_toolkit.layout import DynamicContainer, HSplit, VSplit, Window
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.widgets import Frame
-from prompt_toolkit.utils import get_cwidth
 from ..config.theme_style import ThemeSelector
 from ..ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 
@@ -96,6 +95,8 @@ class ActionBar(DynamicContainer):
     CENTER_WEIGHT = 1
     AVAILABLE_WIDTH = None
     LAYOUT_CACHE_SIZE = 4
+    MINIMUM_ROWS = 1
+    MINIMUM_WIDTH = 1
 
     def __init__(self, buttons, width=AVAILABLE_WIDTH, *, bind_navigation=True, equal_width=False):
         self.buttons, self.available_width = buttons, width
@@ -114,8 +115,7 @@ class ActionBar(DynamicContainer):
 
     @staticmethod
     def shared_width(buttons):
-        return max((max(button.width, get_cwidth(button.text) + 2) for button in buttons),
-                   default=0)
+        return max((button.width for button in buttons), default=0)
 
     def button_width(self, button):
         return self.shared_width(self.buttons) if self.equal_width else button.width
@@ -123,6 +123,7 @@ class ActionBar(DynamicContainer):
     def rows(self, width=AVAILABLE_WIDTH):
         widths = self._button_widths()
         width = self._preferred_width(widths) if width is self.AVAILABLE_WIDTH else width
+        widths = tuple(min(item, width) for item in widths)
         return self._rows(width, widths)
 
     def _button_widths(self):
@@ -150,35 +151,45 @@ class ActionBar(DynamicContainer):
 
     def preferred_width(self, max_available_width):
         widths = self._button_widths()
-        minimum = max(widths, default=0)
+        minimum = self.MINIMUM_WIDTH if widths else 0
         return Dimension(
             min=min(minimum, max_available_width),
             preferred=min(self._preferred_width(widths), max_available_width),
         )
 
     def preferred_height(self, width, max_available_height):
-        return self._container(width).preferred_height(width, max_available_height)
+        preferred = self._container(width).preferred_height(width, max_available_height)
+        # A fixed-height popup can offer less room than the wrapped caption
+        # needs. Allow allocation of one row and ellipsize in that allocation.
+        return Dimension(min=min(self.MINIMUM_ROWS, preferred.min),
+                         preferred=preferred.preferred, max=preferred.max)
 
     def write_to_screen(
         self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index
     ):
-        self._container(write_position.width).write_to_screen(
+        self._container(write_position.width, write_position.height).write_to_screen(
             screen, mouse_handlers, write_position, parent_style, erase_bg, z_index
         )
 
-    def _container(self, width=AVAILABLE_WIDTH):
+    def _container(self, width=AVAILABLE_WIDTH, max_rows=None):
         widths = self._button_widths()
         width = self._preferred_width(widths) if width is self.AVAILABLE_WIDTH else width
         signature = (tuple(self.buttons), widths, self.equal_width)
         if signature != self._layout_signature:
             self._layouts.clear()
             self._layout_signature = signature
-        if width in self._layouts:
-            self._layouts.move_to_end(width)
-            return self._layouts[width]
+        cache_key = (width, max_rows)
+        if cache_key in self._layouts:
+            self._layouts.move_to_end(cache_key)
+            return self._layouts[cache_key]
         # PTK walks dynamic children for focus and key dispatch as well as paint.
         # Keep those containers stable; measuring and painting can use different
         # widths in the same frame, so retain a small bounded set of layouts.
+        widths = tuple(min(item, width) for item in widths)
+        if max_rows and len(self._rows(width, widths)) > max_rows:
+            columns = (len(widths) + max_rows - 1) // max_rows
+            available = max(0, width - self.GAP * (columns - 1)) // columns
+            widths = tuple(min(item, available) for item in widths)
         button_widths = dict(zip(self.buttons, widths))
         container = HSplit(
             [
@@ -188,7 +199,7 @@ class ActionBar(DynamicContainer):
                                              - self.GAP * (len(row) - 1)) // 2)),
                         VSplit(
                             [HSplit([button], width=Dimension.exact(button_widths[button]))
-                             for button in row] if self.equal_width else row,
+                             for button in row],
                             padding=self.GAP,
                             width=Dimension.exact(
                                 sum(button_widths[button] for button in row)
@@ -201,7 +212,7 @@ class ActionBar(DynamicContainer):
                 for row in self._rows(width, widths)
             ]
         )
-        self._layouts[width] = container
+        self._layouts[cache_key] = container
         if len(self._layouts) > self.LAYOUT_CACHE_SIZE:
             self._layouts.popitem(last=False)
         return container

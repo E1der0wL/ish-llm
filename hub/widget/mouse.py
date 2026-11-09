@@ -586,6 +586,12 @@ class MouseController:
                 # the menu, and dismissal must not execute an underlying action.
                 self._dismissed_click = self.ACTIVE
                 return MouseResult.HANDLED
+            # Editing can end on a description/blank-area click even when the
+            # focused control stays the same. This notification never consumes
+            # the click that selects another field or activates a button.
+            notify = MouseBinding.outside_click(pressed_control)
+            if notify is not self.ABSENT:
+                notify()
         modal = self._scope()
         if event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT:
             for region, area in reversed(self.regions):

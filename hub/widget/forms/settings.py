@@ -169,7 +169,11 @@ class SettingField:
         )
         self.input.buffer.on_text_changed += lambda _: self.on_change()
         MouseBinding.set_focused_click(self.input.control, self.begin_if_viewing)
-        MouseBinding.set_click_away(self.input.control, self.finish)
+        # End editing on blank-area clicks, too, without consuming selection
+        # of the next field. Keyboard focus changes use _finish_on_blur.
+        MouseBinding.set_outside_click(
+            self.input.control, lambda: self.finish() if self.editing else None
+        )
         registry = ShortcutRegistry()
         editable = lambda: self.enabled() and not self.readonly
         registry.add(

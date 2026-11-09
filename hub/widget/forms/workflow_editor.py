@@ -30,15 +30,14 @@ from ..workflow.dialogs import WorkflowDialogs
 from ..workflow.navigation import WorkflowNavigation, WorkflowRegion
 from ..focus_region import FocusRegion
 from ..section import Heading
-from prompt_toolkit.utils import get_cwidth
+from ..captions import Caption
 
 
 class WorkflowEditor(DefinitionEditor):
-    BUTTON_INSET = 2
     PATH_SEPARATOR = ' / '
     UNTITLED = 'Workflow'
     UNKNOWN_ENGINE = '—'
-    LOCATION = '{scope}  •  {engine}  •  x:{x} y:{y}'
+    COORDINATES = 'x:{x} y:{y}'
     DIRTY_PREFIX = '* '
     SEPARATOR = ' • '
     REFERENCE = '{component}/{identifier} @ {version}'
@@ -108,9 +107,6 @@ class WorkflowEditor(DefinitionEditor):
             Button(t(K.WORKFLOW_BACK), handler=self.leave_body),
             Button(t(K.WORKFLOW_HELP), handler=self.help),
         ], self.toolbar_width)
-        for button in [*self.toolbar.buttons, *self.lower_toolbar.buttons]:
-            button.width = max(button.width, get_cwidth(button.text) + self.BUTTON_INSET)
-            button.window.width = Dimension.exact(button.width)
         name = HSplit([Heading(t(K.WORKFLOW_NAME)), self.identifier])
 
         def workspace_region(content):
@@ -193,8 +189,8 @@ class WorkflowEditor(DefinitionEditor):
 
     def breadcrumb(self):
         scope = self.PATH_SEPARATOR.join((self.identifier.text or self.UNTITLED, *self.document.path))
-        return self.LOCATION.format(scope=scope, engine=self.engine or self.UNKNOWN_ENGINE,
-                                    x=self.canvas.offset_x, y=self.canvas.offset_y)
+        return Caption(scope, details=(self.engine or self.UNKNOWN_ENGINE,
+            self.COORDINATES.format(x=self.canvas.offset_x, y=self.canvas.offset_y))).render()
 
     def items(self):
         return [SidebarItem(name, self.document.title(name)) for name in self.document.graph()[WorkflowDocument.NODES]]

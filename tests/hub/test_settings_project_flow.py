@@ -40,7 +40,7 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: view.settings_open and screen.page is not None and not screen.busy)
                 with set_app(app):
                     screen.choose("profile")
-                    self.assertEqual(screen.page_title(), "전역 설정 • 프로필")
+                    self.assertEqual(screen.page_title(), "전역 • 프로필")
                     screen.page.form.fields[("display_name",)].input.text = "Nickname"
                 settings_button(app, pipe, view)
                 await until(lambda: view.user_profile.display_name == "Nickname" and not screen.busy)

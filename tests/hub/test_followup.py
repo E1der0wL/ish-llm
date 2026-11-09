@@ -19,6 +19,19 @@ from tests.hub.support import SizedOutput, eventually
 
 
 class FollowupTests(unittest.IsolatedAsyncioTestCase):
+    def test_assistant_offers_are_hidden_but_user_requests_and_questions_remain(self):
+        for suggestion in (
+            'PySide6 메모장에 줄 번호(Line Number) 표시 기능이나 탭(Multi-tab) 편집 기능을 추가하는 방법이 궁금하신가요?',
+            '테스트도 추가해 드릴까요?', '도와드릴까요?',
+            'Would you like me to add a test?', 'Shall I update it?',
+        ):
+            with self.subTest(suggestion=suggestion):
+                self.assertEqual(split_followup('Answer\n<hub-next>' + suggestion + '</hub-next>'), ('Answer', ''))
+        for suggestion in ('줄 번호 표시 기능도 추가해줘.', '어떻게 작동하는지 알려줄래?',
+                           'Please add a test.', 'Why does this fail?', '이 질문은 무슨 뜻이야: 궁금하신가요? 설명해줘.'):
+            with self.subTest(suggestion=suggestion):
+                self.assertEqual(split_followup('Answer\n<hub-next>' + suggestion + '</hub-next>'), ('Answer', suggestion))
+
     def test_metadata_is_trailing_bounded_and_never_code(self):
         tagged = "Answer\n<hub-next>Add a regression test</hub-next>"
         self.assertEqual(split_followup(tagged), ("Answer", "Add a regression test"))

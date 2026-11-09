@@ -4,11 +4,11 @@ from prompt_toolkit.layout import Window, VSplit
 from prompt_toolkit.layout.controls import FormattedTextControl
 from ..asset.icon import NERD
 from ..config.theme_style import ThemeSelector, ThemeStyle
-from .controls import Button
+from .controls import IconButton
 from .actions import bind_button_navigation
 
 
-class HeaderButton(Button):
+class HeaderButton(IconButton):
     """Header-owned action; its surface is always the header surface."""
     WIDTH = 3
 

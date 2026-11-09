@@ -16,7 +16,7 @@ from ...backend.interactions.question_operations import (QuestionAction, Questio
 from ...ui.input.keys import KeyName, ShortcutAction, ShortcutLabel
 from ...ui.input.registry import ShortcutRegistry
 from ..actions import ActionBar, ButtonNavigation, bind_button_navigation
-from ..controls import Button
+from ..controls import Button, IconButton
 from ..dropdown import DropdownBox
 from ..feedback.progress import ProgressCompletion
 
@@ -44,9 +44,9 @@ class QuestionInbox:
         self.finished = set()
         self.targets = []
         self.open_button = self.button(MessageKey.QUESTION_ANSWER, self.open)
-        self.previous_button = Button(lambda: IconSet.action(self.view.icons, AuxiliaryIcon.PREVIOUS),
+        self.previous_button = IconButton(lambda: IconSet.action(self.view.icons, AuxiliaryIcon.PREVIOUS),
                                       handler=lambda: self.move(-1), width=QuestionInbox.PAGE_BUTTON_WIDTH, focusable=False)
-        self.next_button = Button(lambda: IconSet.action(self.view.icons, AuxiliaryIcon.NEXT),
+        self.next_button = IconButton(lambda: IconSet.action(self.view.icons, AuxiliaryIcon.NEXT),
                                   handler=lambda: self.move(1), width=QuestionInbox.PAGE_BUTTON_WIDTH, focusable=False)
         self.navigation_control = FormattedTextControl(self.position, focusable=True, show_cursor=False)
         self.bind_navigation(self.navigation_control)
@@ -104,7 +104,8 @@ class QuestionInbox:
 
     def button(self, key, handler):
         text = self.view.t(key)
-        return self.bind(Button(text, width=get_cwidth(text) + QuestionInbox.BUTTON_PADDING, handler=handler))
+        return self.bind(Button(text, width=get_cwidth(text) + QuestionInbox.BUTTON_PADDING,
+                                handler=handler, expand_width=False))
 
     def navigation_style(self):
         focused = get_app().layout.current_control is self.navigation_control

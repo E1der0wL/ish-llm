@@ -2,7 +2,7 @@
 
 import asyncio
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import set_app
@@ -10,15 +10,37 @@ from prompt_toolkit.input import DummyInput, create_pipe_input
 from prompt_toolkit.layout import HSplit, Layout, Window
 from prompt_toolkit.layout.mouse_handlers import MouseHandlers
 from prompt_toolkit.layout.screen import Screen, WritePosition
+from prompt_toolkit.data_structures import Point
+from prompt_toolkit.mouse_events import MouseButton, MouseEvent, MouseEventType
 
 from hub.widget.controls import Button, ScrollablePane
 from hub.widget.dialog import Dialog, PopupSize
 from examples.hub.preview import create_preview
-from hub.widget.dropdown import DropdownBox, DropdownLayer
+from hub.widget.dropdown import CompletionChoices, DropdownBox, DropdownLayer
 from tests.hub.support import SizedOutput, eventually
 
 
 class DropdownPlacementTests(unittest.TestCase):
+    def test_hover_invalidates_only_when_pending_row_changes(self):
+        choices = CompletionChoices([('a', 'Alpha'), ('b', 'Beta')], 24)
+        commit = Mock()
+        choices._handle_enter = commit
+        app = Application(layout=Layout(choices), input=DummyInput(), output=SizedOutput())
+        with set_app(app), patch.object(app, 'invalidate') as invalidate:
+            handler = next(part[2] for part in choices._get_text_fragments() if part[1] == 'Beta')
+            event = MouseEvent(Point(2, 1), MouseEventType.MOUSE_MOVE, MouseButton.NONE, frozenset())
+            handler(event)
+            self.assertEqual(choices._selected_index, 1)
+            self.assertEqual(choices.current_value, 'a')
+            invalidate.assert_called_once_with()
+            for _ in range(5):
+                handler(event)
+            invalidate.assert_called_once_with()
+            other = next(part[2] for part in choices._get_text_fragments() if part[1] == 'Alpha')
+            other(MouseEvent(Point(2, 0), MouseEventType.MOUSE_MOVE, MouseButton.LEFT, frozenset()))
+            self.assertEqual(choices._selected_index, 1)
+            commit.assert_not_called()
+
     def paint(self, app):
         app.layout.update_parents_relations()
         screen = Screen()
@@ -91,6 +113,103 @@ class DropdownPlacementTests(unittest.TestCase):
 
 
 class DropdownMouseTests(unittest.IsolatedAsyncioTestCase):
+    async def test_hover_highlight_keyboard_commit_and_cancel_share_pending_selection(self):
+        with create_pipe_input() as pipe:
+            app, view, _ = create_preview(input=pipe, output=SizedOutput(122, 37))
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+
+            async def paint():
+                before = app.render_counter
+                app.invalidate()
+                await eventually(lambda: app.render_counter > before)
+                return app.renderer._last_screen.visible_windows_to_write_positions
+
+            async def hover(menu, row):
+                rect = (await paint())[menu.choices.window]
+                pipe.send_text(f'\x1b[<35;{rect.xpos+3};{rect.ypos+row+1}M')
+                await eventually(lambda: menu.choices._selected_index == row)
+                await paint()
+                cell = app.renderer._last_screen.data_buffer[rect.ypos+row][rect.xpos+2]
+                self.assertIn(CompletionChoices.CURRENT, cell.style)
+
+            try:
+                await eventually(lambda: app.is_running and view.visible)
+                with set_app(app):
+                    view.toggle_settings()
+                    view.settings.choose('appearance')
+                    field = view.settings.page.form.fields[('mode',)]
+                    menu = field.input
+                    original = field.value()
+                    app.layout.focus(menu.control)
+                    menu.open()
+                    await hover(menu, 2)
+                    self.assertEqual(field.value(), original)
+                    self.assertIs(app.layout.current_control, menu.choices.control)
+                    pipe.send_text('\x1b')
+                    await eventually(lambda: not menu.is_open())
+                    self.assertEqual(field.value(), original)
+                    self.assertIs(app.layout.current_control, menu.control)
+
+                    changed = Mock()
+                    menu = DropdownBox([('a', 'Alpha'), ('b', 'Beta'), ('c', 'Gamma')],
+                                       value='a', on_change=changed)
+                    popup = Dialog(title='Choices', body=menu, buttons=[Button('Close')])
+                    view.dialogs.show(popup, menu.control)
+                    menu.open()
+                    await hover(menu, 1)
+                    self.assertEqual(menu.value, 'a')
+                    changed.assert_not_called()
+                    pipe.send_text('\x1b[B\r')
+                    await eventually(lambda: changed.call_count == 1)
+                    changed.assert_called_once_with('c')
+                    self.assertFalse(menu.is_open())
+                    self.assertIs(app.layout.current_control, menu.control)
+                    menu.open()
+                    await hover(menu, 2)
+                    pipe.send_text('\x1b[<0;1;1M\x1b[<0;1;1m')
+                    await eventually(lambda: not menu.is_open())
+                    self.assertEqual(changed.call_count, 1)
+                    self.assertIs(view._dialog, popup)
+            finally:
+                app.exit()
+                await task
+
+    async def test_hover_after_wheel_targets_visible_row_and_click_commits_once(self):
+        with create_pipe_input() as pipe:
+            app, view, _ = create_preview(input=pipe, output=SizedOutput(100, 28))
+            changed = Mock()
+            menu = DropdownBox([(i, f'Option {i}') for i in range(30)], value=0, on_change=changed)
+            task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
+
+            async def paint():
+                before = app.render_counter
+                app.invalidate()
+                await eventually(lambda: app.render_counter > before)
+                return app.renderer._last_screen.visible_windows_to_write_positions
+
+            try:
+                await eventually(lambda: app.is_running and view.visible)
+                with set_app(app):
+                    popup = Dialog(title='Scroll', body=menu, buttons=[Button('Close')])
+                    view.dialogs.show(popup, menu.control)
+                    menu.open()
+                    rect = (await paint())[menu.choices.window]
+                    pipe.send_text(f'\x1b[<65;{rect.xpos+3};{rect.ypos+2}M')
+                    await eventually(lambda: menu.choices.window.vertical_scroll > 0)
+                    rect = (await paint())[menu.choices.window]
+                    expected = menu.choices.window.vertical_scroll + 1
+                    pipe.send_text(f'\x1b[<35;{rect.xpos+3};{rect.ypos+2}M')
+                    await eventually(lambda: menu.choices._selected_index == expected)
+                    changed.assert_not_called()
+                    self.assertEqual(menu.value, 0)
+                    pipe.send_text(f'\x1b[<0;{rect.xpos+3};{rect.ypos+2}M\x1b[<0;{rect.xpos+3};{rect.ypos+2}m')
+                    await eventually(lambda: changed.call_count == 1)
+                    changed.assert_called_once_with(expected)
+                    self.assertFalse(menu.is_open())
+            finally:
+                app.exit()
+                await task
+
     async def test_page_and_modal_menus_close_outside_and_keep_selection_inside(self):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput(122, 37))

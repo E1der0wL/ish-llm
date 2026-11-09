@@ -12,6 +12,7 @@ class MouseBinding:
     INTERACTIVE = "hub_interactive"
     FOCUSED_CLICK = "hub_focused_click"
     CLICK_AWAY = "hub_click_away"
+    OUTSIDE_CLICK = "hub_outside_click"
     EMPTY_CLICK_FOCUS = "hub_empty_click_focus"
     ABSENT = None
     INACTIVE = False
@@ -32,6 +33,14 @@ class MouseBinding:
     @classmethod
     def click_away(cls, control):
         return getattr(control, cls.CLICK_AWAY, cls.ABSENT)
+
+    @classmethod
+    def set_outside_click(cls, control, callback):
+        setattr(control, cls.OUTSIDE_CLICK, callback)
+
+    @classmethod
+    def outside_click(cls, control):
+        return getattr(control, cls.OUTSIDE_CLICK, cls.ABSENT)
 
     @classmethod
     def set_focused_click(cls, control, callback):

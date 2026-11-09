@@ -83,7 +83,9 @@ class SidebarHeightMouseTests(unittest.IsolatedAsyncioTestCase):
                         self.assertFalse(hasattr(top_window, 'drag_handler'))
                         if page == 'settings':
                             global_window = next(p for w, p in positions.items() if w.content is upper)
-                            self.assertEqual(global_window.ypos + global_window.height, y)
+                            # The shared panel reserves one visible separator
+                            # row without hiding the final global category item.
+                            self.assertEqual(global_window.ypos + global_window.height + 1, y)
                         await paint()
                         await mouse(35, x, y)
                         rule = next(w for w, p in app.renderer._last_screen.visible_windows_to_write_positions.items()

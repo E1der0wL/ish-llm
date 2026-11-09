@@ -4,12 +4,12 @@ from hub.model import ResponseActivity
 
 from hub.locales.keys import MessageKey, MessagePattern
 
-from llm.core.models import MessageStatus, RunStatus, MessageRole, ConversationStorage, StepStatus
+from llm.core.models import MessageStatus, RunStatus, MessageRole, StepStatus
 from typing import NamedTuple
 from dataclasses import dataclass, replace
 from datetime import datetime
 
-from ..model import ChatMessage, HubSnapshot, SessionSummary, QuestionPresentation, ReasoningMessage, TraceItem
+from ..model import ChatMessage, HubSnapshot, SessionSummary, ReasoningMessage, TraceItem
 from ..backend.execution.followup import split_followup
 from .error_presentation import error_text, failure_text
 from .message_changes import unchanged_prefix
@@ -24,7 +24,6 @@ class PresentationFormat:
     SUMMARY_SUFFIX = ":summary"
     FAILURE_DETAILS = "\n\n"
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
-    NOTICE_SEPARATOR = " • "
     RUN_ERROR = "{status}: {error}"
 
 
@@ -233,30 +232,13 @@ def present(snapshot: HubSnapshot, t, cache=PresentationFormat.ABSENT) -> Presen
     messages = (cache or MessagePresentationCache()).messages(snapshot, t)
     if not sessions:
         return Presentation((), messages, t(MessageKey.SESSION_REQUIRED))
-    notice = t(
-        MessageKey.QUEUED, status=t.status(snapshot.status), count=snapshot.queued_count
-    )
+    # Session activity belongs to the sidebar, not the Home warning/progress row.
+    notice = PresentationFormat.EMPTY
     run = snapshot.run
-    if run:
-        if run.error:
-            notice = PresentationFormat.RUN_ERROR.format(
-                status=t.status(run.status), error=run.error
-            )
-        elif run.status == RunStatus.PAUSED:
-            notice = t(MessageKey.PAUSED)
-    if snapshot.status in (
-        SessionSummary.WAITING_INPUT,
-        SessionSummary.WAITING_APPROVAL,
-    ):
-        status = t.status(snapshot.status)
-        if snapshot.questions:
-            status += (
-                PresentationFormat.NOTICE_SEPARATOR
-                + QuestionPresentation.observe(snapshot.questions[0]).request.title
-            )
-        notice = t(MessageKey.QUEUED, status=status, count=snapshot.queued_count)
-    if snapshot.storage == ConversationStorage.MEMORY:
-        notice += PresentationFormat.NOTICE_SEPARATOR + t(MessageKey.MEMORY)
+    if run and run.error:
+        notice = PresentationFormat.RUN_ERROR.format(
+            status=t.status(run.status), error=run.error
+        )
     if snapshot.title_error:
         notice = t(MessageKey.TITLE_FAILED, error=error_text(snapshot.title_error))
     if snapshot.model_required:

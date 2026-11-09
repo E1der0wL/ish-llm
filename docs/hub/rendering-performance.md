@@ -65,6 +65,27 @@ Large output bursts and a later, shorter paint area cannot consume that intent e
 Explicit scrolling, saved-position restoration, search navigation and disabling
 auto-scroll retain their existing control over the reading position.
 
+Preparation feedback hands its display anchor to the first observed response
+for its accepted request. `PreparingResponse` owns that association;
+`EngineOutput.handoff_message` is only a presentation hint. `LoopOutput` forwards
+it to the transcript, without rewriting backend message IDs or storing another
+conversation. Other output implementations may render complete frames without
+using the hint.
+
+While a Markdown frame is pending, `ConversationControl` replaces the local
+header at its existing row instead of appending the observed header below it.
+The handoff survives progressive older-frame delivery, remaps a reading anchor
+when the observed frame arrives, and is released on current-frame delivery or
+session replacement. A completed response or its first reasoning header uses
+the same association; author text is never used to guess message identity.
+
+`Frame` supplies immutable header heights from the render cache. Urgent updates
+replace that whole existing header slot, clearing stale wrapped rows while
+preserving the body geometry. New trailing headers reserve the canonical
+message gap; headers inserted before already visible queued input wait for the
+proper frame rather than flashing at the bottom. These changes reuse the
+existing renderer thread, cache, update signals and rate ceiling.
+
 Backend snapshot publication also keeps one latest pending snapshot/callback.
 Command completions are not dropped. Snapshot notifications retain the backend's
 existing bounded sequence history.
@@ -193,6 +214,22 @@ Only the small single-row progress frame is rendered on the UI thread.
 
 ## Validation and instrumentation
 
+2026-11-09: preparation-to-response header handoff passed **84 focused tests**
+and the complete **1,205-test Hub suite** with Linux Python 3.12.14 on a
+hash-verified WSL Linux filesystem snapshot. The full run took 2,469.99 seconds;
+there were no failures, skips, missing tests or duplicate executions. Reports:
+`tests/hub/reports/header-handoff-20261109/` (`focus04`, `full01`, `validation.json`).
+
+Intermediate PTK frames are checked before and after worker delivery, including
+progressive stale delivery, fast completion, reasoning-first responses, multiple
+agents, wrapped headers, queued input and restored reading anchors. Header count,
+row position, viewport height, follow-tail position and manual scroll intent stay
+consistent across the preparation handoff. All 989 Hub, Hub-test and backend
+source files match the tested snapshot; all 412 `llm/` files remain byte-identical.
+Popup geometry, shared audit tests, strict architecture, complete contract coverage
+and documentation checks passed. The five changed Hub source owners have current
+review evidence and source hashes; execution and persistence ownership is unchanged.
+
 2026-10-12: immediate composer restoration and durable decision acknowledgement
 are separate from resume admission. Input-linked, nonfocusable RadioList choices
 and content-height request cards replace the plain choice list. Transcript mouse
@@ -286,3 +323,33 @@ inactive-session invalidation and preemption of an obsolete display read.
   workstation. See `tests/hub/reports/rendering-benchmark-d14rl7d0.json`.
 - Status: **OPTIMIZATION ALIGNED**. The remaining costs above are deliberately
   documented; timings do not promise a particular provider response latency.
+
+## 버튼·출력 정렬과 지침 검증 (2026-11-09)
+
+확정된 화면은 `Button`의 동적 텍스트 너비, `IconButton`의 지정 너비,
+`AuxiliaryButton`의 기존 전역 색상과 상호작용을 구분한다. 출력 제목·본문·생각 과정은
+상위 레이아웃의 여백을 다시 차감하지 않으며, 스크롤바 앞 한 칸은 Window margin이
+소유한다. 사용자 말풍선·코드 블록 자체의 내부 여백은 유지한다.
+
+Linux Python 3.12.14의 Linux 파일시스템 사본으로 검증했다. 자료는
+`tests/hub/reports/button-output-alignment-20261109/`에 보관한다.
+
+- 최종 집중 검사 `focus05`: **103개 통과**. 실제 PTK 셀 너비, 좁은 화면과 사이드바,
+  Unicode/Nerd 아이콘, 언어 변경, 출력 캐시·준비 헤더 교체와 질문 UI를 포함한다.
+- 최초 전체 검사는 추천 지침이 기존 입력 길이 상한을 넘는 것을 발견해 중단했다.
+  지침을 짧게 고쳤으며 기존 850자 상한이나 검사 조건을 늘리지 않았다.
+- `full02`: 전체 **1,209개 실행, 1,207개 통과, 2개 실패**(약 32분 27초).
+  실패는 `test_conversation`의 이전 내부 여백 2칸 기대값이었다. 부모가 여백을
+  제거한 실제 내용 너비 전체를 비교하도록 해당 기대값만 갱신했다.
+- `focus06`: 그 모듈과 실제 화면·캐시·헤더 검사 **54개 모두 통과**.
+  전체 실행 이후 제품 코드는 변경하지 않았다. 원래 전체 결과는 그대로 보존하며,
+  `validation.json`이 전체 발견 ID와 재검증 ID를 대조한다. 최종 미해결 실패,
+  누락·중복·skip은 모두 **0개**다. 이를 단일 실행 1,209개 전부 통과와 구분한다.
+- 구조·감사 테스트 **39개**, strict 구조·계약 완전성·문서·팝업 geometry 검사 통과.
+  감사 대상 **802개**의 미검토·해시 불일치·미분류·위반은 모두 0개다.
+- 구현·Hub 테스트 **989개**의 최종 소스를 대조했다. `llm/` **412개 파일**은
+  작업 이전 소스와 같으며, 실제 시스템 클립보드와 사용자 프로젝트를 시험 자료로 쓰지 않았다.
+
+언어 지침과 추천 요청은 기존 transient completion 경로를 사용한다. 원본 사용자
+메시지의 ID·내용은 유지하고 추가 번역/모델 호출은 만들지 않는다. 모의 Provider와
+로컬 렌더링으로 검사했으며, 실제 사내 모델의 공개 생각 요약 언어·말투 준수는 보장하지 않는다.

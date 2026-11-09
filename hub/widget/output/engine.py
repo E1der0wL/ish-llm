@@ -109,6 +109,13 @@ class EngineOutput(HSplit, ABC):
         self, messages: tuple[ChatMessage, ...], *, auto_scroll: bool | None = ABSENT
     ) -> None: ...
 
+    def handoff_message(self, source_id: str, target_id: str) -> None:
+        """Optional display-anchor handoff from local feedback to observed output.
+
+        This hint does not change either message's durable identity or content.
+        Outputs without intermediate transcript frames need no special handling.
+        """
+
     @abstractmethod
     def reading_position(self) -> ReadingPosition: ...
 

@@ -10,6 +10,7 @@ from rich.spinner import Spinner
 from llm.core.models import RunStatus, SessionStatus
 from ..locales.keys import MessageKey
 from ..model import HubSnapshot, SessionSummary
+from .captions import Caption
 from .sidebar import SidebarItem, SidebarList
 
 
@@ -42,6 +43,8 @@ class SessionList(SidebarList):
         self._rows_key = None
         self._rows = []
         self._running_lines = set()
+        self._heading_window = None
+        self._heading_running = False
         self._frame_key = None
         self._frame = ""
         self._label_key = None
@@ -120,29 +123,51 @@ class SessionList(SidebarList):
                              else view.icons.session_completed if state == SessionListState.COMPLETED
                              else view.icons.session_idle)
                 detail = (glyph + self.SEPARATOR if glyph else "") + self._labels[state]
+                observation = self.observations.get(session.id)
+                detail = view.t(MessageKey.QUEUED, status=detail,
+                                count=observation.queued_count if observation else 0)
                 result.append(SidebarItem(view._draft_key(index), session.title, detail))
         self._rows_key, self._rows = key, result
         return result
+
+    def heading(self, window):
+        """Use the same cached state and spinner frame in the Home output header."""
+        rows = self.rows()
+        self._heading_window = window
+        self._heading_running = bool(rows and self.state(
+            self.view.sessions[self.view.selected].id) == SessionListState.RUNNING)
+        if self._active():
+            self._observe_render()
+        if not rows:
+            return ""
+        row = rows[self.view.selected]
+        return Caption(row.title, details=(row.detail,)).render()
+
+    def _observe_render(self):
+        app = get_app()
+        if self._app is not app:
+            self.close_animation()
+            self._app = app
+            app.after_render += self._after_render
 
     def create_content(self, width, height):
         content = super().create_content(width, height)
         # Measure calls do not start animations. Decide after painting, when PTK
         # exposes the actual visible source rows, including the scroll position.
         if height and self._active():
-            app = get_app()
-            if self._app is not app:
-                self.close_animation()
-                self._app = app
-                app.after_render += self._after_render
+            self._observe_render()
         return content
 
     def _after_render(self, app):
-        animate = self._active() and self._running_lines and any(
+        visible = app.layout.visible_windows
+        heading_visible = self._heading_running and self._heading_window in visible
+        rows_visible = self._running_lines and any(
             window.content is self and window.render_info is not None
             and any(row in self._running_lines
                     for row, _ in window.render_info.visible_line_to_row_col.values())
-            for window in app.layout.visible_windows
+            for window in visible
         )
+        animate = self._active() and (heading_visible or rows_visible)
         if not animate:
             # Do not remove this handler while Event is dispatching its list:
             # doing so would skip the next owner's after_render callback.

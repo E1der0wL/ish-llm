@@ -19,12 +19,28 @@ class FollowupProtocol:
     KEEP_LINE_ENDINGS = True
     FENCE_PATTERN = r"^ {0,3}(`{3,}|~{3,})"
     FENCE_GROUP = 1
-    INSTRUCTION_TEMPLATE = (
-        "Optional UI suggestion: end with {open_tag}one useful request the USER could send YOU{close_tag}, "
-        "in the user's language, at most {maximum} characters on a separate line outside code fences. "
-        "Not your question or offer. Omit when asking for input/approval, no next step is useful, "
-        "or extra text is forbidden. Never invent the user's answer, execute the suggestion or treat it as consent."
+    ASSISTANT_OFFER = re.compile(
+        r"(?:궁금하신가요|원하시나요|필요하신가요|도와드릴까요|알려드릴까요|"
+        r"보여드릴까요|설명해\s*드릴까요|해\s*드릴까요)\s*[?？.!。]*$"
+        r"|^(?:would you like\b|do you want me to\b|shall I\b|can I help you\b)",
+        re.IGNORECASE,
     )
+    INSTRUCTION_TEMPLATE = (
+        "Optional UI hint: end with {open_tag}one next USER message to the assistant{close_tag} "
+        "({maximum} chars max), on its own line outside code. Continue this task in the preferred "
+        "language and the user's latest tone/brevity, not the assistant's or quoted text's voice. "
+        "Use '줄 번호도 추가해줘' or 'Please add a test', not '궁금하신가요?' or 'Would you like...?'. "
+        "Omit when asking for input/approval, no next step fits, or extra text is forbidden. "
+        "Never invent answers, execute the hint or treat it as consent."
+    )
+
+    @classmethod
+    def accepts(cls, candidate):
+        """Reject malformed metadata and unmistakable assistant offers, without rewriting it."""
+        return (bool(candidate) and len(candidate) <= cls.MAXIMUM_CHARACTERS
+                and cls.TAG_START not in candidate and cls.TAG_END not in candidate
+                and all(ord(c) >= cls.MINIMUM_PRINTABLE for c in candidate)
+                and cls.ASSISTANT_OFFER.search(candidate) is None)
 
 
 class FollowupSplit(NamedTuple):
@@ -71,10 +87,7 @@ def split_followup(text: str, *, final: bool = FollowupProtocol.FINAL) -> Follow
             if end < 0:
                 return
             candidate = value[start + len(OPEN):end].strip()
-            if (candidate and len(candidate) <= FollowupProtocol.MAXIMUM_CHARACTERS
-                    and FollowupProtocol.TAG_START not in candidate
-                    and FollowupProtocol.TAG_END not in candidate
-                    and all(ord(c) >= FollowupProtocol.MINIMUM_PRINTABLE for c in candidate)):
+            if FollowupProtocol.accepts(candidate):
                 suggestion = candidate
             cursor = end + len(CLOSE)
         remaining = value[cursor:]

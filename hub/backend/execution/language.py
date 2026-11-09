@@ -1,21 +1,25 @@
 """User-facing language guidance; no translation calls or stored prompt edits."""
 
 from llm.components.processing import CompletionSession
+from ...locales.codes import LanguageCode
 from .input_context import HubInputContext
 
 
 class LanguageSession(CompletionSession):
+    NAMES = {LanguageCode.KOREAN: "Korean", LanguageCode.ENGLISH: "English"}
     INSTRUCTION = (
-        "Use the user's preferred language ({language}) for answers, questions, "
-        "progress descriptions and any reasoning summaries you expose, unless the user asks "
-        "otherwise. Preserve code, identifiers and paths. Do not translate tool payloads."
+        "Use {name} ({language}) for answers, questions, progress and provider-exposed reasoning "
+        "summaries from the first thinking/reasoning channel output, unless the user explicitly "
+        "requests otherwise. English instructions/tools do not override this. Keep summaries "
+        "concise without disclosing private reasoning; preserve code, identifiers, paths and Tool payloads."
     )
 
     def __init__(self, language):
         self.language = language
 
     async def prepare(self, request):
-        HubInputContext.insert(request, self.INSTRUCTION.format(language=self.language))
+        HubInputContext.insert(request, self.INSTRUCTION.format(
+            name=self.NAMES.get(self.language, self.language), language=self.language))
         if False:
             yield
 
