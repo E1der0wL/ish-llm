@@ -191,7 +191,7 @@ class Dialog(PTKDialog):
         )
 
     def __init__(self, *args, shortcut_context=DialogContext.DIALOG,
-                 size=PopupSize.MEDIUM, content_padding=CONTENT_PADDING,
+                 size=PopupSize.MEDIUM,
                  status_bar=None, status_in_body=False, allow_small_input=False,
                  actions_active=None, actions_focus=None, **kwargs):
         self.shortcut_context = shortcut_context
@@ -207,12 +207,10 @@ class Dialog(PTKDialog):
         buttons = kwargs.pop(self.BUTTONS, None) or []
         content = PopupBody(lambda: self.body)
         compact = self.requested_size != PopupSize.LARGE
-        if compact:
-            content_padding = self.CONTENT_PADDING
-        self._content_padding = content_padding
+        self._content_padding = self.CONTENT_PADDING
         self._buttons = buttons
         body = Box(content,
-                   padding=content_padding, padding_bottom=0)
+                   padding=self.CONTENT_PADDING, padding_bottom=0)
         if buttons:
             actions = Box(ActionBar(buttons, lambda: max(1, self._width().preferred - PopupGeometry.ACTION_INSET),
                               bind_navigation=shortcut_context != DialogContext.READER,

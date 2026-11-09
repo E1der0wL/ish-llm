@@ -81,7 +81,7 @@ class QuestionCard(TextViewport):
     def render_request(self, width):
         view = self.question.view
         self.render_worker = view.render_worker
-        theme, language = view.theme, copy(view.t)
+        theme, language = view.render_theme, copy(view.t)
         request = (
             QuestionPresentation.observe(self.question.item).request
             if self.question.item

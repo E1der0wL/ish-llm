@@ -5,7 +5,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from types import SimpleNamespace
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -21,7 +21,8 @@ class ProgressTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.input_context = create_pipe_input()
         self.pipe = self.input_context.__enter__()
-        self.app, self.view, _ = create_preview(input=self.pipe, output=SizedOutput())
+        with patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''}):
+            self.app, self.view, _ = create_preview(input=self.pipe, output=SizedOutput())
         self.task = asyncio.create_task(self.app.run_async())
         await eventually(lambda: self.app.is_running)
         self.pipe.send_text("\x11")

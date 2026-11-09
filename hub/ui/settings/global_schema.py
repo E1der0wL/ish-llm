@@ -8,6 +8,7 @@ from ...config.profile import UserProfile
 from ...config.restart import setting_metadata
 from ...config.sections import PreferenceSection
 from ...config.theme import HubTheme
+from ...config.theme_mode import ThemeMode
 from ...locales.keys import MessageKey, MessagePattern
 from ...widget.forms.settings import ChoiceField
 from ...widget.color_preview import ColorPreview
@@ -53,16 +54,16 @@ class GlobalSettingsSchema:
     )
     COLOR_FIELDS = (*BASE_COLORS, *NORMAL_COLORS, *BRIGHT_COLORS)
     APPEARANCE_GROUPS = (
+        (MessageKey.SETTINGS_THEME_DISPLAY, (HubTheme.mode.__name__, HubTheme.icon_style.__name__)),
         (MessageKey.SETTINGS_THEME_BASE, BASE_COLORS),
         (MessageKey.SETTINGS_THEME_NORMAL, NORMAL_COLORS),
         (MessageKey.SETTINGS_THEME_BRIGHT, BRIGHT_COLORS),
-        (MessageKey.SETTINGS_THEME_DISPLAY, (HubTheme.icon_style.__name__,)),
     )
     REFRESH_FIELDS = (
         HubTheme.output_refresh_interval,
         HubTheme.progress_refresh_interval,
     )
-    INITIAL_APPEARANCE_FIELDS = (HubTheme.icon_style, *REFRESH_FIELDS)
+    INITIAL_APPEARANCE_FIELDS = (HubTheme.mode, HubTheme.icon_style, *REFRESH_FIELDS)
 
     @classmethod
     def initial_values(cls, name, values):
@@ -101,6 +102,17 @@ class GlobalSettingsSchema:
             if key in properties:
                 properties[key].update(metadata)
         if name == PreferenceSection.APPEARANCE:
+            properties[HubTheme.mode.__name__] = {
+                SchemaKeyword.TYPE: SchemaType.STRING,
+                SchemaKeyword.ENUM: [value.value for value in ThemeMode],
+                SchemaKeyword.TITLE: t(MessageKey.SETTINGS_THEME_MODE),
+                SchemaKeyword.DESCRIPTION: t(MessageKey.SETTINGS_THEME_MODE_HELP),
+                ChoiceField.SCHEMA_KEY: {
+                    ThemeMode.AUTO.value: t(MessageKey.SETTINGS_THEME_MODE_AUTO),
+                    ThemeMode.DARK.value: t(MessageKey.SETTINGS_THEME_MODE_DARK),
+                    ThemeMode.LIGHT.value: t(MessageKey.SETTINGS_THEME_MODE_LIGHT),
+                },
+            }
             properties[HubTheme.icon_style.__name__] = {
                 SchemaKeyword.TYPE: SchemaType.STRING,
                 SchemaKeyword.ENUM: [value.value for value in IconStyle],

@@ -1,8 +1,9 @@
-"""Hub language identities and the existing application selection default."""
+"""Canonical language identities, automatic selection and final fallback."""
 
 
 class LanguageCode:
+    AUTO = ""
     KOREAN = "ko"
     ENGLISH = "en"
     BUILTIN = (KOREAN, ENGLISH)
-    DEFAULT = KOREAN
+    DEFAULT = ENGLISH

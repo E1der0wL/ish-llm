@@ -139,12 +139,15 @@ class HubBindings:
                 KeyName.CONTROL_F,
                 KeyName.CONTROL_G,
                 KeyName.CONTROL_L,
-                KeyName.CONTROL_T,
             ],
             ShortcutLabel.HIDDEN,
             ShortcutAction.NONE,
             lambda e: self.NO_ACTION,
             when=lambda: c.chat,
+        )
+        r.add(
+            [KeyName.CONTROL_T], ShortcutLabel.CONTROL_T, ShortcutAction.RECIPIENT,
+            lambda e: view.recipient_dropdown.open(), when=lambda: c.composing,
         )
         r.add(
             [KeyName.CONTROL_D],

@@ -181,7 +181,7 @@ SessionCatalog는 세션 생성/삭제/복제와 실행 start/shutdown, 제목 �
 
 | 책임 | 공통 구현 | 사용처 |
 | --- | --- | --- |
-| 페이지 배치·좌측 패널 이동 | `ui/layout/page.py`의 `TwoPanelPage` | 대화·설정 |
+| 페이지 배치·좌측 패널 이동·포커스 영역 지정 | `ui/layout/page.py`의 `TwoPanelPage` | 홈·설정·Agent 편집 |
 | 버튼·입력·선택·스크롤 모양 | `widget/controls.py` | 설정·팝업·대화 |
 | 좌측 목록·상단·하단 | `SidebarList`, `HeaderBar`, `ShortcutBar` | 대화·설정 |
 | 설정 키·설명·값 편집 | `widget/forms/settings.py`, `widget/forms/settings_viewport.py` | 설정 페이지 |

@@ -19,11 +19,16 @@ class ShortcutBar(Window):
 
     def __init__(self, hints, width):
         self.hints, self.width_available = hints, width
+        self.rendered_width = None
         super().__init__(
             FormattedTextControl(self.fragments),
             height=self.HEIGHT,
             style=ThemeSelector.FOOTER.style,
         )
+
+    def write_to_screen(self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index):
+        self.rendered_width = write_position.width
+        super().write_to_screen(screen, mouse_handlers, write_position, parent_style, erase_bg, z_index)
 
     @classmethod
     def key_parts(cls, key):
@@ -65,7 +70,7 @@ class ShortcutBar(Window):
             modifier, key = self.key_parts(key)
             if modifier in groups:
                 groups[modifier].append((key, label))
-        width = max(0, self.width_available())
+        width = max(0, self.width_available() if self.rendered_width is None else self.rendered_width)
         left = self.group(self.MODIFIERS[0], groups[self.MODIFIERS[0]], width)
         right = self.group(self.MODIFIERS[1], groups[self.MODIFIERS[1]], width)
         if left and right and self.cells(left) + self.cells(right) >= width:

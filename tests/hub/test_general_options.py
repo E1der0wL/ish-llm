@@ -145,7 +145,7 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_categorized_form_pack_add_delete_save_and_reload(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, model="test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False, language="ko")
             app, controller = create_application(config, input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings
@@ -157,6 +157,9 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     screen.choose("general")
                     manager = screen.page.general_form
+                    self.assertEqual(manager.language_field.menu_items()[0], (1, '자동 감지'))
+                    self.assertEqual(manager.language_field.choices, ('', 'en', 'ko'))
+                    self.assertEqual(manager.language_field.value(), '')
                     manager.add_pack()
                 self.assertEqual(tuple(manager.groups), ("storage", "language", "notifications", "startup", "output", "context", "editor"))
                 self.assertNotIn(("mouse_mode",), manager.form.fields)
@@ -167,7 +170,8 @@ class GeneralOptionAsyncTests(unittest.IsolatedAsyncioTestCase):
                 pipe.send_text("\t\r")
                 await until(lambda: view._dialog is None)
                 self.assertTrue(screen.page.dirty)
-                manager.form.fields[("language",)].input.text = "custom"
+                self.assertIn('custom', manager.language_field.choices)
+                manager.language_field.select(manager.language_field.choices.index('custom') + 1)
                 manager.form.fields[("notification_seconds",)].input.text = "3"
                 manager.form.fields[("auto_scroll",)].input.text = "false"
                 with set_app(app):

@@ -52,6 +52,7 @@ class SessionObservation:
     run: Any
     handle: Any
     questions: tuple = ()
+    pending_input: bool = False
 
 
 class SnapshotReader:
@@ -326,7 +327,26 @@ class SnapshotReader:
             pending.extend(QuestionPresentation.stored_request(paused_handle.id, request,
                            run_status=str(source.status))
                            for request in await pending_requests(paused_handle))
-        return SessionObservation(identifier, record, runtime, run, handle, tuple(pending))
+        # Native pending interactions exclude policy-approved Tools. Observe
+        # published nonblocking questions through the same cached public query
+        # used by the composer, without reading another Session's transcript.
+        from llm.core.questions import QuestionPublication
+        from llm.core.interactions import InteractionStatus
+        from ..interactions.questions import QuestionAnswers
+
+        pending_input = bool(pending)
+        for active in runtime.active_runs:
+            source_handle, source = await self.read_run(
+                session, identifier, active.run_id,
+                handle=handle if run and run.id == active.run_id else None)
+            if not QuestionPublication.identifiers(source.metadata):
+                continue
+            native = await self.reads.read((ReadKind.QUESTIONS, active.run_id),
+                lambda source_handle=source_handle: QuestionAnswers.observe(source_handle))
+            pending_input |= any(
+                QuestionPresentation.observe(item).status == InteractionStatus.PENDING
+                and QuestionPresentation.observe(item).response is None for item in native)
+        return SessionObservation(identifier, record, runtime, run, handle, tuple(pending), pending_input)
 
     async def run_display(
         self, session, run_id: str, *, run=ABSENT, requested_at=ABSENT, steps=()
@@ -681,6 +701,10 @@ class SnapshotReader:
                     identifier, item.record.title, status, item.runtime.queued_count,
                     tuple(item.record.agent_ids),
                     ParticipantGroups.read(item.record.metadata, item.record.agent_ids),
+                    latest_run_id=item.run.id if item.run else self.EMPTY_TEXT,
+                    latest_run_status=str(item.run.status) if item.run else self.EMPTY_TEXT,
+                    active=bool(item.runtime.active_runs),
+                    pending_input=item.pending_input,
                 )
                 cached = SessionProjection(item, status, summary)
                 self.session_summaries[identifier] = cached

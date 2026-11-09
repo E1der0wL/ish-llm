@@ -108,6 +108,9 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(str((await latest.aget_data()).status), 'completed' if approved else 'paused')
                     self.assertEqual(Path(root,'result.txt').exists(), approved)
                     self.assertEqual(bool(await run.ainteractions(pending_only=True)), not approved)
+                    from hub.backend.observability.snapshot import SnapshotReader
+                    observation = await SnapshotReader().read_session(sid, runtime.sessions[sid])
+                    self.assertEqual(observation.pending_input, not approved)
                     self.assertEqual(len(provider.requests), 2 if approved else 1)
                     self.assertEqual(len(runs), 2 if approved else 1)
                     runtime.automatic_approvals.observe(await run.aget_data())
@@ -184,7 +187,7 @@ class ToolAdviceTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(item["request"]["risk"], 20)
                 self.assertEqual(item["request"]["risk_scheme"], MODEL_RISK_SCHEME)
                 self.assertEqual(item["request"]["action"]["classification"]["risk"], 20)
-                text = "\n".join(review_lines(item["request"], Language()))
+                text = "\n".join(review_lines(item["request"], Language("ko")))
                 self.assertIn("위험도: low (20)", text)
                 self.assertIn("모델 평가 근거", text)
                 self.assertNotIn("참고", text)

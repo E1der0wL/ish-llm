@@ -15,6 +15,8 @@ class TwoPanelPage:
     EMPTY_ANNOTATION = ""
     STATUS_PADDING = 1
     STATUS_HEIGHT = 1
+    MAIN_RIGHT_PADDING = 1
+    BAR_PADDING = 1
     HEADER_HEIGHT = 1
     FOOTER_HEIGHT = 1
     BODY_MIN_HEIGHT = 3
@@ -58,24 +60,23 @@ class TwoPanelPage:
         )
         self.sidebar_region = FocusRegion(sidebar, active=lambda: self.sidebar_focused)
         self.main_region = FocusRegion(
-            HSplit(
+            VSplit([HSplit(
                 [
                     main,
                     VSplit(
                         [
                             Window(width=TwoPanelPage.STATUS_PADDING),
                             self.status,
-                            Window(width=TwoPanelPage.STATUS_PADDING),
                         ],
                         height=TwoPanelPage.STATUS_HEIGHT,
                     ),
                 ]
-            ),
+            ), Window(width=self.MAIN_RIGHT_PADDING)]),
             active=lambda: not self.sidebar_focused,
         )
         self.container = HSplit(
             [
-                *([HSplit([header], height=TwoPanelPage.HEADER_HEIGHT)] if header is not self.ABSENT else []),
+                *([self.bar(header, ThemeSelector.HEADER.style)] if header is not self.ABSENT else []),
                 VSplit(
                     [
                         ConditionalContainer(self.sidebar_region, visible),
@@ -87,10 +88,15 @@ class TwoPanelPage:
                         weight=TwoPanelPage.BODY_WEIGHT,
                     ),
                 ),
-                *([HSplit([footer], height=TwoPanelPage.FOOTER_HEIGHT)] if footer is not self.ABSENT else []),
+                *([self.bar(footer, ThemeSelector.FOOTER.style)] if footer is not self.ABSENT else []),
             ],
             style=ThemeSelector.ROOT.style,
         )
+
+    @classmethod
+    def bar(cls, content, style):
+        return VSplit([Window(width=cls.BAR_PADDING), content, Window(width=cls.BAR_PADDING)],
+                      height=cls.HEADER_HEIGHT, style=style)
 
     @property
     def sidebar_focused(self):

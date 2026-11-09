@@ -1,4 +1,4 @@
-"""Shared right/bottom spacing and optional fixed heading for page content."""
+"""Align unframed page content with the inside of the action/input frame."""
 
 from ..config.theme_style import ThemeSelector
 
@@ -11,6 +11,7 @@ class ContentInset(VSplit):
     NO_HEADING = None
     MINIMUM_PADDING = 0
     PADDING = 1
+    SIDE_PADDING = 1
     HEADING_HEIGHT = 1
 
     def __init__(self, content, *, heading=NO_HEADING, bottom_padding=PADDING, **kwargs):
@@ -29,4 +30,6 @@ class ContentInset(VSplit):
                 )
             )
         rows.extend([content, Window(height=padding_height)])
-        super().__init__([HSplit(rows), Window(width=self.PADDING)], **kwargs)
+        super().__init__([
+            Window(width=self.SIDE_PADDING), HSplit(rows), Window(width=self.SIDE_PADDING),
+        ], **kwargs)

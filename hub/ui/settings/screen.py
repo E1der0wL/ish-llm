@@ -56,7 +56,6 @@ class SettingsScreen:
     GLOBAL_KEYS = (*tuple(section.value for section in PreferenceSection), SettingsSection.DEBUGGING)
     EMPTY_PAGE_HEIGHT = 1
     MINIMUM_WIDTH = 1
-    MAIN_INSET = 1
     MINIMUM_MAIN_HEIGHT = 3
     FLEX_WEIGHT = 1
     SCROLL_TOP = 0
@@ -116,7 +115,7 @@ class SettingsScreen:
             show_scrollbar=self.SHOW_SCROLLBAR,
             width=lambda: Dimension(
                 min=self.MINIMUM_WIDTH,
-                preferred=max(self.MINIMUM_WIDTH, self.main_width() - self.MAIN_INSET),
+                preferred=max(self.MINIMUM_WIDTH, self.main_width() - 2 * ContentInset.SIDE_PADDING),
             ),
         )
         from ...widget.tab_page import TabPage
@@ -216,9 +215,11 @@ class SettingsScreen:
         self.page = self.NO_PAGE
 
     def main_width(self):
+        from ...widget.panel_edge import PanelEdge
         return max(
             self.MINIMUM_WIDTH,
-            self.view._columns() - self.view.sidebar_width() - self.MAIN_INSET,
+            self.view._columns() - self.view.sidebar_width()
+            - PanelEdge.WIDTH - TwoPanelPage.MAIN_RIGHT_PADDING,
         )
 
     def tab_changed(self, key):

@@ -110,6 +110,36 @@ class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
         finally:
             view.close()
 
+    async def test_actions_without_width_hint_measure_and_center_in_parent_allocation(self):
+        from prompt_toolkit.layout.layout import walk
+        from hub.widget.actions import ActionBar
+
+        app, view, _ = create_preview(input=DummyInput(), output=SizedOutput(132, 40))
+        try:
+            with set_app(app):
+                buttons = [Button('Save', width=12), Button('Cancel', width=14)]
+                bar = ActionBar(buttons, equal_width=True)
+                controls = tuple(walk(bar))
+                self.assertEqual(bar.preferred_width(100).preferred, 29)
+                for width, rows in ((60, 1), (25, 2), (60, 1)):
+                    height = bar.preferred_height(width, 20).preferred
+                    self.assertEqual(height, rows)
+                    screen = Screen()
+                    bar.write_to_screen(screen, MouseHandlers(), WritePosition(0, 0, width, height),
+                                        '', True, None)
+                    screen.draw_all_floats()
+                    positions = screen.visible_windows_to_write_positions
+                    rects = [positions[button.window] for button in buttons]
+                    self.assertEqual(len({rect.ypos for rect in rects}), rows)
+                    for y in {rect.ypos for rect in rects}:
+                        row = [rect for rect in rects if rect.ypos == y]
+                        left = min(rect.xpos for rect in row)
+                        right = max(rect.xpos + rect.width for rect in row)
+                        self.assertLessEqual(abs(left - (width - right)), 1)
+                    self.assertEqual(tuple(walk(bar)), controls)
+        finally:
+            view.close()
+
     async def test_search_fits_its_widgets_and_resizes_with_terminal(self):
         from hub.widget.transcript.search import SessionSearch
 
@@ -155,7 +185,7 @@ class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
         finally:
             view.close()
 
-    async def test_small_and_medium_share_insets_without_moving_bottom_status(self):
+    async def test_all_popup_sizes_share_insets_without_moving_bottom_status(self):
         from prompt_toolkit.layout import Window, HSplit
         from prompt_toolkit.layout.controls import FormattedTextControl
         from hub.widget.actions import ActionBar
@@ -164,13 +194,13 @@ class PopupGeometryTests(unittest.IsolatedAsyncioTestCase):
         try:
             with set_app(app):
                 for size, embedded in ((PopupSize.SMALL, False), (PopupSize.MEDIUM, False),
-                                       (PopupSize.MEDIUM, True)):
+                                       (PopupSize.MEDIUM, True), (PopupSize.LARGE, False)):
                     with self.subTest(size=size, embedded=embedded):
                         body = Window(FormattedTextControl('body'))
                         close = Button('Close')
                         actions = ActionBar([close], lambda: PopupGeometry.dimensions(size)[0].preferred - 4)
                         popup = Dialog(body=HSplit([body, actions]) if embedded else body,
-                                       buttons=[] if embedded else [close], size=size, content_padding=0)
+                                       buttons=[] if embedded else [close], size=size)
                         view.dialogs.show(popup, close)
                         width, height = (d.preferred for d in PopupGeometry.dimensions(size))
                         screen = self.paint(popup, width, height)

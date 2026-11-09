@@ -5,6 +5,7 @@ import asyncio
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.application.current import set_app
@@ -157,7 +158,12 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                         positions = app.renderer._last_screen.visible_windows_to_write_positions
                         hub_positions = [position for window, position in positions.items()
                                          if "class:hub" in (window.style() if callable(window.style) else window.style)]
-                        self.assertEqual(max(p.xpos + p.width for p in hub_positions), columns)
+                        self.assertEqual(max(p.xpos + p.width for p in hub_positions), columns - 1)
+                        screen = app.renderer._last_screen
+                        for y in (0, rows - 1):
+                            for x in (0, columns - 1):
+                                self.assertEqual(screen.data_buffer[y][x].char, ' ')
+                                self.assertIn('class:hub', screen.data_buffer[y][x].style)
                         self.assertEqual(max(p.ypos + p.height for p in hub_positions), rows)
                         self.assertIn(view.composer.window, positions)
                         self.assertIn(view.output.transcript.window, positions)
@@ -175,6 +181,7 @@ class IshIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 installation.close()
 
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_actual_host_focus_keys_and_reinstallation(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())

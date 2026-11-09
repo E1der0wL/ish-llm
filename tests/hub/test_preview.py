@@ -6,6 +6,7 @@ import unittest
 from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import create_preview
+from hub.locales.keys import MessageKey
 from hub.config.theme import HubTheme
 from tests.hub.support import auxiliary, SizedOutput, eventually, minimize
 
@@ -46,7 +47,7 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
     async def test_submit_is_disconnected_and_multiline_works(self):
         await self.open_hub()
         self.pipe.send_text("hello\r")
-        await eventually(lambda: "전송 미리보기" in self.view.notice)
+        await eventually(lambda: self.view.notice == self.view.t(MessageKey.PREVIEW_SUBMIT))
         self.assertEqual(self.view.composer.text, "hello")
         self.pipe.send_text("\x00world")
         await eventually(lambda: self.view.composer.text == "hello\nworld")
@@ -94,7 +95,8 @@ class PreviewTests(unittest.IsolatedAsyncioTestCase):
         self.view.set_theme(HubTheme(background="#111923"))
         self.app.invalidate()
         self.assertEqual(self.view.composer.text, "keep draft")
-        self.assertEqual(self.view.output.transcript.control.theme, HubTheme(background="#111923"))
+        self.assertEqual(self.view.theme, HubTheme(background="#111923"))
+        self.assertEqual(self.view.output.transcript.control.theme, self.view.render_theme)
         self.pipe.send_text("\x1b\x1b[H")  # Alt+Home
         await eventually(lambda: self.view.output.transcript.control.cursor_line == 0)
 

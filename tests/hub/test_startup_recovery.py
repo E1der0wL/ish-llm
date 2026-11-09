@@ -194,7 +194,7 @@ class StartupUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_project_edit_opens_general_settings_not_name_dialog(self):
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(root, auto_title=False, prepare_provider=False),
+            app, controller = create_application(HubConfig(root, auto_title=False, prepare_provider=False, language="ko"),
                 input=pipe, output=SizedOutput())
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))

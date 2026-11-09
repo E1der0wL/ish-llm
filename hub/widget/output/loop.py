@@ -35,7 +35,7 @@ class LoopOutput(EngineOutput):
     def __init__(self, view):
         self.view = view
         self.transcript = ConversationView(
-            view.sessions[view.selected].messages, view.theme, language=view.t
+            view.sessions[view.selected].messages, view.render_theme, language=view.t
         )
         MouseBinding.set_focus(self.transcript.window, view._focus_composer)
         self.transcript.window.height = Dimension(

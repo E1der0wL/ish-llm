@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import asdict, replace
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -69,6 +70,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 installation.close()
 
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_focused_footers_and_icon_choice_dispatch(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
@@ -127,7 +129,7 @@ class WidgetChromeTests(unittest.IsolatedAsyncioTestCase):
                     self.assertTrue(next(row for row in drawn.splitlines() if heading in row).startswith(" " + heading))
                 positions = content.visible_windows_to_write_positions
                 field = screen.page.form.fields[("display_name",)].input.window
-                self.assertEqual(positions[field].xpos, positions[screen.layout.edge].xpos + 1)
+                self.assertEqual(positions[field].xpos, positions[screen.layout.edge].xpos + 2)
                 with set_app(app):
                     screen.choose("appearance")
                     field = screen.page.form.fields[("icon_style",)]

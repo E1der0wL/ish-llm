@@ -53,8 +53,7 @@ class SidebarPanel(HSplit):
     def drag_handler(self, point):
         initial_ratio = self.fraction()
         geometry = self.geometry
-        if (geometry is self.ABSENT
-                or (self.controls and not self._focused(self.SECOND))):
+        if geometry is self.ABSENT:
             return lambda position, finished=MouseCapture.DRAGGING: None
         initial, total, minimum, maximum = geometry
         origin = point.y

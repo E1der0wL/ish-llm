@@ -33,7 +33,7 @@ class RichMarkdownStyle:
     RULE_ELEMENT = "hr"
     ACCENT = lambda theme: theme.accent
     USER = lambda theme: theme.user
-    FOREGROUND = lambda theme: theme.foreground
+    CODE_FOREGROUND = lambda theme: theme.code_foreground
     MUTED = lambda theme: theme.muted
     BOLD_SUFFIX = ThemeStyle.MODIFIER_SEPARATOR + ThemeStyle.BOLD
     ITALIC_SUFFIX = ThemeStyle.MODIFIER_SEPARATOR + ThemeStyle.ITALIC
@@ -46,7 +46,7 @@ class RichMarkdownStyle:
         ("markdown.link", ACCENT, UNDERLINE_SUFFIX),
         ("markdown.link_url", ACCENT, UNDERLINE_SUFFIX),
         ("markdown.code", USER, EMPTY),
-        ("markdown.code_block", FOREGROUND, EMPTY),
+        ("markdown.code_block", CODE_FOREGROUND, EMPTY),
         (RULE, MUTED, EMPTY),
         ("markdown.block_quote", MUTED, EMPTY),
         ("markdown.item.number", ACCENT, EMPTY),

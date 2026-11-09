@@ -378,6 +378,7 @@ class ChoiceField(SettingField):
     BOOLEAN_VALUES = (True, False)
     OPAQUE_FIELDS = (SchemaKeyword.ONE_OF, SchemaKeyword.ANY_OF, SchemaKeyword.ALL_OF, SchemaKeyword.REF)
     NO_SELECTION = None
+    allow_unset = True
 
     @property
     def menu_open(self):
@@ -420,7 +421,7 @@ class ChoiceField(SettingField):
         get_app().invalidate()
 
     def menu_items(self):
-        result = [(0, self._t(MessageKey.SETTINGS_UNSET))]
+        result = [(0, self._t(MessageKey.SETTINGS_UNSET))] if self.allow_unset else []
         labels = self.schema.get(self.SCHEMA_KEY, {})
         for index, value in enumerate(self.choices, 1):
             label = next((label for key, label in labels.items()
@@ -443,6 +444,8 @@ class ChoiceField(SettingField):
     def select(self, index):
         if not self.enabled() or self.readonly:
             return
+        if not index and not self.allow_unset:
+            return
         value = self.choices[index - 1] if index else MISSING
         if JsonDocument.same(value, self.original, missing=MISSING):
             self.text = self.initial
@@ -450,6 +453,10 @@ class ChoiceField(SettingField):
             self.text = (FieldDisplay.EMPTY if value is MISSING else
                          json.dumps(value, ensure_ascii=FieldDisplay.JSON_ASCII,
                                     allow_nan=JsonObject.ALLOW_NON_FINITE))
+
+    def clear(self):
+        if self.allow_unset:
+            super().clear()
 
     def _materialize(self):
         if self._input is not None:

@@ -114,6 +114,7 @@ class HomeNavigationTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 view.close()
 
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_categories_profile_buttons_and_shell_restore(self):
         with create_pipe_input() as pipe:
             output = SizedOutput()

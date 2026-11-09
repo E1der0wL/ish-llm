@@ -5,6 +5,7 @@ from typing import ClassVar
 
 from llm.core.schema import SchemaKeyword, SchemaType
 from .metadata import SettingMetadata
+from ..locales.codes import LanguageCode
 from .notifications import NotificationKind
 import math
 import os
@@ -29,7 +30,7 @@ class EditorCommand:
 
 @dataclass(frozen=True, slots=True)
 class GeneralSettings:
-    AUTO_LANGUAGE: ClassVar[str] = ""
+    AUTO_LANGUAGE: ClassVar[str] = LanguageCode.AUTO
     NOTIFICATION_KINDS: ClassVar[tuple[str, ...]] = tuple(NotificationKind.values())
     MINIMUM_NOTIFICATION_SECONDS: ClassVar[int] = 1
     MAXIMUM_NOTIFICATION_SECONDS: ClassVar[int] = 120

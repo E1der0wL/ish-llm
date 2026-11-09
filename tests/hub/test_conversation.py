@@ -8,6 +8,7 @@ from prompt_toolkit.utils import get_cwidth
 
 from hub.widget.transcript.conversation import ChatMessage, ConversationControl, render_messages
 from hub.config.theme import HubTheme
+from hub.locales import Language
 
 
 class ConversationTests(unittest.TestCase):
@@ -41,7 +42,7 @@ class ConversationTests(unittest.TestCase):
         theme = HubTheme(blue="#123456")
         messages = (ChatMessage("user", "**짧은 메시지**", "2026-10-03 12:34:56",
                                 status="committed", author="tester"),)
-        lines = render_messages(messages, 100, theme)
+        lines = render_messages(messages, 100, theme, Language('ko'))
         body = next(line for line in lines if any("짧은 메시지" in text for _, text in line))
         text = "".join(text for _, text in body)
         self.assertGreater(get_cwidth(text[:text.index("짧은")]), 80)

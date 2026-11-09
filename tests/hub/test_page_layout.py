@@ -90,7 +90,7 @@ class PageLayoutTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(set(screen.page.form.fields), {(key,) for key in
                     ("background", "foreground", "black", "red", "orange", "green", "yellow", "blue", "purple", "cyan", "white", "gray",
                      "bright_black", "bright_red", "bright_orange", "bright_green", "bright_yellow", "bright_blue", "bright_purple", "bright_cyan", "bright_white", "bright_gray", "sidebar_width", "icon_style",
-                     "output_refresh_interval", "progress_refresh_interval")})
+                     "mode", "output_refresh_interval", "progress_refresh_interval")})
                 screen.page.form.fields[("green",)].input.text = "invalid"
                 settings_button(app, pipe, view)
                 await until(lambda: "green" in screen.status)

@@ -10,7 +10,7 @@ from getpass import getuser
 
 @dataclass(frozen=True, slots=True)
 class UserProfile:
-    AUTO_LANGUAGE: ClassVar[str] = ""
+    AUTO_LANGUAGE: ClassVar[str] = LanguageCode.AUTO
     INVALID_NAME: ClassVar[str] = "display_name must be a nonempty string"
     INVALID_LANGUAGE: ClassVar[str] = "language must be empty, ko or en"
     INVALID_STRING: ClassVar[str] = "{key} must be a string"

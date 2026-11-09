@@ -32,7 +32,7 @@ from llm.core.models import MessageStatus, RunStatus
 from llm.core.configuration import UNSET
 import asyncio
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Callable
 
@@ -80,7 +80,7 @@ class HubConfig:
     api_base: str | None = None
     project_id: str | None = WorkspaceSelection.NO_PROJECT
     session_id: str | None = WorkspaceSelection.NO_SESSION
-    language: str = LanguageCode.DEFAULT
+    language: str = LanguageCode.AUTO
     engine_factories: dict[str, Callable] | None = None
     component_factories: tuple[Callable, ...] | list[Callable] | None = None
     tool_classifier: Callable | None = None
@@ -220,8 +220,8 @@ class HubRuntime:
         from ..config.preferences import configured_workspace
 
         config = configured_workspace(config)
-        self.config = config
         self.t = Language(config.language, config.language_packs)
+        self.config = replace(config, language=self.t.code) if config.language == LanguageCode.AUTO else config
         self._factory = backend_factory
         self.backend = HubRuntime.ABSENT
         self.plugins = None

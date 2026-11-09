@@ -3,6 +3,7 @@
 import asyncio
 from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 from tests.hub.support import open_home
 
 from prompt_toolkit.application.current import set_app
@@ -231,6 +232,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 installation.close()
 
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_shell_bindings_headers_and_shared_readers(self):
         with create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput())
@@ -260,7 +262,7 @@ class InputContractTests(unittest.IsolatedAsyncioTestCase):
                 with set_app(app):
                     self.assertFalse(prompt.key_bindings.get_bindings_for_keys(("c-q",))[0].filter())
                     self.assertEqual([key for key, _ in view.bindings.hints()], [
-                        "Ctrl+Q", "Ctrl+W", "ESC", "Ctrl+P", "Ctrl+S", "Alt + ←↓↑→"])
+                        "Ctrl+Q", "Ctrl+W", "ESC", "Ctrl+P", "Ctrl+S", "Ctrl+T", "Alt + ←↓↑→"])
                     self.assertIn(("ESC", "패널"), view.bindings.hints())
                 await paint()
                 chat_header = next(w.label for w in app.layout.walk() if isinstance(w, HeaderBar))

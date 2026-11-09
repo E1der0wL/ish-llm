@@ -25,7 +25,6 @@ class EngineOutput(HSplit, ABC):
     OPEN = False
     CLOSED = True
     MIN_WIDTH = 1
-    RIGHT_INSET = 1
     HEADER_HEIGHT = 1
     MIN_HEIGHT = 3
     FLEX_WEIGHT = 1
@@ -36,7 +35,7 @@ class EngineOutput(HSplit, ABC):
     def __init__(self, view, content: AnyContainer, *, heading, shortcuts=ABSENT):
         self.view = view
         self._closed = EngineOutput.OPEN
-        self.available_width = max(EngineOutput.MIN_WIDTH, view._columns() - EngineOutput.RIGHT_INSET)
+        self.available_width = max(EngineOutput.MIN_WIDTH, view._columns() - 2 * ContentInset.SIDE_PADDING)
         self.shortcuts = shortcuts or ShortcutRegistry()
         self.inspector = EngineOutput.ABSENT
         self.tags = TagBar(self, view)
@@ -60,7 +59,7 @@ class EngineOutput(HSplit, ABC):
         self, screen, mouse_handlers, write_position, parent_style, erase_bg, z_index
     ):
         self.available_width = max(
-            EngineOutput.MIN_WIDTH, write_position.width - EngineOutput.RIGHT_INSET
+            EngineOutput.MIN_WIDTH, write_position.width - 2 * ContentInset.SIDE_PADDING
         )
         super().write_to_screen(
             screen, mouse_handlers, write_position, parent_style, erase_bg, z_index

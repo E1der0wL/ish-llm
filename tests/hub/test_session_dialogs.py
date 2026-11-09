@@ -2,7 +2,7 @@
 
 import asyncio
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -21,6 +21,7 @@ def turns():
 
 
 class SessionDialogTests(unittest.IsolatedAsyncioTestCase):
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_creation_does_not_load_history_and_clone_previews_boundary(self):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput(100, 36))

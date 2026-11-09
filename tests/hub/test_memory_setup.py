@@ -197,7 +197,7 @@ class MemorySetupIntegrationTests(unittest.IsolatedAsyncioTestCase):
         model = ScriptedCompletion(
             [chunk(calls=[call('{}', name='source_read')], finish='tool_calls')], answer())
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, model='test/main', auto_title=False,
+            runtime = HubRuntime(HubConfig(directory, model='test/main', auto_title=False, language='ko',
                 engine_factories={'loop': lambda: LoopEngine(
                     completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))},
                 component_factories=(lambda: MemoryComponent(completion_adapter=

@@ -43,7 +43,7 @@ class OutputTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             Image.new("RGB", (40, 20), "red").save(root / "red.png")
-            control = ConversationControl((ChatMessage("assistant", 'Before\n\n<hub-image src="red.png" alt="red" />\n\nAfter', id="m"),), HubTheme())
+            control = ConversationControl((ChatMessage("assistant", 'Before\n\n<hub-image src="red.png" alt="red" />\n\nAfter', id="m"),), HubTheme(), Language("ko"))
             control.file_root = root
             renderer = control.images
             ui_thread = threading.get_ident()
@@ -69,7 +69,7 @@ class OutputTests(unittest.IsolatedAsyncioTestCase):
                 # Missing files, remote URLs and traversal remain text errors.
                 for source in ("missing.png", "https://example.com/image.png", "../outside.png"):
                     block = OutputBlock("hub-image", "", 0, (("src", source),))
-                    context = RenderContext(50, HubTheme(), Language(), root, lambda: None)
+                    context = RenderContext(50, HubTheme(), Language("ko"), root, lambda: None)
                     revision = renderer.revision
                     renderer.render(block, context)
                     await until(lambda: renderer.revision > revision)

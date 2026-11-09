@@ -74,7 +74,9 @@ class SettingsUpdates(unittest.IsolatedAsyncioTestCase):
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:
-                await until(lambda: view.connected and not view.projects.busy)
+                from tests.hub.support import backend_ready
+                await backend_ready(lambda: view.connected and not view.projects.busy,
+                                    "fresh workspace initialization")
                 async def drafts(suffix):
                     pipe.send_text('\x10\r')
                     await until(lambda: screen.page is not None and not screen.busy and view.settings_open)

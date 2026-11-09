@@ -46,7 +46,7 @@ class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
         from hub.ui.application import create_application
         from tests.hub.test_overlays import screen_text
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(root, auto_title=False), input=pipe, output=SizedOutput())
+            app, controller = create_application(HubConfig(root, auto_title=False, language="ko"), input=pipe, output=SizedOutput())
             view = controller.view
             view.on_open = None
             controller._state_project = "p"
@@ -127,7 +127,7 @@ class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
                 row = next(row for row in rows if row.get("code") == "provider_unavailable")
                 self.assertEqual(row["source"]["run_id"], "run")
                 self.assertEqual(row["scope"], "project")
-                text = format_activity(rows, Language())
+                text = format_activity(rows, Language("ko"))
                 self.assertIn("프로바이더 로그", text)
                 self.assertIn("provider_unavailable", text)
                 self.assertIn('"stage": "stream"', text)
@@ -147,7 +147,7 @@ class StatusLogsNavigationTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual([row["code"] for row in rows], ["event_1", "event_2", "event_3"])
             self.assertEqual(rows[1]["scope"], "workspace")
             self.assertEqual(len(read_provider_logs(directory, "mine", limit=2)), 2)
-            self.assertIn("워크스페이스 공통", format_activity(rows, Language()))
+            self.assertIn("워크스페이스 공통", format_activity(rows, Language("ko")))
 
     async def test_question_toasts_use_warning_and_clear_on_resume(self):
         from hub.model import SessionSummary

@@ -159,7 +159,7 @@ class ComponentManager(Dialog):
             self.view.t(MessageKey.COMPONENT_HELP, command=component_spec(self.name).tool_prefix)
             + ComponentManager.PARAGRAPH + self.view.t(MessagePattern.component_help(self.name)),
             self.view._rows, self.view._columns, close, self.view.t,
-            markdown=True, theme=lambda: self.view.theme,
+            markdown=True, theme=lambda: self.view.render_theme,
             render_worker=self.view.render_worker,
         )
         self.view.dialogs.show(popup, popup.receiver)

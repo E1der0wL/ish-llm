@@ -129,6 +129,8 @@ class IconGlyphs:
     )
     TOOL_NERD = ""
     QUESTION_NERD = ""
+    SESSION_IDLE_NERD = ""
+    SESSION_COMPLETED_NERD = ""
     COMPACTION_NERD = ""
     VALUES = MappingProxyType(
         IconPlaceholders(
@@ -217,6 +219,8 @@ class IconSet:
     statuses: Mapping[str, str]
     tool: str = "⚒"
     question: str = "?"
+    session_idle: str = "○"
+    session_completed: str = "●"
     compaction: str = "⇲"
     output: Mapping[str, str] = field(default_factory=lambda: OUTPUT_UNICODE)
     settings: str = "⚙"
@@ -276,6 +280,8 @@ class IconPalettes:
         ),
         tool=TOOL_NERD,
         question=QUESTION_NERD,
+        session_idle=IconGlyphs.SESSION_IDLE_NERD,
+        session_completed=IconGlyphs.SESSION_COMPLETED_NERD,
         compaction=IconGlyphs.COMPACTION_NERD,
         output=OUTPUT_NERD,
         settings="",

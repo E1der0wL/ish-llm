@@ -13,6 +13,7 @@ from prompt_toolkit.input import create_pipe_input
 
 from examples.hub.preview import create_preview
 from hub.config.theme import HubTheme
+from hub.locales.keys import MessageKey
 from hub.widget.focus_region import grayscale
 from tests.hub.support import SizedOutput, eventually, auxiliary, open_settings
 
@@ -75,8 +76,8 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(b.xpos == a.xpos + a.width + 1 for a,b in zip(rects, rects[1:])))
         self.assertEqual(rects[-1].xpos + rects[-1].width,
                          positions[view.composer.window].xpos + positions[view.composer.window].width + 1)
-        self.assertEqual(app.renderer._attrs_for_style[screen.data_buffer[rects[0].ypos][rects[0].xpos].style].bgcolor, 'default')
-        self.assertEqual(app.renderer._attrs_for_style[screen.data_buffer[rects[0].ypos][rects[0].xpos - 1].style].bgcolor, 'default')
+        self.assertEqual(app.renderer._attrs_for_style[screen.data_buffer[rects[0].ypos][rects[0].xpos].style].bgcolor, '123456')
+        self.assertEqual(app.renderer._attrs_for_style[screen.data_buffer[rects[0].ypos][rects[0].xpos - 1].style].bgcolor, '123456')
         await auxiliary(app, self.pipe, view, 'logs')
         await eventually(lambda: seen == ['history', 'logs'])
 
@@ -98,11 +99,12 @@ class AuxiliaryTests(unittest.IsolatedAsyncioTestCase):
         await eventually(lambda: view._dialog is not None)
         self.pipe.send_text('email\r')
         await eventually(lambda: screen.query == 'email' and view._dialog is None)
-        self.assertEqual(screen.status_text(), '필터 : email')
+        filter_status = view.t(MessageKey.SETTINGS_SEARCH_ACTIVE, query='email')
+        self.assertEqual(screen.status_text(), filter_status)
         with set_app(app):
             task = view.progress.start('Loading')
             content = screen.layout.status.content.create_content(100, 1)
-            self.assertIn('필터 : email', ''.join(fragment[1] for fragment in content.get_line(0)))
+            self.assertIn(filter_status, ''.join(fragment[1] for fragment in content.get_line(0)))
             view.progress.finish(task)
         with set_app(app):
             screen.choose('appearance')
@@ -287,7 +289,7 @@ class PaletteTests(unittest.TestCase):
         theme = HubTheme()
         self.assertEqual([theme.green, theme.blue, theme.orange, theme.white, theme.bright_black],
                          ['#98C379', '#61AFEF', '#D19A66', '#ABB2BF', '#282C34'])
-        self.assertNotIn('mode', asdict(theme))
+        self.assertEqual(asdict(theme)['mode'], 'auto')
         self.assertEqual(HubTheme(**asdict(theme)), theme)
         for background in ('default', '#123456', '#ffffff'):
             palette = replace(theme, foreground='#102030', background=background,
@@ -297,8 +299,8 @@ class PaletteTests(unittest.TestCase):
                     (ThemeSelector.PTK_BUTTON, '345678', '456789'),
                     (ThemeSelector.PTK_BUTTON_FOCUSED_BUTTON_TEXT, theme.blue[1:], '456789'),
                     (ThemeSelector.PTK_BUTTON_SELECTED_BUTTON_TEXT, '345678', '456789'),
-                    (ThemeSelector.CHECKLIST, '102030', '456789'),
-                    (ThemeSelector.PTK_CHECKBOX_LIST, '102030', '456789'),
+                    (ThemeSelector.CHECKLIST, '345678', '456789'),
+                    (ThemeSelector.PTK_CHECKBOX_LIST, '345678', '456789'),
                     (ThemeSelector.PTK_COMPLETION_MENU, '345678', '456789'),
                     (ThemeSelector.PTK_COMPLETION_MENU_COMPLETION, '345678', '456789'),
                     (ThemeSelector.PTK_COMPLETION_MENU_COMPLETION_CURRENT, '456789', '345678'),
@@ -321,14 +323,14 @@ class PaletteTests(unittest.TestCase):
                 self.assertEqual(attrs.color, '345678')
             for state in ('', '.focused'):
                 attrs = style.get_attrs_for_style_str('class:hub class:hub.auxiliary class:button' + state + ' class:button.text')
-                self.assertEqual(attrs.bgcolor, 'default')
-                self.assertEqual(attrs.color, theme.blue[1:] if state else '345678')
+                self.assertEqual(attrs.bgcolor, background.removeprefix('#'))
+                self.assertEqual(attrs.color, theme.blue[1:] if state else '102030')
             for state in ('', '.focused'):
                 attrs = style.get_attrs_for_style_str('class:hub class:hub.dropdown class:button' + state + ' class:button.text')
                 self.assertEqual((attrs.color, attrs.bgcolor), ('345678', '456789'))
                 self.assertTrue(attrs.bold)
             attrs = style.get_attrs_for_style_str(ThemeSelector.SETTINGS_INPUT.style)
-            self.assertEqual((attrs.color, attrs.bgcolor), ('102030', '456789'))
+            self.assertEqual((attrs.color, attrs.bgcolor), ('345678', '456789'))
             attrs = style.get_attrs_for_style_str(ThemeSelector.COMPOSER.style)
             self.assertEqual((attrs.color, attrs.bgcolor), ('102030', background.removeprefix('#')))
             from prompt_toolkit.styles import merge_styles, default_ui_style
@@ -357,12 +359,12 @@ class PaletteTests(unittest.TestCase):
             self.assertEqual((leading.color, leading.bgcolor), ('456789', '345678'))
             self.assertEqual((trailing.color, trailing.bgcolor), ('345678', '456789'))
             self.assertEqual(palette.code_background, '#456789')
-            self.assertEqual(palette.code_foreground, '#102030')
-        self.assertEqual(theme.code_foreground, 'default')
+            self.assertEqual(palette.code_foreground, '#345678')
+        self.assertEqual(theme.code_foreground, theme.white)
         self.assertEqual(grayscale('default'), 'default')
         self.assertEqual(grayscale('123456'), '#2f2f2f')
         self.assertEqual(grayscale('ansired')[1:3], grayscale('ansired')[3:5])
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             HubTheme(mode='invalid')
 
 

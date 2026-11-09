@@ -3,7 +3,7 @@
 import asyncio
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from dataclasses import replace
 from pathlib import Path
 
@@ -341,6 +341,7 @@ class ParticipantUITests(unittest.IsolatedAsyncioTestCase):
             finally:
                 view.close()
 
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_sidebar_selection_toggle_exclusivity_and_focus(self):
         from examples.hub.preview import create_preview
         with create_pipe_input() as pipe:

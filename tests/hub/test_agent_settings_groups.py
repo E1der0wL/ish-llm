@@ -5,7 +5,7 @@ import json
 import tempfile
 import unittest
 from dataclasses import replace
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import Mock, AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -150,6 +150,7 @@ class AgentEditorTests(unittest.IsolatedAsyncioTestCase):
                 await task
                 view.close()
 
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_schema_form_engine_switch_preserves_drafts_and_revision(self):
         from examples.hub.preview import create_preview
         from hub.widget.forms.definition_manager import DefinitionManager

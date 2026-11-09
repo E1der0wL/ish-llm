@@ -2,6 +2,7 @@
 
 from . import en, ko
 from .codes import LanguageCode
+from .selection import LanguageSelection
 from .keys import MessageKey, MessagePattern
 from ..asset.icon import VALUES, NERD
 import re
@@ -46,10 +47,12 @@ class Language:
     SECONDS_PER_MINUTE = 60
     DURATION_SEPARATOR = " "
 
-    def __init__(self, code: str = LanguageCode.DEFAULT, custom_packs=None, *, icons=None) -> None:
+    def __init__(self, code: str = LanguageCode.AUTO, custom_packs=None, *, icons=None) -> None:
         custom_packs = {} if custom_packs is None else custom_packs
         validate_packs(custom_packs)
         packs = {LanguageCode.KOREAN: ko.MESSAGES, LanguageCode.ENGLISH: en.MESSAGES, **custom_packs}
+        if code == LanguageCode.AUTO:
+            code = LanguageSelection.system_language(packs)
         if code not in packs:
             raise ValueError(self.UNSUPPORTED.format(code=code))
         self.code = code

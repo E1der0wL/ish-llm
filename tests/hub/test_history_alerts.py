@@ -55,7 +55,7 @@ class HistoryTests(unittest.IsolatedAsyncioTestCase):
     async def test_ctrl_g_delete_and_ctrl_l_activity(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             factory = partial(BackendWorker, backend_factory=partial(controlled_backend, gate=threading.Event()))
-            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False, language="ko"),
                                                 input=pipe, output=SizedOutput(), worker_factory=factory)
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))

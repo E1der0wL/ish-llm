@@ -5,6 +5,11 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.SESSION_LIST_IDLE: 'Idle',
+    MessageKey.SESSION_LIST_RUNNING: 'Running',
+    MessageKey.SESSION_LIST_INPUT_REQUIRED: 'Input required',
+    MessageKey.SESSION_LIST_COMPLETED: 'Completed',
+    MessageKey.SHORTCUT_RECIPIENT: 'Recipient',
     MessageKey.STARTUP_FAILURE: 'Hub could not start',
     MessageKey.STARTUP_LOADING: 'HUB Loading',
     MessageKey.STARTUP_PROGRESS: '{stage} • {percent}',
@@ -811,7 +816,10 @@ MESSAGES = {
 
     MessageKey.GENERAL_CATEGORY_EDITOR: "External editor",
 
-    MessageKey.GENERAL_LANGUAGE: "Language code: ko, en or an added pack. Empty inherits legacy profile/startup language. Applies on next Hub startup.",
+    MessageKey.GENERAL_LANGUAGE: "Choose a language. Auto-detect uses profile/startup settings, then the OS language if supported, otherwise English. Save and restart Hub to apply.",
+    MessageKey.LANGUAGE_AUTOMATIC: "Auto-detect",
+    MessageKey.LANGUAGE_KOREAN: "한국어 (ko)",
+    MessageKey.LANGUAGE_ENGLISH: "English (en)",
 
     MessageKey.GENERAL_NOTIFICATION_KINDS: 'JSON array of popup kinds, for example ["error", "warning"]. error indicates failure, warning caution, info information and success completion. [] disables popups while work and logs remain.',
 
@@ -839,7 +847,7 @@ MESSAGES = {
 
     MessageKey.LANGUAGE_PACK_DRAFT: "Language pack draft changed. Save General settings to commit it.",
 
-    MessageKey.SETTINGS_LANGUAGE_DESCRIPTION: "UI language: ko (Korean), en (English). Empty uses startup settings. Applies on next Hub startup.",
+    MessageKey.SETTINGS_LANGUAGE_DESCRIPTION: "UI language: ko (Korean), en (English). Empty uses startup settings, then the OS language if supported, otherwise English. Applies on next Hub startup.",
 
     MessageKey.SETTINGS_EMAIL_DESCRIPTION: "Profile email address (optional).",
 
@@ -885,6 +893,11 @@ MESSAGES = {
     MessageKey.SETTINGS_THEME_NORMAL: "Standard colors",
     MessageKey.SETTINGS_THEME_BRIGHT: "Bright colors",
     MessageKey.SETTINGS_THEME_DISPLAY: "Display",
+    MessageKey.SETTINGS_THEME_MODE: "Widget theme",
+    MessageKey.SETTINGS_THEME_MODE_HELP: "Select the foreground/background pair for colored widgets. Auto uses the terminal's COLORFGBG hint, or dark when unavailable. The global foreground and background stay unchanged.",
+    MessageKey.SETTINGS_THEME_MODE_AUTO: "Auto detect",
+    MessageKey.SETTINGS_THEME_MODE_DARK: "Dark",
+    MessageKey.SETTINGS_THEME_MODE_LIGHT: "Light",
     MessageKey.SETTINGS_SIDEBAR_WIDTH_TITLE: "Sidebar width",
     MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL: "Output refresh interval (seconds)",
     MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL_DESCRIPTION: "Minimum interval between change-driven output updates; 0.1 seconds allows at most 10 updates per second. No streaming polling while unchanged. Range 0.01–10 seconds, default 0.1. Applies on save without delaying request acknowledgements or keyboard input.",

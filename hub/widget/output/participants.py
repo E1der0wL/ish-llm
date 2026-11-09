@@ -111,10 +111,7 @@ class ParticipantBar(TagBar):
                               size=PopupSize.CUSTOM)
 
     def target(self, identifier):
-        self.view.recipient_id = "" if self.view.recipient_id == identifier else identifier
-        if identifier in self.view.participant_ids:
-            self.view.agent_id = identifier
-        get_app().invalidate()
+        self.view.select_recipient("" if self.view.recipient_id == identifier else identifier)
 
     def edit_agent(self, identifier):
         if self.view.on_component:

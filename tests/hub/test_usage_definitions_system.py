@@ -49,7 +49,7 @@ class UsageAndSystemTests(unittest.TestCase):
         self.assertEqual(display.messages[0].text, message.text)
         system = display.messages[1]
         self.assertEqual(system.id, "a:failure")
-        header = render_messages((system,), 100, HubTheme(), Language(), section="header")
+        header = render_messages((system,), 100, HubTheme(), Language("ko"), section="header")
         text = "".join(text for row in header for _, text in row)
         self.assertIn("시스템 • 2026-10-18", text)
         self.assertNotIn("실패", text)

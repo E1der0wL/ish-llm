@@ -21,7 +21,7 @@ from prompt_toolkit.utils import get_cwidth
 
 class QuestionCardTests(unittest.TestCase):
     def setUp(self):
-        self.view = LiveHubView()
+        self.view = LiveHubView(language="ko")
         self.addCleanup(self.view.render_worker.close)
         self.addCleanup(self.view.close)
 

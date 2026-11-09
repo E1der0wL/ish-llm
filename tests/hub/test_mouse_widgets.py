@@ -10,6 +10,7 @@ from prompt_toolkit.layout import HSplit
 from prompt_toolkit.widgets import Label
 
 from examples.hub.preview import install_preview
+from hub.locales.keys import MessageKey
 from hub.model import ChatMessage
 from hub.widget.controls import Button, CheckboxList, TextArea, RadioList, ScrollablePane
 from hub.widget.color_preview import ColorPreview
@@ -22,6 +23,78 @@ from tests.hub.test_ish_integration import Prompt
 
 
 class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
+    async def test_recipient_title_keyboard_and_click_share_selection_and_cancel(self):
+        from hub.backend.project.participant_groups import ParticipantGroup
+
+        view, menu = self.view, self.view.recipient_dropdown
+        view.participant_ids = ('assistant', 'reviewer')
+        view.agent_titles = {'assistant': 'Assistant', 'reviewer': 'Reviewer'}
+        view._participant_groups[view._draft_key(view.selected)] = (
+            ParticipantGroup('group:team', 'Team', ('assistant', 'reviewer')),)
+        view.composer.text = 'Preserve draft'
+        self.pipe.send_text('\x14')
+        await eventually(menu.is_open)
+        self.assertEqual([key for key, _ in menu.choices.values],
+                         [view.NO_AGENT, 'assistant', 'reviewer', 'group:team'])
+        self.pipe.send_text('\x1b[B\x1b[B\r')
+        await eventually(lambda: view.recipient_id == 'reviewer')
+        self.assertIs(self.app.layout.current_control, view.composer.control)
+        self.assertEqual(view.composer.text, 'Preserve draft')
+        await self.paint()
+        await self.mouse(0, *self.at(menu.button.window))
+        await self.mouse(0, *self.at(menu.button.window), release=True)
+        await eventually(menu.is_open)
+        self.pipe.send_text('\x1b[B ')
+        await eventually(lambda: view.recipient_id == 'group:team')
+        self.assertEqual(view.recipients, ('assistant', 'reviewer'))
+        self.pipe.send_text('\x14\x1b[A\x1b')
+        await eventually(lambda: not menu.is_open())
+        self.assertEqual(view.recipient_id, 'group:team')
+        self.assertEqual(view.composer.text, 'Preserve draft')
+
+    async def test_dropdown_outside_hover_and_click_never_execute_underlying_button(self):
+        menu = self.view.recipient_dropdown
+        self.view.participant_ids = ('assistant', 'reviewer')
+        self.pipe.send_text('\x14')
+        await eventually(menu.is_open)
+        target = self.view.profile_bar.page
+        with patch.object(target, 'handler') as activate:
+            await self.mouse(35, *self.at(target.window))
+            self.assertTrue(menu.is_open())
+            self.assertIs(self.app.layout.current_control, menu.choices.control)
+            await self.mouse(0, *self.at(target.window))
+            await self.mouse(0, *self.at(target.window), release=True)
+            self.assertFalse(menu.is_open())
+            activate.assert_not_called()
+            self.assertIs(self.app.layout.current_control, self.view.composer.control)
+        # Clicking the title while expanded cancels, rather than reopening it
+        # on release. A subsequent distinct click may open it again.
+        self.pipe.send_text('\x14')
+        await eventually(menu.is_open)
+        await self.mouse(0, *self.at(menu.button.window))
+        await self.mouse(0, *self.at(menu.button.window), release=True)
+        self.assertFalse(menu.is_open())
+
+    async def test_recipient_menu_does_not_apply_to_changed_session_or_panel_focus(self):
+        from hub.model import SessionView
+        view, menu = self.view, self.view.recipient_dropdown
+        view.participant_ids = ('assistant', 'reviewer')
+        self.pipe.send_text('\x14')
+        await eventually(menu.is_open)
+        # Async session navigation must not commit an obsolete menu choice.
+        view.sessions.append(SessionView('Another', id='another'))
+        view.selected = len(view.sessions) - 1
+        view.participant_ids = ('assistant', 'reviewer')
+        self.pipe.send_text('\x1b[B\r')
+        await eventually(lambda: not menu.is_open())
+        self.assertEqual(view.recipient_id, view.NO_AGENT)
+        with set_app(self.app):
+            self.app.layout.focus(view._session_control)
+        self.pipe.send_text('\x14')
+        await self.paint()
+        self.assertFalse(menu.is_open())
+        self.assertIs(self.app.layout.current_control, view._session_control)
+
     async def test_workflow_canvas_uses_host_capture_and_wheel_adapter(self):
         from hub.widget.forms.definition_manager import DefinitionManager
         from hub.widget.forms.workflow_editor import WorkflowEditor
@@ -513,9 +586,9 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
                 # Section separators may start at the content's left edge.
                 self.assertNotIn(screen.data_buffer[y][x].char, "│┌┐└┘")
         self.assertEqual(screen.data_buffer[action_top][left].char, "┌")
-        self.assertEqual(screen.data_buffer[action_top][self.output.columns - 1].char, "┐")
+        self.assertEqual(screen.data_buffer[action_top][self.output.columns - 2].char, "┐")
         self.assertEqual(screen.data_buffer[self.output.rows - 3][left].char, "└")
-        self.assertEqual(screen.data_buffer[self.output.rows - 3][self.output.columns - 1].char, "┘")
+        self.assertEqual(screen.data_buffer[self.output.rows - 3][self.output.columns - 2].char, "┘")
 
     async def test_settings_and_home_share_width_right_inset_and_scrollbar_edge(self):
         for columns in (132, 80):
@@ -528,7 +601,9 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             await self.paint()
             chat = self.position(self.view.output.transcript.window)
             chat_edge = chat.xpos + chat.width - 1
-            self.assertEqual(chat_edge, columns - 2)
+            self.assertEqual(chat_edge, columns - 3)
+            composer = self.position(self.view.composer.window)
+            self.assertEqual((chat.xpos, chat.width), (composer.xpos, composer.width))
             home_auxiliary = self.position(self.view.auxiliary.buttons["history"].window)
             self.assertEqual(chat.ypos + chat.height + 1, home_auxiliary.ypos)
             cells = self.app.renderer._last_screen.data_buffer
@@ -544,7 +619,8 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
             settings_edge = rect.xpos + rect.width - 1
             self.assertEqual((rect.xpos, rect.width), (chat.xpos, chat.width))
             self.assertEqual(settings_edge, chat_edge)
-            title = "전역 설정 • 모양"
+            title = (self.view.t(MessageKey.SETTINGS_GLOBAL) + " • " +
+                     self.view.t(MessageKey.SETTINGS_APPEARANCE))
             cells = self.app.renderer._last_screen.data_buffer
             self.assertIn(title, "".join(cells[rect.ypos - 2][x].char for x in range(rect.xpos, columns)))
             self.assertEqual(rect.ypos, chat.ypos + 1)
@@ -839,7 +915,9 @@ class MouseWidgetTests(unittest.IsolatedAsyncioTestCase):
         await self.paint()
         sidebar = next(w for w, _ in self.view.mouse.windows if w.content is self.view._session_control)
         rect = self.position(sidebar)
-        row = self.view._session_control.cursor_position().y + (3 if self.view.sessions[0].status else 1)
+        control = self.view._session_control
+        first = control.rows()[0]
+        row = first.margin_top + (control.DETAIL_HEIGHT if first.detail else control.ROW_HEIGHT)
         await self.mouse(35, rect.xpos + rect.width - 2, rect.ypos + row)
         self.assertEqual(self.view.selected, 0)
         await self.mouse(0, rect.xpos + rect.width - 2, rect.ypos + row)

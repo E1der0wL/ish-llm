@@ -2,6 +2,11 @@
 
 
 class MessageKey:
+    SESSION_LIST_IDLE = 'session_list_idle'
+    SESSION_LIST_RUNNING = 'session_list_running'
+    SESSION_LIST_INPUT_REQUIRED = 'session_list_input_required'
+    SESSION_LIST_COMPLETED = 'session_list_completed'
+    SHORTCUT_RECIPIENT = 'shortcut_recipient'
     STARTUP_FAILURE = 'startup_failure'
     STARTUP_LOADING = 'startup_loading'
     STARTUP_PROGRESS = 'startup_progress'
@@ -796,6 +801,9 @@ class MessageKey:
     GENERAL_CATEGORY_OUTPUT = 'general_category_output'
     GENERAL_CATEGORY_EDITOR = 'general_category_editor'
     GENERAL_LANGUAGE = 'general_language'
+    LANGUAGE_AUTOMATIC = 'language_automatic'
+    LANGUAGE_KOREAN = 'language_korean'
+    LANGUAGE_ENGLISH = 'language_english'
     GENERAL_NOTIFICATION_KINDS = 'general_notification_kinds'
     GENERAL_NOTIFICATION_SECONDS = 'general_notification_seconds'
     GENERAL_RESTORE_LAST_PROJECT = 'general_restore_last_project'
@@ -856,6 +864,11 @@ class MessageKey:
     SETTINGS_THEME_NORMAL = 'settings_theme_normal'
     SETTINGS_THEME_BRIGHT = 'settings_theme_bright'
     SETTINGS_THEME_DISPLAY = 'settings_theme_display'
+    SETTINGS_THEME_MODE = 'settings_theme_mode'
+    SETTINGS_THEME_MODE_HELP = 'settings_theme_mode_help'
+    SETTINGS_THEME_MODE_AUTO = 'settings_theme_mode_auto'
+    SETTINGS_THEME_MODE_DARK = 'settings_theme_mode_dark'
+    SETTINGS_THEME_MODE_LIGHT = 'settings_theme_mode_light'
     SETTINGS_SIDEBAR_WIDTH_TITLE = 'settings_sidebar_width_title'
     SETTINGS_OUTPUT_REFRESH_INTERVAL = 'settings_output_refresh_interval'
     SETTINGS_OUTPUT_REFRESH_INTERVAL_DESCRIPTION = 'settings_output_refresh_interval_description'

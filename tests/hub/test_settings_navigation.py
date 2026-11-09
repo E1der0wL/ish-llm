@@ -60,7 +60,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
                 await until(lambda: screen.selected == "profile")
                 self.assertIs(screen.page, profile)
                 self.assertEqual(profile.form.fields[("email",)].input.text, "draft@example.com")
-                self.assertIs(type(view._session_control), type(screen.global_list))
+                self.assertIsInstance(view._session_control, type(screen.global_list))
                 self.assertIs(type(screen.global_list), type(screen.project_list))
                 pipe.send_text("\x1b[B\x1b[B\t")
                 await until(lambda: screen.selected == "project:general")
@@ -108,7 +108,7 @@ class SettingsDraftTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_keyboard_regions_editing_dirty_cancel_and_width(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False),
+            app, controller = create_application(HubConfig(directory, model="test/model", auto_title=False, language="ko"),
                 input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings

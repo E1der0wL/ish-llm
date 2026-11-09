@@ -50,6 +50,10 @@ class DurableQuestionTests(unittest.IsolatedAsyncioTestCase):
             item, = rows
             self.assertTrue(item['nonblocking'])
             self.assertEqual(item['run_status'], 'running')
+            from hub.backend.observability.snapshot import SnapshotReader
+            observation = await SnapshotReader().read_session(sid, runtime.sessions[sid])
+            self.assertTrue(observation.pending_input)
+            self.assertTrue(observation.runtime.active_runs)
             targets = await self.action(runtime, sid, 'targets', run_id=run.id)
             self.assertTrue(targets['targets'])
             response = await self.action(runtime, sid, 'save', run_id=run.id,
@@ -59,6 +63,8 @@ class DurableQuestionTests(unittest.IsolatedAsyncioTestCase):
             handle = await runtime.sessions[sid].run.aload(run.id)
             self.assertIsNone(await handle.get_delivery(item['request']['id']))
             self.assertEqual(len(model.requests), 1)
+            observation = await SnapshotReader().read_session(sid, runtime.sessions[sid])
+            self.assertFalse(observation.pending_input)
             choice = targets['targets'][0]
             payload = dict(run_id=run.id, request_id=item['request']['id'],
                            target_run_id=run.id, targets=[choice['target_id']])

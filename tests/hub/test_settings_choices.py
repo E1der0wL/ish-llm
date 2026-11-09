@@ -57,6 +57,18 @@ class SettingsChoiceTests(unittest.TestCase):
         field.select(2)
         self.assertEqual(field.value(), 'a')
 
+    def test_fixed_choice_can_hide_unset_without_changing_other_fields(self):
+        field = ChoiceField('language', {'type': 'string', ChoiceField.SCHEMA_KEY: {
+            '': 'Auto-detect', 'en': 'English'}}, '', Language('en'))
+        field.allow_unset = False
+        self.assertEqual(field.menu_items(), [(1, 'Auto-detect'), (2, 'English')])
+        field.select(2)
+        field.select(0)
+        field.clear()
+        self.assertEqual(field.value(), 'en')
+        field.select(1)
+        self.assertEqual(field.value(), '')
+
     def test_field_change_notification_does_not_require_a_text_buffer(self):
         for field in (
             SettingField('text', {'type': 'string'}, 'a', Language('en')),

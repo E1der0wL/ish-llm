@@ -171,7 +171,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
                                          new_callable=AsyncMock, return_value=()))
         from llm.core.interactions import InteractionRequest, InteractionOption
         request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
-        runtime = HubRuntime(HubConfig(auto_title=False))
+        runtime = HubRuntime(HubConfig(self.enterContext(tempfile.TemporaryDirectory()), auto_title=False))
         runtime.project = NS(id="p")
         run = NS(id="r", arespond=AsyncMock(),
                  aget_data=AsyncMock(return_value=NS(id="r", status="paused", agent_id="assistant", engine="loop")))
@@ -205,7 +205,7 @@ class RetryUITests(unittest.IsolatedAsyncioTestCase):
                                          new_callable=AsyncMock, return_value=()))
         from llm.core.interactions import InteractionRequest, InteractionOption
         request = InteractionRequest("Approve", (InteractionOption("approve", "Approve", effect="approve"),))
-        runtime = HubRuntime(HubConfig(auto_title=False))
+        runtime = HubRuntime(HubConfig(self.enterContext(tempfile.TemporaryDirectory()), auto_title=False))
         runtime.project = NS(id="p")
         acknowledged = Mock()
         entered, release = asyncio.Event(), asyncio.Event()

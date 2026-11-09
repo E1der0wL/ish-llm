@@ -8,6 +8,7 @@ import math
 
 from prompt_toolkit.styles import Style
 from .theme_style import ThemeStyle
+from .theme_mode import ThemeMode
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,6 +33,7 @@ class HubTheme:
 
     sidebar_width: int = 26
     icon_style: str = IconStyle.NERD.value
+    mode: str = ThemeMode.AUTO.value
     output_refresh_interval: float = 0.1
     progress_refresh_interval: float = 0.1
     foreground: str = DEFAULT_COLOR
@@ -65,26 +67,28 @@ class HubTheme:
     user = property(lambda self: self.blue)
     notice = property(lambda self: self.orange)
     muted = property(lambda self: self.bright_gray)
-    widget_background = property(lambda self: self.bright_black)
+    widget_foreground = property(lambda self: self.bright_black if self.mode == ThemeMode.LIGHT else self.white)
+    widget_background = property(lambda self: self.white if self.mode == ThemeMode.LIGHT else self.bright_black)
     action_background = property(lambda self: self.green)
-    shortcut_background = property(lambda self: self.white)
+    shortcut_foreground = property(lambda self: self.widget_background)
+    shortcut_background = property(lambda self: self.widget_foreground)
     user_background = property(lambda self: self.widget_background)
     header_background = property(lambda self: self.widget_background)
     footer_background = property(lambda self: self.widget_background)
     code_background = property(lambda self: self.widget_background)
-    completion_background = property(lambda self: self.bright_black)
-    completion_current_background = property(lambda self: self.white)
-    completion_current_foreground = property(lambda self: self.bright_black)
-    button_background = property(lambda self: self.bright_black)
-    checklist_background = property(lambda self: self.bright_black)
+    completion_background = property(lambda self: self.widget_background)
+    completion_current_background = property(lambda self: self.widget_foreground)
+    completion_current_foreground = property(lambda self: self.widget_background)
+    button_background = property(lambda self: self.widget_background)
+    checklist_background = property(lambda self: self.widget_background)
     scrollbar_button = property(lambda self: self.green)
     scrollbar_arrow = property(lambda self: self.bright_gray)
-    bar_foreground = property(lambda self: self.foreground)
-    code_foreground = property(lambda self: self.foreground)
-    completion_foreground = property(lambda self: self.white)
-    button_foreground = property(lambda self: self.white)
-    icon_button_foreground = property(lambda self: self.white)
-    checklist_foreground = property(lambda self: self.foreground)
+    bar_foreground = property(lambda self: self.widget_foreground)
+    code_foreground = property(lambda self: self.widget_foreground)
+    completion_foreground = property(lambda self: self.widget_foreground)
+    button_foreground = property(lambda self: self.widget_foreground)
+    icon_button_foreground = property(lambda self: self.widget_foreground)
+    checklist_foreground = property(lambda self: self.widget_foreground)
     alert_error_background = property(lambda self: self.widget_background)
     alert_warning_background = property(lambda self: self.widget_background)
     alert_info_background = property(lambda self: self.widget_background)
@@ -97,6 +101,9 @@ class HubTheme:
     def __post_init__(self) -> None:
         for field in fields(self):
             value = getattr(self, field.name)
+            if field.name == HubTheme.mode.__name__:
+                ThemeMode(value)
+                continue
             if field.name in (
                 HubTheme.output_refresh_interval.__name__,
                 HubTheme.progress_refresh_interval.__name__,

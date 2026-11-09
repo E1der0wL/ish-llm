@@ -48,7 +48,7 @@ class FeatureRuntimeTests(unittest.IsolatedAsyncioTestCase):
                 gate.wait()  # The test releases this in finally, not on a wall-clock race.
             yield chunk(content=kwargs["messages"][-1]["content"], finish="stop")
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, agent_id="chat", agent_definition={"engine": 'chat', "completion":{"model":"openai/test"}}, model="openai/test", auto_title=False,
+            config = HubConfig(directory, agent_id="chat", agent_definition={"engine": 'chat', "completion":{"model":"openai/test"}}, model="openai/test", auto_title=False, language="ko",
                 engine_factories={"chat": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider)),
                                   "review": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
@@ -385,6 +385,7 @@ class FeatureUITests(unittest.IsolatedAsyncioTestCase):
                 await task
                 await asyncio.to_thread(controller.close)
 
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_direct_scroll_dialogs_and_removed_ctrl_d(self):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput(rows=24))

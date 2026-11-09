@@ -149,7 +149,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(preparation.stop)
 
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, model="test/model", auto_title=False,
+            config = HubConfig(directory, model="test/model", auto_title=False, language="ko",
                 engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
@@ -323,7 +323,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
             [chunk("recovered", finish="stop")], [chunk("edited answer", finish="stop")],
             [chunk("third answer", finish="stop")])
         with tempfile.TemporaryDirectory() as directory:
-            config = HubConfig(directory, model="test/model", auto_title=False,
+            config = HubConfig(directory, model="test/model", auto_title=False, language="ko",
                                engine_factories={"loop": lambda: LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=provider))})
             runtime = HubRuntime(config)
             try:
@@ -380,7 +380,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
     async def test_bulk_cancel_preserves_active_run_and_reports_partial_delete(self):
         gate = threading.Event()
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False),
+            runtime = HubRuntime(HubConfig(directory, model="test/model", auto_title=False, language="ko"),
                                  partial(controlled_backend, gate=gate))
             try:
                 await runtime.start()
@@ -441,6 +441,7 @@ class HistoryBackendTests(unittest.IsolatedAsyncioTestCase):
 
 
 class HistoryDialogTests(unittest.IsolatedAsyncioTestCase):
+    @patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''})
     async def test_checkbox_selection_drafts_action_arguments_and_close(self):
         with create_pipe_input() as pipe:
             app, view, _ = create_preview(input=pipe, output=SizedOutput())

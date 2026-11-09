@@ -110,8 +110,8 @@ class EngineOutputTests(unittest.IsolatedAsyncioTestCase):
                 header = after[output.header]
                 self.assertEqual((tags.ypos, tags.height), (text.ypos + 1, text.height - 1))
                 self.assertEqual(after[output.tags.heading].ypos, text.ypos)
-                self.assertEqual(header.xpos, composer.xpos - 1)
-                self.assertEqual(text.xpos, composer.xpos - 1)
+                self.assertEqual(header.xpos, composer.xpos)
+                self.assertEqual(text.xpos, composer.xpos)
                 self.assertEqual(tags.xpos + tags.width, header.xpos + header.width)
                 self.assertEqual(header.xpos + header.width, composer.xpos + composer.width)
                 self.assertEqual(tags.ypos + tags.height + (0 if rows == 14 else 1),

@@ -366,7 +366,7 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
         popup.busy, popup.selected = False, "job:j"
         popup.entries = [{"name": "job:j", "kind": "job", "retryable": False,
                           "resume_blockers": ({"code": "checkpoint_configuration", "message": "The indexing settings changed"},)}]
-        popup.view = SimpleNamespace(t=Language(), notice="", project_id="p", operation_diagnostics=OperationDiagnostics())
+        popup.view = SimpleNamespace(t=Language("ko"), notice="", project_id="p", operation_diagnostics=OperationDiagnostics())
         popup.call = Mock()
         with patch("hub.widget.forms.rag_manager.get_app", return_value=Mock()):
             popup.retry()
@@ -459,7 +459,7 @@ class RAGJobUITests(unittest.IsolatedAsyncioTestCase):
                 while not release.is_set():
                     await asyncio.sleep(.02)
                 return {"data": [{"embedding": [1., 2., 3.]}]}
-            app, controller = create_application(settings(root, embed), input=pipe, output=SizedOutput())
+            app, controller = create_application(replace(settings(root, embed), language="ko"), input=pipe, output=SizedOutput())
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:

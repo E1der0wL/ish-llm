@@ -19,7 +19,7 @@ class OutputViewport(TextViewport):
         view = self.output.view
         context = RenderContext(
             max(self.MIN_DIMENSION, width),
-            view.theme,
+            view.render_theme,
             view.t,
             transcript.file_root,
             get_app().invalidate,

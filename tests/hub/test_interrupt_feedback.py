@@ -37,8 +37,8 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
-        self.view = LiveHubView()
-        self.controller = LiveController(self.view, HubConfig(directory.name, auto_title=False))
+        self.view = LiveHubView(language='ko')
+        self.controller = LiveController(self.view, HubConfig(directory.name, auto_title=False, language='ko'))
         self.controller.app = NS(invalidate=Mock())
         self.controller.loop = asyncio.get_running_loop()
         self.calls = []
@@ -52,11 +52,11 @@ class InterruptFeedbackTests(unittest.IsolatedAsyncioTestCase):
         self.view.apply_snapshot(self.base)
 
     def test_icons_are_separate_from_running_and_keep_unicode_fallback(self):
-        language = Language(icons=NERD)
+        language = Language('ko', icons=NERD)
         self.assertEqual(language.status("preparing"), " 준비 중")
         self.assertEqual(language.status("thinking"), " 생각 중")
         self.assertEqual(NERD.statuses["running"], "")
-        plain = Language(icons=UNICODE)
+        plain = Language('ko', icons=UNICODE)
         self.assertEqual(plain.status("preparing"), "⚙ 준비 중")
         self.assertEqual(plain.status("thinking"), "◌ 생각 중")
 
@@ -355,7 +355,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             prompt = Prompt(input=pipe, output=SizedOutput(columns=110, rows=32))
             prompt.context.update("environ", f"PWD={directory}\0PATH=/usr/bin:/bin\0".encode())
-            installation = install(prompt, config=HubConfig(directory, auto_title=False))
+            installation = install(prompt, config=HubConfig(directory, auto_title=False, language='ko'))
             app, view, controller = prompt.app, installation.view, installation.controller
             view.on_open = None
             controller.app, controller.loop = app, asyncio.get_running_loop()
@@ -395,7 +395,7 @@ class InterruptKeyboardTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_ctrl_w_renders_stopping_before_backend_returns(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(directory, auto_title=False),
+            app, controller = create_application(HubConfig(directory, auto_title=False, language='ko'),
                 input=pipe, output=SizedOutput(columns=110, rows=32))
             view = controller.view
             view.on_open = None

@@ -75,7 +75,7 @@ class AgentEditor(Dialog):
         self.draft_tools = AgentDraftTools(self)
         super().__init__(title=self.view.t(MessageKey.AGENTS_TITLE),
                          body=self.workspace,
-                         content_padding=0, status_bar=self.workspace.layout.status,
+                         status_bar=self.workspace.layout.status,
                          status_in_body=True,
                          size=PopupSize.LARGE)
         self.navigation = self.workspace

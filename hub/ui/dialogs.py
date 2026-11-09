@@ -236,7 +236,7 @@ class DialogController:
             self.close,
             view.t,
             markdown=DialogController.MARKDOWN_HELP,
-            theme=lambda: view.theme,
+            theme=lambda: view.render_theme,
             render_worker=view.render_worker,
         )
         self.show(popup, popup.receiver)

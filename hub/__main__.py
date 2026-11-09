@@ -47,7 +47,7 @@ def main() -> None:
     parser.add_argument(HubCommand.PROJECT, help=HubCommand.PROJECT_HELP)
     parser.add_argument(HubCommand.SESSION, help=HubCommand.SESSION_HELP)
     parser.add_argument(
-        HubCommand.LANGUAGE, choices=LanguageCode.BUILTIN, default=LanguageCode.DEFAULT
+        HubCommand.LANGUAGE, choices=LanguageCode.BUILTIN, default=LanguageCode.AUTO
     )
     parser.add_argument(HubCommand.FILE_ROOT, type=Path, help=HubCommand.FILE_ROOT_HELP)
     args = parser.parse_args()

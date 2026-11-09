@@ -1,9 +1,10 @@
 """Shared Settings page behavior remains consistent inside the Agent modal."""
 
 import asyncio
+from dataclasses import replace
 import json
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from prompt_toolkit.application.current import set_app
 from prompt_toolkit.input import create_pipe_input
@@ -23,6 +24,38 @@ from tests.hub.support import SizedOutput, eventually, render_container
 
 
 class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_agent_body_uses_parent_allocation_without_popup_geometry(self):
+        from hub.widget.content_inset import ContentInset
+
+        with set_app(self.app):
+            workspace = self.editor.workspace
+            workspace.tabs.focus_tabs()
+            # The same body can be allocated by any parent; it must not ask
+            # a surrounding dialog for LARGE dimensions, borders or padding.
+            with patch('hub.widget.dialog.PopupGeometry.dimensions',
+                       side_effect=AssertionError('Editor queried popup geometry')):
+                for width, sidebar_width in ((120, 18), (84, 26), (68, 18)):
+                    self.view.theme = replace(self.view.theme, sidebar_width=sidebar_width)
+                    self.app.render_counter += 1
+                    screen = Screen()
+                    with patch.object(workspace.pane, 'write_to_screen',
+                                      wraps=workspace.pane.write_to_screen) as paint:
+                        to_container(workspace).write_to_screen(
+                            screen, MouseHandlers(), WritePosition(0, 0, width, 36), '', True, None)
+                        screen.draw_all_floats()
+                    positions = screen.visible_windows_to_write_positions
+                    edge = positions[workspace.layout.edge]
+                    left = edge.xpos + edge.width
+                    right = width - workspace.layout.MAIN_RIGHT_PADDING
+                    allocated = paint.call_args.args[2]
+                    self.assertEqual(allocated.xpos, left + ContentInset.SIDE_PADDING)
+                    self.assertEqual(allocated.width, right - left - 2 * ContentInset.SIDE_PADDING)
+                    rects = [positions[button.window] for button in self.editor.buttons]
+                    self.assertEqual(len({rect.ypos for rect in rects}), 1)
+                    self.assertLessEqual(abs((rects[0].xpos - left)
+                                            - (right - rects[-1].xpos - rects[-1].width)), 1)
+                    self.assertEqual(positions[workspace.layout.status].ypos, 35)
+
     async def test_agent_auxiliary_tab_leaves_the_button_group(self):
         with set_app(self.app):
             self.editor.workspace.auxiliary.focus()
@@ -33,7 +66,7 @@ class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
                          [button.control for button in self.editor.buttons])
         self.assertFalse(self.editor.workspace.auxiliary.focused)
 
-    async def test_agent_and_workflow_chrome_has_no_outer_padding_and_footer_is_last(self):
+    async def test_agent_and_workflow_chrome_has_shared_padding_and_footer_is_last(self):
         with set_app(self.app):
             def paint(popup):
                 screen = Screen()
@@ -48,8 +81,8 @@ class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
                                 if window.content is self.editor.workspace.sidebar)
             self.assertGreater(status_rect.xpos, sidebar_rect.xpos + sidebar_rect.width)
             self.assertEqual(sidebar_rect.ypos + sidebar_rect.height, status_rect.ypos + 1)
-            self.assertEqual(status_rect.xpos + status_rect.width, 126)
-            self.assertIn('에이전트', ''.join(screen.data_buffer[1][x].char for x in range(35)))
+            self.assertEqual(status_rect.xpos + status_rect.width, 125)
+            self.assertIn('에이전트', ''.join(screen.data_buffer[2][x].char for x in range(35)))
             auxiliary = next(iter(self.editor.workspace.auxiliary.buttons.values()))
             y = screen.visible_windows_to_write_positions[auxiliary.window].ypos
             self.assertTrue(any(screen.data_buffer[y+1][x].char == '┌' for x in range(128)))
@@ -60,14 +93,15 @@ class PopupWorkspaceTests(unittest.IsolatedAsyncioTestCase):
             manager.create_item()
             popup = self.view._dialog
             screen = paint(popup)
-            self.assertTrue(''.join(screen.data_buffer[1][x].char for x in range(1, 9)).startswith('이름'))
-            self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].xpos, 1)
-            self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].ypos, 2)
+            self.assertTrue(''.join(screen.data_buffer[2][x].char for x in range(2, 10)).startswith('이름'))
+            self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].xpos, 2)
+            self.assertEqual(screen.visible_windows_to_write_positions[popup.identifier.window].ypos, 3)
 
     async def asyncSetUp(self):
         self.input = create_pipe_input()
         self.pipe = self.input.__enter__()
-        self.app, self.view, _ = create_preview(input=self.pipe, output=SizedOutput())
+        with patch.dict('os.environ', {'LC_ALL': 'ko_KR.UTF-8', 'LANGUAGE': ''}):
+            self.app, self.view, _ = create_preview(input=self.pipe, output=SizedOutput())
         self.task = asyncio.create_task(self.app.run_async(pre_run=lambda: self.view.show(self.app)))
         await eventually(lambda: self.app.is_running)
         registry = EngineRegistry()

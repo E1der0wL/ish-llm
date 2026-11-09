@@ -36,7 +36,7 @@ from ..widget.focus import focus_control
 from ..widget.input_frame import InputFrame
 from ..asset import icon
 from ..config.general import GeneralSettings
-from ..widget.sidebar import SidebarActions, SidebarHeading, SidebarItem, SidebarList
+from ..widget.sidebar import SidebarActions, SidebarHeading
 from .layout import TwoPanelPage
 from ..backend.project.agents import DEFAULT_AGENT
 
@@ -145,7 +145,7 @@ class HubView:
         self,
         sessions=(),
         theme=ABSENT,
-        language=LanguageCode.DEFAULT,
+        language=LanguageCode.AUTO,
         language_packs=ABSENT,
         *,
         output_factory=ABSENT
@@ -156,9 +156,12 @@ class HubView:
 
         self.user_profile = UserProfile()
         self.theme = theme or HubTheme()
+        from ..config.theme_mode import TerminalTheme
+
+        self.render_theme = TerminalTheme.resolve(self.theme)
         self.sidebar_heights = SidebarHeights()
         self.on_sidebar_heights = HubView.ABSENT
-        self.style = self.theme.style()
+        self.style = self.render_theme.style()
         self.sessions = list(sessions) or [
             SessionView(self.t(MessageKey.WELCOME_TITLE))
         ]
@@ -284,19 +287,9 @@ class HubView:
         from ..widget.output.loop import LoopOutput
 
         self.output: EngineOutput = (output_factory or LoopOutput)(self)
-        self._session_control = SidebarList(
-            lambda: (
-                []
-                if self.no_sessions
-                else [
-                    SidebarItem(self._draft_key(i), session.title, session.status)
-                    for i, session in enumerate(self.sessions)
-                ]
-            ),
-            lambda: self._draft_key(self.selected),
-            self._select_sidebar_session,
-            on_activate=self._focus_composer,
-        )
+        from ..widget.session_list import SessionList
+
+        self._session_control = SessionList(self)
         from .chat.projects import ChatProjects
         from ..widget.sidebar_panel import SidebarPanel
 
@@ -352,6 +345,9 @@ class HubView:
         from ..widget.composer_actions import ComposerActions
 
         self.composer_actions = ComposerActions(self)
+        from ..widget.recipient_dropdown import RecipientDropdown
+
+        self.recipient_dropdown = RecipientDropdown(self)
         self._composer_frame = InputFrame(
             HSplit(
                 [
@@ -361,6 +357,7 @@ class HubView:
                 ]
             ),
             title=self.recipient_title,
+            title_widget=self.recipient_dropdown,
             hint=lambda: HubView.NO_HINT if self.question.item else self.t(MessageKey.INPUT_HINT)
             + (
                 HubView.HINT_SEPARATOR + self.t(MessageKey.FOLLOWUP_HINT)
@@ -618,7 +615,7 @@ class HubView:
         self.remember_position()
         self.output.close()
         self.output = output
-        output.set_theme(self.theme)
+        output.set_theme(self.render_theme)
         output.set_file_root(self.file_root)
         output.set_messages(
             self.sessions[self.selected].messages,
@@ -639,6 +636,7 @@ class HubView:
         self.output.close()
         self.render_worker.close()
         self.progress.close()
+        self._session_control.close_animation()
 
     @property
     def _dialog(self):
@@ -671,6 +669,12 @@ class HubView:
     @recipient_id.setter
     def recipient_id(self, identifier):
         self._recipients[self._draft_key(self.selected)] = identifier
+
+    def select_recipient(self, identifier):
+        self.recipient_id = identifier
+        if identifier in self.participant_ids:
+            self.agent_id = identifier
+        get_app().invalidate()
 
     @property
     def recipients(self):
@@ -769,9 +773,16 @@ class HubView:
         get_app().invalidate()
 
     def set_theme(self, theme):
-        self.theme, self.style = theme, theme.style()
-        self.output.set_theme(theme)
+        from ..config.theme_mode import TerminalTheme
+
+        self.theme = theme
+        resolved = TerminalTheme.resolve(theme)
+        if resolved == self.render_theme:
+            return
+        self.render_theme, self.style = resolved, resolved.style()
+        self.output.set_theme(resolved)
         self.progress.close()
+        self._session_control.close_animation()
         get_app().invalidate()
 
     def show(self, app):
@@ -818,6 +829,7 @@ class HubView:
             app.layout.focus(self._previous_focus)
         self.visible = HubView.HIDDEN
         self.mouse.detach()
+        self._session_control.close_animation()
         if self.on_hide:
             self.on_hide()
         from ..widget.clipboard import SystemClipboard

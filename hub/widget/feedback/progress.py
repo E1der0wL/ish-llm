@@ -73,7 +73,7 @@ class ProgressControl(UIControl):
                 show_cursor=self.SHOW_CURSOR,
             )
         owner.schedule_refresh()
-        theme = owner.view.theme
+        theme = owner.view.render_theme
         annotation = self.annotation()
         key = (width, theme, annotation)
         if key in owner._render_cache:

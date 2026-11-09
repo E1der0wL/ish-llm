@@ -49,7 +49,7 @@ class LiveHubView(HubView):
     CONNECTED = True
 
     def __init__(
-        self, theme=ABSENT, language=LanguageCode.DEFAULT, language_packs=ABSENT
+        self, theme=ABSENT, language=LanguageCode.AUTO, language_packs=ABSENT
     ):
         super().__init__(theme=theme, language=language, language_packs=language_packs)
         self._default_participants = ()
@@ -99,6 +99,7 @@ class LiveHubView(HubView):
     def apply_snapshot(self, snapshot: HubSnapshot, *, select_id=ABSENT) -> None:
         snapshot = SubmittedMessages.reconcile(self, snapshot)
         HubSnapshot.observe_in(self, snapshot)
+        self._session_control.observe(snapshot)
         self.interrupting.observe(snapshot)
         self.toasts.reconcile_waiting(snapshot.project_id, snapshot.sessions)
         self.preparing.observe(snapshot)

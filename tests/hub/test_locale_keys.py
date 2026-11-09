@@ -17,7 +17,7 @@ class LocaleKeyTests(unittest.TestCase):
         self.assertEqual(set(values), set(ko.MESSAGES))
         self.assertEqual((MessageKey.STOP, MessageKey.ELAPSED, MessageKey.SETTINGS_TITLE),
                          ("stop", "elapsed", "settings_title"))
-        self.assertEqual((LanguageCode.BUILTIN, LanguageCode.DEFAULT), (("ko", "en"), "ko"))
+        self.assertEqual((LanguageCode.BUILTIN, LanguageCode.DEFAULT), (("ko", "en"), "en"))
 
     def test_open_names_and_independent_rendered_words_preserve_custom_fallback(self):
         self.assertEqual(MessagePattern.component_title("custom"), "custom_title")

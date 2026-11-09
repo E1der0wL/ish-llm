@@ -106,7 +106,7 @@ class ApprovalUITests(IsolatedAsyncioTestCase):
         popup = self.choose(2)
         self.assertIsInstance(popup, ApprovalSelectionDialog)
         self.assertEqual(popup.size, PopupSize.MEDIUM)
-        self.assertEqual(popup._buttons[0].text, '적용')
+        self.assertEqual(popup._buttons[0].text, self.view.t(MessageKey.APPROVAL_ALLOW))
         self.assertEqual(popup.scope.current_value, RememberScope.SESSION)
         self.view.on_answer.assert_not_called()
         popup.scope.current_value = RememberScope.PROJECT

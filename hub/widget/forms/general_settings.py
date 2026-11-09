@@ -17,7 +17,7 @@ from prompt_toolkit.widgets import Label
 
 from ..section import section
 from ...locales import validate_packs
-from .settings import SchemaForm
+from .settings import ChoiceField, SchemaForm
 from .visibility import EssentialSettings
 from ...config.sections import PreferenceSection
 from ..controls import Button, RadioList, TextArea
@@ -98,6 +98,7 @@ class GeneralForm:
             for keys in self.groups.values()
             for key in keys
         }
+        properties[GeneralSettings.language.__name__][ChoiceField.SCHEMA_KEY] = self.language_choices(values)
         self.form = SchemaForm(
             {
                 SchemaKeyword.TYPE: SchemaType.OBJECT,
@@ -108,6 +109,7 @@ class GeneralForm:
             presentation=EssentialSettings(EssentialSettings.GLOBAL, PreferenceSection.GENERAL),
         )
         GeneralSettingsDraft(self.form.original).initialize_packs()
+        self.language_field.allow_unset = False
         self.add_button = Button(
             screen.t(MessageKey.LANGUAGE_PACK_ADD),
             handler=self.add_pack,
@@ -119,6 +121,25 @@ class GeneralForm:
             width=self.BUTTON_WIDTH,
         )
         self.set_debugging(False)
+
+    @property
+    def language_field(self):
+        return self.form.fields[(GeneralSettings.language.__name__,)]
+
+    def language_choices(self, values):
+        draft = GeneralSettingsDraft(dict(values))
+        draft.initialize_packs()
+        return {
+            LanguageCode.AUTO: self.screen.t(MessageKey.LANGUAGE_AUTOMATIC),
+            LanguageCode.ENGLISH: self.screen.t(MessageKey.LANGUAGE_ENGLISH),
+            LanguageCode.KOREAN: self.screen.t(MessageKey.LANGUAGE_KOREAN),
+            **{code: code for code in draft.pack_names()},
+        }
+
+    def refresh_language_choices(self):
+        field = self.language_field
+        field.schema[ChoiceField.SCHEMA_KEY] = self.language_choices(self.form.original)
+        field.choices = field.declared_values(field.schema)
 
     def set_debugging(self, debugging):
         self.groups = {category: tuple(key for key in keys if (key,) in self.form.visible_fields)
@@ -185,6 +206,7 @@ class GeneralForm:
             GeneralSettingsDraft(self.form.original).set_pack(
                 draft.code, draft.messages
             )
+            self.refresh_language_choices()
             self.screen.status = self.screen.t(MessageKey.LANGUAGE_PACK_DRAFT)
 
         self.screen.view.open_dialog(
@@ -220,6 +242,7 @@ class GeneralForm:
             language = self.form.fields[(GeneralSettings.language.__name__,)]
             if language.value() == code:
                 language.input.text = LanguageCode.ENGLISH
+            self.refresh_language_choices()
             self.screen.status = self.screen.t(MessageKey.LANGUAGE_PACK_DRAFT)
 
         self.screen.view.open_dialog(

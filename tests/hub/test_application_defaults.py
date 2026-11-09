@@ -218,11 +218,14 @@ class ApplicationDefaultsTests(unittest.IsolatedAsyncioTestCase):
         incomplete.pop('bright_black')
         with self.assertRaises(TypeError):
             PreferencesStore.validate_section('appearance', incomplete)
-        for removed in ('mode', 'accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'comment', 'comment2'):
+        self.assertEqual(validated['mode'], 'auto')
+        for removed in ('accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'comment', 'comment2'):
             with self.subTest(removed=removed), self.assertRaises(TypeError):
                 PreferencesStore.validate_section('appearance', {**saved, removed: '#123456'})
         with self.assertRaises(ValueError):
             PreferencesStore.validate_section('appearance', {**validated, 'bright_black': 'invalid'})
+        with self.assertRaises(ValueError):
+            PreferencesStore.validate_section('appearance', {**validated, 'mode': 'invalid'})
 
     def test_dropdown_uses_completion_styles_without_radio_or_border(self):
         from hub.widget.dropdown import DropdownBox, CompletionChoices

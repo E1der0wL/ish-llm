@@ -97,7 +97,7 @@ class ActionBar(DynamicContainer):
     AVAILABLE_WIDTH = None
     LAYOUT_CACHE_SIZE = 4
 
-    def __init__(self, buttons, width, *, bind_navigation=True, equal_width=False):
+    def __init__(self, buttons, width=AVAILABLE_WIDTH, *, bind_navigation=True, equal_width=False):
         self.buttons, self.available_width = buttons, width
         self.equal_width = equal_width
         self.bind_navigation = bind_navigation
@@ -121,13 +121,22 @@ class ActionBar(DynamicContainer):
         return self.shared_width(self.buttons) if self.equal_width else button.width
 
     def rows(self, width=AVAILABLE_WIDTH):
-        width = self.available_width() if width is self.AVAILABLE_WIDTH else width
-        return self._rows(width, self._button_widths())
+        widths = self._button_widths()
+        width = self._preferred_width(widths) if width is self.AVAILABLE_WIDTH else width
+        return self._rows(width, widths)
 
     def _button_widths(self):
         if self.equal_width:
             return (self.shared_width(self.buttons),) * len(self.buttons)
         return tuple(button.width for button in self.buttons)
+
+    def _preferred_width(self, widths):
+        # Before allocation, an unconstrained row needs only its intrinsic
+        # button span. Measurement/painting use the parent's actual width;
+        # callers need not reconstruct a dialog's borders or padding.
+        if self.available_width is not self.AVAILABLE_WIDTH:
+            return self.available_width()
+        return sum(widths) + self.GAP * max(0, len(widths) - 1)
 
     def _rows(self, width, widths):
         rows, row, used = [], [], 0
@@ -140,10 +149,11 @@ class ActionBar(DynamicContainer):
         return [*rows, row] if row else rows
 
     def preferred_width(self, max_available_width):
-        minimum = max(self._button_widths(), default=0)
+        widths = self._button_widths()
+        minimum = max(widths, default=0)
         return Dimension(
             min=min(minimum, max_available_width),
-            preferred=min(self.available_width(), max_available_width),
+            preferred=min(self._preferred_width(widths), max_available_width),
         )
 
     def preferred_height(self, width, max_available_height):
@@ -157,8 +167,8 @@ class ActionBar(DynamicContainer):
         )
 
     def _container(self, width=AVAILABLE_WIDTH):
-        width = self.available_width() if width is self.AVAILABLE_WIDTH else width
         widths = self._button_widths()
+        width = self._preferred_width(widths) if width is self.AVAILABLE_WIDTH else width
         signature = (tuple(self.buttons), widths, self.equal_width)
         if signature != self._layout_signature:
             self._layouts.clear()

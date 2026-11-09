@@ -13,7 +13,6 @@ from ..sidebar import SidebarList, SidebarItem, SidebarHeading
 from ..tab_page import TabPage
 from ..content_inset import ContentInset
 from ..actions import ActionFrame, ActionBar
-from ..dialog import Dialog
 from ..notices import Notice
 from ..captions import Caption
 from .field_layout import FieldLayout
@@ -29,7 +28,6 @@ from ...asset.icon import AuxiliaryIcon
 
 class SettingsEditorLayout:
     SPACE = ' '
-    FRAME_COLUMNS = 3
     PATH_SEPARATOR = '.'
     DESCRIPTION_PREFIX = '- '
     GENERAL = "general"
@@ -45,7 +43,7 @@ class SettingsEditorLayout:
         self.sections = [SidebarItem(self.GENERAL, editor.view.t(MessageKey.SETTINGS_GENERAL))]
         self.body = Window()
         self.pane = SettingsPane(DynamicContainer(lambda: self.body),
-                                 width=lambda: Dimension(min=1, preferred=self.main_width()))
+                                 width=Dimension(min=1, weight=1))
         self.sidebar = SidebarList(lambda: self.sections, lambda: self.selected,
                                    self.select, on_activate=lambda: self.tabs.focus_tabs())
         registry = ShortcutRegistry().attach(self.sidebar)
@@ -57,9 +55,9 @@ class SettingsEditorLayout:
         self.tabs = TabPage([
             (self.CONFIG, editor.view.t(MessageKey.SETTINGS_TAB_CONFIG), self.pane),
             (self.POLICY, editor.view.t(MessageKey.SETTINGS_TAB_POLICY), self.pane),
-        ], width=self.main_width, on_change=lambda _: self.refresh(),
+        ], width=None, on_change=lambda _: self.refresh(),
             on_enter=self.focus_fields, on_leave=self.finish_edit)
-        actions = ActionBar(editor.buttons, self.main_width, equal_width=True)
+        actions = ActionBar(editor.buttons, equal_width=True)
         self.actions = ActionFrame(actions, title=self.action_title)
         self.auxiliary = AuxiliaryBar([
             (AuxiliaryIcon.FILTER.value, lambda: editor.draft_tools.search()),
@@ -86,8 +84,8 @@ class SettingsEditorLayout:
                                editor.view.t(MessageKey.AGENT_CATEGORY)),
                 Window(self.sidebar, style=ThemeSelector.SIDEBAR.style),
             ], width=lambda: Dimension.exact(editor.view.sidebar_width())),
-            main=HSplit([ContentInset(self.tabs, heading=self.page_title, bottom_padding=0),
-                         Window(height=Dialog.CONTENT_PADDING), self.auxiliary,
+            main=HSplit([ContentInset(self.tabs, heading=self.page_title),
+                         self.auxiliary,
                          self.actions], width=Dimension(min=1, weight=1)),
             progress=editor.view.progress, notice=self.status_text, status_surface=editor,
             sidebar_controls=lambda: (self.sidebar,), focus_sidebar=self.focus_sidebar,
@@ -126,11 +124,6 @@ class SettingsEditorLayout:
         registry.add([KeyName.UP, KeyName.DOWN], ShortcutLabel.VERTICAL, ShortcutAction.SELECT, self.move)
         registry.add([KeyName.LEFT], ShortcutLabel.LEFT, ShortcutAction.SIDEBAR,
                      lambda e: self.focus_sidebar())
-
-    def main_width(self):
-        from ..dialog import PopupGeometry, PopupSize
-        return max(1, PopupGeometry.dimensions(PopupSize.LARGE)[0].preferred
-                   - self.editor.view.sidebar_width() - SettingsEditorLayout.FRAME_COLUMNS)
 
     def page_title(self):
         title = next(item.title for item in self.sections if item.key == self.selected)

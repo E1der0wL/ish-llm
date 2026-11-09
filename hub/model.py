@@ -197,6 +197,10 @@ class SessionSummary:
     queued_count: int = 0
     participant_ids: tuple[str, ...] = ()
     participant_groups: tuple = ()
+    latest_run_id: str = ""
+    latest_run_status: str = ""
+    active: bool = False
+    pending_input: bool = False
 
 
 @dataclass(frozen=True, slots=True)

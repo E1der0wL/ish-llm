@@ -165,7 +165,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
     async def test_live_stream_queue_interrupt_hide_and_new_session(self):
         gate = threading.Event()
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, model="test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False, language="ko")
             factory = partial(BackendWorker, backend_factory=partial(controlled_backend, gate=gate))
             app, controller = create_application(config, input=pipe, output=SizedOutput(), worker_factory=factory)
             view = controller.view
@@ -213,7 +213,7 @@ class LiveUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_admission_error_preserves_draft(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
-            config = HubConfig(directory, model="test/model", auto_title=False)
+            config = HubConfig(directory, model="test/model", auto_title=False, language="ko")
             factory = partial(BackendWorker, backend_factory=partial(controlled_backend, gate=threading.Event()))
             app, controller = create_application(config, input=pipe, output=SizedOutput(), worker_factory=factory)
             task = asyncio.create_task(app.run_async(pre_run=lambda: controller.view.show(app)))

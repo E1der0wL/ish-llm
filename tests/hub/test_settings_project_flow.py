@@ -18,7 +18,7 @@ class ProjectSettingsFlowTests(unittest.IsolatedAsyncioTestCase):
     async def test_profile_project_selection_scoped_settings_and_stay_on_save_cancel(self):
         with tempfile.TemporaryDirectory() as directory, create_pipe_input() as pipe:
             output = SizedOutput()
-            app, controller = create_application(HubConfig(directory, auto_title=False), input=pipe, output=output)
+            app, controller = create_application(HubConfig(directory, auto_title=False, language="ko"), input=pipe, output=output)
             view, screen = controller.view, controller.view.settings
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
             try:

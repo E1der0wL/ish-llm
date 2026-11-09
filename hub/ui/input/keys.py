@@ -74,6 +74,7 @@ class KeyName:
 
 
 class ShortcutAction:
+    RECIPIENT = "recipient"
     QUESTIONS = "questions"
     OPEN_DIRECTORY = "open_directory"
     TOOLS_TOGGLE = "tools_toggle"

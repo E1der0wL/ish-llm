@@ -53,7 +53,7 @@ class RestartMetadataTests(unittest.TestCase):
 class RestartUITests(unittest.IsolatedAsyncioTestCase):
     async def test_shortcut_and_header_confirm_before_cleanup(self):
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
-            app, controller = create_application(HubConfig(root, auto_title=False), input=pipe,
+            app, controller = create_application(HubConfig(root, auto_title=False, language="ko"), input=pipe,
                 output=SizedOutput(), worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view = controller.view
             task = asyncio.create_task(app.run_async(pre_run=lambda: view.show(app)))
@@ -136,7 +136,7 @@ class RestartUITests(unittest.IsolatedAsyncioTestCase):
 
     async def test_save_then_escape_retains_saved_values_and_enter_requests_restart(self):
         with tempfile.TemporaryDirectory() as root, create_pipe_input() as pipe:
-            config = HubConfig(root, model="test/model", auto_title=False)
+            config = HubConfig(root, model="test/model", auto_title=False, language="ko")
             app, controller = create_application(config, input=pipe, output=SizedOutput(),
                 worker_factory=partial(BackendWorker, backend_factory=settings_backend))
             view, screen = controller.view, controller.view.settings

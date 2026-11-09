@@ -10,6 +10,19 @@ from .sections import PreferenceSection
 from .workspace import WorkspaceSelection
 from .preference_records import PreferenceRecord, PreferenceSnapshot, SidebarWidth
 from .sidebar_heights import SidebarHeights
+from ..locales import Language
+
+
+def _profile_config(config, stored):
+    """Resolve explicit preferences first, then the OS against all loaded packs."""
+    profile = stored.profile(config.user_profile)
+    general = stored.general()
+    packs = {**config.language_packs, **general.language_packs}
+    language = general.resolved_language(
+        config.language if profile.language == UserProfile.AUTO_LANGUAGE else profile.language
+    )
+    return replace(config, user_profile=profile, language=Language(language, packs).code,
+                   language_packs=packs)
 
 
 def configured_workspace(config):
@@ -33,19 +46,7 @@ def configured_profile(config):
     """Resolve persisted identity/language before constructing any UI labels."""
     config = configured_workspace(config)
     stored = PreferencesStore(config._workspace_anchor).snapshot()
-    profile = stored.profile(config.user_profile)
-    general = stored.general()
-    packs = {**config.language_packs, **general.language_packs}
-    language = general.language
-    if language == GeneralSettings.AUTO_LANGUAGE:
-        language = (
-            config.language
-            if profile.language == UserProfile.AUTO_LANGUAGE
-            else profile.language
-        )
-    return replace(
-        config, user_profile=profile, language=language, language_packs=packs
-    )
+    return _profile_config(config, stored)
 
 
 def prepare_profile(config):
@@ -61,13 +62,7 @@ def prepare_profile(config):
         try:
             selected = workspace_path(stored.workspace_selection)
             effective = replace(config, workspace=selected or anchor, _workspace_anchor=anchor)
-            profile = stored.profile(config.user_profile)
-            general = stored.general()
-            language = general.resolved_language(config.language)
-            if general.language == GeneralSettings.AUTO_LANGUAGE and profile.language != UserProfile.AUTO_LANGUAGE:
-                language = profile.language
-            effective = replace(effective, user_profile=profile, language=language,
-                                language_packs={**config.language_packs, **general.language_packs})
+            effective = _profile_config(effective, stored)
         except (ValueError, TypeError, RuntimeError) as error:
             from .recovery import FileReset
             raise StartupLoadError(error, store.path, reset=FileReset.capture(store)) from error
@@ -76,7 +71,8 @@ def prepare_profile(config):
         # These defaults render only the recovery UI; no backend or Project is
         # opened and nothing is saved until the user explicitly retries/resets.
         issue = StartupFailure.observe(error, MessageKey.PROGRESS_BACKEND_PREFERENCES, store.path)
-        fallback = replace(config, workspace=anchor, _workspace_anchor=anchor)
+        fallback = replace(config, workspace=anchor, _workspace_anchor=anchor,
+                           language=Language(config.language, config.language_packs).code)
         return fallback, PreferenceSnapshot({}), issue
 
 

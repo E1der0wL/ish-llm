@@ -145,7 +145,7 @@ class ManagerChromeTests(unittest.IsolatedAsyncioTestCase):
     async def test_component_manager_medium_actions_and_bottom_status(self):
         from hub.ui.view import HubView
         from hub.widget.forms.definition_manager import DefinitionManager, DefinitionEditor
-        view = HubView()
+        view = HubView(language="ko")
         manager = DefinitionManager(view, Mock(), name='agents', edit_text=None)
         app = Application(layout=Layout(manager), input=DummyInput(), output=SizedOutput())
         with set_app(app):

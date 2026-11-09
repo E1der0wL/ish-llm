@@ -22,7 +22,7 @@ def section(title, *, actions=None, drag_handler=None, hover_rule=False):
     heading = Heading(title)
     rule = Window(height=RULE_HEIGHT, char=RULE, style=ThemeSelector.DIVIDER.style)
     if hover_rule:
-        hover_style(rule)
+        hover_style(rule, sources=(heading.window,))
     if drag_handler is not None:
         heading.window.drag_handler = rule.drag_handler = drag_handler
     return HSplit(

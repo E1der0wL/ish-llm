@@ -248,11 +248,11 @@ def window_scroll(window):
     return binding
 
 
-def hover_style(window):
+def hover_style(window, *, sources=()):
     original = window.style
     window.style = lambda: (original() if callable(original) else original) + (
         ThemeStyle.MODIFIER_SEPARATOR + ThemeSelector.MOUSE_HOVER.style
-        if MouseBinding.hovered(window)
+        if any(MouseBinding.hovered(item) for item in (window, *sources))
         else MouseController.NO_STYLE
     )
 
@@ -307,6 +307,7 @@ class MouseController:
         self.hovered = self.ABSENT
         self.drag = self.ABSENT
         self._cancelled_drag = self.INACTIVE
+        self._dismissed_click = self.INACTIVE
 
     def attach(self, app):
         if self.app is app:
@@ -334,6 +335,7 @@ class MouseController:
         self.app, self.drag = self.ABSENT, self.ABSENT
         self._cancelled_drag = self.INACTIVE
         self.windows, self.panes = [], []
+        self._dismissed_click = self.INACTIVE
         self.regions = []
         self._pane_layers = {}
 
@@ -537,6 +539,14 @@ class MouseController:
     def dispatch(self, event, native):
         if not self.view.visible:
             return native(event)
+        if self._dismissed_click:
+            if event.event_type == M.MOUSE_UP:
+                self._dismissed_click = self.INACTIVE
+                return MouseResult.HANDLED
+            if event.event_type == M.MOUSE_DOWN:
+                self._dismissed_click = self.INACTIVE
+            else:
+                return MouseResult.HANDLED
         if self._cancelled_drag:
             if event.event_type == M.MOUSE_UP:
                 self._cancelled_drag = self.INACTIVE
@@ -572,6 +582,10 @@ class MouseController:
             leave = MouseBinding.click_away(pressed_control)
             if leave is not self.ABSENT:
                 leave()
+                # Consume the release too: clicking the anchor must not reopen
+                # the menu, and dismissal must not execute an underlying action.
+                self._dismissed_click = self.ACTIVE
+                return MouseResult.HANDLED
         modal = self._scope()
         if event.event_type == M.MOUSE_DOWN and event.button == MouseButton.LEFT:
             for region, area in reversed(self.regions):
@@ -648,6 +662,7 @@ class MouseController:
             elif (not bar and window is not self.ABSENT
                   and window.content.is_focusable() and event.event_type == M.MOUSE_MOVE
                   and event.button == MouseButton.NONE
+                  and MouseBinding.click_away(pressed_control) is self.ABSENT
                   and self.app.layout.current_control is not window.content):
                 focus = MouseBinding.hover_focus(window)
                 if focus is not self.ABSENT:

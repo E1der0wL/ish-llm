@@ -102,7 +102,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
             yield {'choices':[{'index':0, 'delta':{'reasoning_content':'Visible provider reasoning'},
                                'finish_reason':'stop'}]}
         with tempfile.TemporaryDirectory() as root:
-            config = HubConfig(root, model='test/empty', auto_title=False,
+            config = HubConfig(root, model='test/empty', auto_title=False, language='ko',
                 project_config={'parameters':{'engines':{'loop':{'policy':{'final_review':None}}}}},
                 engine_factories={'loop':lambda: LoopEngine(
                     completion_adapter=LiteLLMCompletionAdapter(completion_fn=model))})
@@ -182,7 +182,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
             return LargeLanguageModel(config.workspace, components=[ToolComponent()],
                 engines={'loop': LoopEngine(completion_adapter=LiteLLMCompletionAdapter(completion_fn=completion))})
         with tempfile.TemporaryDirectory() as directory:
-            runtime = HubRuntime(HubConfig(directory, auto_title=False, agent_definition={
+            runtime = HubRuntime(HubConfig(directory, auto_title=False, language='ko', agent_definition={
                 'engine': 'loop', 'completion': {'model': 'test/model'},
                 'metadata': {'title': '코딩 도우미'},
             }), factory)
@@ -235,7 +235,7 @@ class CompletionDisplayTests(unittest.IsolatedAsyncioTestCase):
 
     def test_phase_only_refresh_updates_header_without_rendering_body_again(self):
         message = ChatMessage('assistant', '', status='streaming', id='a', phase='preparing')
-        control = ConversationControl((message,), HubTheme())
+        control = ConversationControl((message,), HubTheme(), Language('ko'))
         try:
             control.create_content(80, 20)
             body_renders = control._message_cache.body_renders

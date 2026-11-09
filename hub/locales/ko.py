@@ -5,6 +5,11 @@ from hub.locales.keys import MessageKey
 
 
 MESSAGES = {
+    MessageKey.SESSION_LIST_IDLE: '유휴',
+    MessageKey.SESSION_LIST_RUNNING: '실행 중',
+    MessageKey.SESSION_LIST_INPUT_REQUIRED: '입력필요',
+    MessageKey.SESSION_LIST_COMPLETED: '완료',
+    MessageKey.SHORTCUT_RECIPIENT: '수신 대상',
     MessageKey.STARTUP_FAILURE: 'Hub 시작 실패',
     MessageKey.STARTUP_LOADING: 'HUB 로딩',
     MessageKey.STARTUP_PROGRESS: '{stage} • {percent}',
@@ -811,7 +816,10 @@ MESSAGES = {
 
     MessageKey.GENERAL_CATEGORY_EDITOR: "외부 편집기",
 
-    MessageKey.GENERAL_LANGUAGE: "사용할 언어 코드: ko, en 또는 추가한 팩 코드. 비우면 기존 프로필·시작 언어 사용. 다음 Hub 시작부터 적용.",
+    MessageKey.GENERAL_LANGUAGE: "언어를 선택하세요. 자동 감지는 프로필·시작 설정을 따르고, 모두 미지정이면 OS 언어를 사용합니다. 지원하는 팩이 없으면 영어. 저장 후 Hub 재시작 시 적용.",
+    MessageKey.LANGUAGE_AUTOMATIC: "자동 감지",
+    MessageKey.LANGUAGE_KOREAN: "한국어 (ko)",
+    MessageKey.LANGUAGE_ENGLISH: "English (en)",
 
     MessageKey.GENERAL_NOTIFICATION_KINDS: '표시할 팝업 알림 종류를 JSON 배열로 입력하세요. 예: ["error", "warning"]. error는 오류, warning은 주의, info는 안내, success는 완료입니다. []는 팝업만 끄며 작업·로그 기록은 유지됩니다.',
 
@@ -839,7 +847,7 @@ MESSAGES = {
 
     MessageKey.LANGUAGE_PACK_DRAFT: "언어 팩 초안을 변경했습니다. 일반 설정의 저장 버튼으로 확정하세요.",
 
-    MessageKey.SETTINGS_LANGUAGE_DESCRIPTION: "UI 언어: ko(한국어), en(English). 비우면 시작 설정 사용. 다음 Hub 시작부터 적용됩니다.",
+    MessageKey.SETTINGS_LANGUAGE_DESCRIPTION: "UI 언어: ko(한국어), en(English). 비우면 시작 설정, OS 언어, 영어 순으로 선택합니다. 다음 Hub 시작부터 적용됩니다.",
 
     MessageKey.SETTINGS_EMAIL_DESCRIPTION: "프로필 이메일 주소(선택).",
 
@@ -885,6 +893,11 @@ MESSAGES = {
     MessageKey.SETTINGS_THEME_NORMAL: "기본 색상",
     MessageKey.SETTINGS_THEME_BRIGHT: "밝은 색상",
     MessageKey.SETTINGS_THEME_DISPLAY: "표시",
+    MessageKey.SETTINGS_THEME_MODE: "위젯 테마",
+    MessageKey.SETTINGS_THEME_MODE_HELP: "색이 있는 위젯의 전경·배경을 선택합니다. 자동 감지는 터미널의 COLORFGBG 정보를 사용하며, 없으면 다크를 적용합니다. 전역 전경색·배경색은 그대로 유지합니다.",
+    MessageKey.SETTINGS_THEME_MODE_AUTO: "자동 감지",
+    MessageKey.SETTINGS_THEME_MODE_DARK: "다크",
+    MessageKey.SETTINGS_THEME_MODE_LIGHT: "라이트",
     MessageKey.SETTINGS_SIDEBAR_WIDTH_TITLE: "좌측 패널 너비",
     MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL: "출력창 갱신 간격 (초)",
     MessageKey.SETTINGS_OUTPUT_REFRESH_INTERVAL_DESCRIPTION: "변경 신호를 모아 출력하는 최소 간격으로 최대 갱신 빈도를 제한합니다. 기본 0.1초는 최대 초당 10회입니다. 변경이 없으면 스트리밍 조회를 반복하지 않습니다. 0.01~10초, 저장 즉시 적용하며 요청 접수와 키 입력은 지연시키지 않습니다.",
